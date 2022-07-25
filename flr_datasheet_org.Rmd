@@ -1,0 +1,282 @@
+---
+title: "data_org"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Packages:
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+```
+
+
+**NOTE:** This code was used to organize flowering/germination data sheets early in the 2022 field season. These sheets were revised again and the versions created below were never used. Paths have been updated to indicate that much of these files are old versions.  
+
+#### Update Bodega Bay Data Sheet  
+
+Data sheet should have one row (section) per plant, plus multiple columns to record flowering date.
+
+
+```{r}
+#Load original germination and flowering date sheet
+# - Some data present already
+
+BB_germflow_old <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Bodega Bay - Data Sheets _03-03-2022_germflow.csv")) %>% 
+  rename(Block = 'Block (1-3)', Location = 'Location (1-156)', Seq = 'Seq (1-441)', Stage = 'mm/dd') %>% 
+  select(-c('...16', 'Notes 12/12', 'Notes 12/19-20', 'Notes 12/30')) %>% 
+  filter(!Stage == "Germ Date") %>%  #Remove germination date rows
+  slice(-c(442,443)) #Remove last two rows that had notes
+
+
+#Pivot/expand to create rows for all 8 plants
+
+BB_flowdate_1 <- BB_germflow_old %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA)
+
+##Add in watered points
+
+BB_gf_watered <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "BB_watered_Germ_Flower Dates_3-04-2022.csv")) %>% 
+  rename(Seq = 'Seq (1-42)', Stage = 'Date (mm/dd)') %>% 
+  select(-c('Notes 12/12', 'Notes 12/19-20', 'Notes 12/30', Seq)) %>% 
+  filter(!Stage == "Germ")
+
+BB_gf_watered$Stage <- "Flow Date"
+
+BB_watered_piv <- BB_gf_watered %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA, Seq = NA)
+
+
+BB_pivlong_all <- rbind(BB_flowdate_1, BB_watered_piv) %>% arrange(Location)
+
+
+#Modify to make rows for plants 1-4; 5-8
+#Simplest method seems to be splitting this into two data frames and then pasting them together
+
+BB_pivlong_14 <- BB_pivlong_all %>% 
+  filter(Plant_ID %in% c(1:4))
+
+BB_pivlong_58 <- BB_pivlong_all %>% 
+  filter(Plant_ID %in% c(5:8)) %>% 
+  select(-Block, -Seq, -Co., -Donor_ID, -Stage) %>% #Remove necessary repeated columns (retain Location & ID)
+  mutate(flr_P = NA) #Column to indicate if corolla photo taken
+
+
+#cbind by Location and Recipient_ID, keep all = T
+BB_pivlong_split <- cbind(BB_pivlong_14, BB_pivlong_58) 
+
+#write_csv(BB_pivlong_split, here::here("data_sheets", "blank_flowercheck_sheets", "BB_flowercheck_2022_03_08.csv"), na = "")
+
+```
+
+
+##### Update Hastings  
+
+
+```{r}
+
+HR_germflow_old <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Hastings Ranch- Germination Monitoring Data Sheets 2021_12_06.csv")) %>% 
+  rename(Block = 'Block (1-3)', Transect = 'Transect (1-12)', Seq = 'Sequence (1-396)', Donor = "Pollen Donor ID", Recipient = "Maternal Sibship", Stage = 'mm/dd') %>% 
+  select(-c('9', '10', 'Notes 12/6', 'Notes 12/17', 'Oak leaves removed when ontop of seedlings', Block, Seq)) %>% 
+  filter(!Stage == "Germ Date") %>%   #Remove germination date rows
+  mutate('1' = NA, '2' = NA, '3' = NA, '4' = NA, '5' = NA, '6' = NA, '7' = NA, '8' = NA)
+
+
+HR_flowdate_1 <- HR_germflow_old %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA)
+
+
+##Add in watered points
+
+HR_gf_watered <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Germ_Flower Dates_watered_2021-03-06_HR.csv")) %>% 
+  rename(Seq = 'Seq (1-42)', Stage = 'Date (mm/dd)') %>% 
+  select(-c(Seq)) %>% 
+  filter(!Stage == "Germ")
+
+HR_gf_watered$Stage <- "Flow Date"
+
+HR_watered_piv <- HR_gf_watered %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date, Donor = Donor_ID, Recipient = Recipient_ID) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA, Seq = NA) %>% 
+  select(-c(Seq, Co.))
+
+
+HR_pivlong_all <- rbind(HR_flowdate_1, HR_watered_piv) %>% arrange(Transect)
+
+
+#Modify to make rows for plants 1-4; 5-8
+HR_pivlong_14 <- HR_pivlong_all %>% 
+  filter(Plant_ID %in% c(1:4))
+
+HR_pivlong_58 <- HR_pivlong_all %>% 
+  filter(Plant_ID %in% c(5:8)) %>% 
+  select(-Donor, -Stage) %>% #Remove necessary repeated columns (retain Location & ID)
+  mutate(flr_P = NA) #Column to indicate if corolla photo taken
+
+
+HR_pivlong_split <- cbind(HR_pivlong_14, HR_pivlong_58) 
+#Cannot manipulate further since columns are duplicated
+
+#write_csv(HR_pivlong_split, here::here("data_sheets", "blank_flowercheck_sheets", "HR_flowercheck_2022_03_14.csv"), na = "")
+
+```
+
+
+
+##### Update Blue Oak  
+
+```{r}
+
+BO_germflow_old <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Blue Oak- Data Sheets 2021-12-21_Germ and Flow Dates.csv")) %>% 
+  rename(Block = 'Block (1-3)', Transect = 'Transect (1-12)', Seq = 'Sequence (1-396)', Donor = "Pollen Donor ID", Recipient = "Maternal Sibship", Stage = 'mm/dd') %>% 
+  select(-c(Block, Seq)) %>% 
+  filter(!Stage == "Germ Date") %>%   #Remove germination date rows
+  mutate('1' = NA, '2' = NA, '3' = NA, '4' = NA, '5' = NA, '6' = NA, '7' = NA, '8' = NA)
+
+
+BO_flowdate_1 <- BO_germflow_old %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA) %>% arrange(Transect)
+
+
+##Add in watered points
+
+BO_gf_watered <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Germ_Flower Dates_watered_2021-03-06_BO.csv")) %>% 
+  rename(Seq = 'Seq (1-42)', Stage = 'Date (mm/dd)') %>% 
+  select(-c(Seq)) %>% 
+  filter(!Stage == "Germ")
+
+BO_gf_watered$Stage <- "Flow Date"
+
+BO_watered_piv <- BO_gf_watered %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date, Donor = Donor_ID, Recipient = Recipient_ID) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA, Seq = NA) %>% 
+  select(-c(Seq, Co.))
+
+
+BO_pivlong_all <- rbind(BO_flowdate_1, BO_watered_piv) %>% arrange(Transect)
+
+
+#Modify to make rows for plants 1-4; 5-8
+BO_pivlong_14 <- BO_pivlong_all %>% 
+  filter(Plant_ID %in% c(1:4))
+
+BO_pivlong_58 <- BO_pivlong_all %>% 
+  filter(Plant_ID %in% c(5:8)) %>% 
+  select(-Donor, -Stage) %>% #Remove necessary repeated columns (retain Location & ID)
+  mutate(flr_P = NA) #Column to indicate if corolla photo taken
+
+
+BO_pivlong_split <- cbind(BO_pivlong_14, BO_pivlong_58) 
+#Cannot manipulate further since columns are duplicated
+
+#write_csv(BO_pivlong_split, here::here("data_sheets", "blank_flowercheck_sheets", "BO_flowercheck_2022_03_14.csv"), na = "")
+
+
+
+
+```
+
+
+
+##### Update Angelo Coast 
+
+```{r}
+
+AC_germflow_old <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Angelo Coast - Data Sheets 2021-10-31_Germ and Flow Dates.csv")) %>% 
+  rename(Block = 'Block (1-3)', Transect = 'Transect (1-9)', Seq = 'Sequence (1-321)', Donor = "Pollen Donor ID", Recipient = "Maternal Sibship", Stage = 'mm/dd') %>% 
+  select(-c(Block, Seq)) %>% 
+  filter(!Stage == "Germ Date") %>%   #Remove germination date rows
+  mutate('1' = NA, '2' = NA, '3' = NA, '4' = NA, '5' = NA, '6' = NA, '7' = NA, '8' = NA, '9' = NA, '10' = NA)
+
+
+AC_flowdate_1 <- AC_germflow_old %>% 
+  pivot_longer(cols = c('1':'10'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA) %>% arrange(Transect)
+
+
+AC_pivlong_all1 <- AC_flowdate_1 %>% arrange(Transect)
+
+
+#Modify to make rows for plants 1-5; 6-10
+AC_pivlong_15 <- AC_pivlong_all1 %>% 
+  filter(Plant_ID %in% c(1:5))
+
+AC_pivlong_610 <- AC_pivlong_all1 %>% 
+  filter(Plant_ID %in% c(6:10)) %>% 
+  select(-Donor, -Stage) %>% #Remove necessary repeated columns (retain Location & ID)
+  mutate(flr_P = NA) #Column to indicate if corolla photo taken
+
+
+##Add in watered points
+
+AC_gf_watered <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Germ_Flower Dates_watered_2021-03-06_AC.csv")) %>% 
+  rename(Seq = 'Seq (1-42)', Stage = 'Date (mm/dd)') %>% 
+  select(-c(Seq)) %>% 
+  filter(!Stage == "Germ")
+
+AC_gf_watered$Stage <- "Flow Date"
+
+AC_watered_piv <- AC_gf_watered %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'flow_date') %>% 
+  rename(date_1 = flow_date, Donor = Donor_ID, Recipient = Recipient_ID) %>% 
+  mutate(date_2 = NA, date_3 = NA, date_4 = NA, date_5 = NA, Seq = NA) %>% 
+  select(-c(Seq, Co.))
+
+
+AC_pivlong_14w <- AC_watered_piv %>% 
+  filter(Plant_ID %in% c(1:4))
+
+AC_pivlong_58w <- AC_watered_piv %>% 
+  filter(Plant_ID %in% c(5:8)) %>% 
+  select(-Donor, -Stage) %>% #Remove necessary repeated columns (retain Location & ID)
+  mutate(flr_P = NA) 
+
+
+
+AC_pivlong_split1 <- cbind(AC_pivlong_15, AC_pivlong_610) 
+#Cannot manipulate further since columns are duplicated
+
+AC_pivlong_split2 <- cbind(AC_pivlong_14w, AC_pivlong_58w) 
+
+AC_pivlong_split3 <- rbind(AC_pivlong_split1, AC_pivlong_split2)
+
+#write_csv(AC_pivlong_split3, here::here("data_sheets", "blank_flowercheck_sheets", "AC_flowercheck_2022_03_15.csv"), na = "")
+
+
+```
+
+
+
+
+

@@ -1,0 +1,327 @@
+---
+title: "Compile FLower, Fruit, and Seed count data sheets - Fitness plants"
+output: html_notebook
+author: Devin Gamble
+---
+
+
+```{r message = FALSE, warning = FALSE}
+#Load Packages
+library(tidyverse)
+library(janitor)
+library(here)
+library(lubridate)
+library(reshape2)
+library(stringr)
+```
+
+
+
+## Load and Clean Data   
+
+NOTE: All date data should be standardized prior to importing into R. In Excel, set format to YYYY-MM-DD for consistency. Unfortunately, this process in Excel will autopopulate the year (when not already present) based on system settings. For germination data, this means that the year should be corrected to 2021!!
+
+
+**Germination Data**  
+- Add 'Date Sown' column and data in as well.
+
+
+<<AC>>  
+-NOTE: for AC, plant number must be FLIPPED (i.e., plants 1,2,3,4,5,6,7,8,9,10 become plants 10,9,8,7,6,5,4,3,2,1, respectively)  
+```{r message = FALSE}
+#Load csv
+
+#Skip first nonsense row (the second row is the header)
+AC_germ_df1 <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "AC_germ_data.csv"), skip = 1) %>%
+  rename(Block = 'Block (1-3)', Transect = 'Transect (1-9)', Sequence = 'Sequence (1-321)', Donor = "Pollen Donor ID", Recipient = "Maternal Sibship", Stage = 'mm/dd') %>% 
+  filter(!Stage == "Flow Date")   #Remove empty flowering date rows
+
+
+#
+#Reshape data sheet to 'long' format
+AC_germ_df2 <- AC_germ_df1 %>% 
+  pivot_longer(cols = c('1':'10'),
+               names_to = 'Plant_ID',
+               values_to = 'Germ_Date') 
+
+
+#
+##Fix typos in date values
+##MAJOR TYPO: Excel auto-populated year as 2022 when in fact the year should be 2021!
+unique(AC_germ_df2$Germ_Date)
+
+AC_germ_df3 <- AC_germ_df2 %>% 
+  mutate(Germ_Date = replace(Germ_Date, Germ_Date %in% c("Dead 12/5, plug missing", "disturbed by animal (deer)", "? disturbed by animal (deer)"), NA)) %>% #specify values to assign 'NA' first to avoid mismatching text ("disturbed") present in valid dates
+mutate(
+  Germ_Date = case_when(
+    Germ_Date %in% c("2022-12-05", "12/5, ? plug buried", "12/5/2021, ?", "12/5/2021, disturbed by animal (deer)") ~ "2021-12-05",
+    Germ_Date %in% c("2022-11-03", "11/3/2021, disturbed by animal (deer)", "11/3 (n=2, n=1 on 12/5)") ~ "2021-11-03")) 
+
+#check again
+unique(AC_germ_df3$Germ_Date)
+#Use sum(is.na(AC_germ_df2$Date)) to compare change in number of NA values
+
+
+#
+#Adjust Donor and Recipient names for easy sorting - three digits (leading zeros)
+#Specify Germ_Date as 'date' class variable
+AC_germ_df4 <- AC_germ_df3 %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor)))) %>% 
+  mutate(Donor = as.character(str_c("AC_", Donor_num))) %>%
+  mutate(Germ_Date = as_date(Germ_Date)) %>% #set variable to class = date
+  select(Block, Transect, Sequence, Donor, Donor_num, Recipient, Recipient_num, Plant_ID, everything()) %>% 
+  select(-c(Stage, Donor_num, Recipient_num))
+
+
+#
+##Add in Sow Date  
+AC_germ_df5 <- AC_germ_df4 %>% 
+  mutate(Sow_Date = as_date("2021-11-04"))
+#Some plugs may have been sown on November 5, 2022 (information on which transects not recorded)
+
+
+#
+## Flip Plant numbers
+## (AC germination data only) - the orientation in which plants were identified and checked for flowering was reversed
+AC_germ_df6 <- AC_germ_df5 %>% 
+  mutate(Plant_ID = as.numeric(case_when(
+    Plant_ID == "1" ~ "10",
+    Plant_ID == "2" ~ "9",
+    Plant_ID == "3" ~ "8",
+    Plant_ID == "4" ~ "7",
+    Plant_ID == "5" ~ "6",
+    Plant_ID == "6" ~ "5",
+    Plant_ID == "7" ~ "4",
+    Plant_ID == "8" ~ "3",
+    Plant_ID == "9" ~ "2",
+    Plant_ID == "10" ~ "1"))) %>% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
+
+```
+
+
+Add in watered transect germination data
+```{r message = FALSE}
+#AC
+## Add in watered transects
+## *Note*: Only 8 seeds sown in these segments instead of 10!
+AC_germ_W1 <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "watered_AC_germ.csv"), skip = 1) %>%
+  rename(Sequence = 'Seq (1-42)', Donor = "Donor_ID", Recipient = "Recipient_ID", Stage = 'Date (mm/dd)') %>% 
+  filter(!Stage == "Flow") %>%    #Remove empty flowering date rows
+  mutate(`2` = as_date(`2`), `5` = as_date(`5`), `8` = as_date(`8`)) #these columns not recognized as dates during read-in. These must all be the same class since they'll be reshaped below.
+  
+#
+#Reshape data sheet to 'long' format
+AC_germ_W2 <- AC_germ_W1 %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'Germ_Date') 
+
+#
+##Fix typos in date values
+##MAJOR TYPO: Excel auto-populated year as 2022 when in fact the year should be 2021!
+unique(AC_germ_W2$Germ_Date) #no typos here
+
+AC_germ_W3 <- AC_germ_W2 %>% 
+  mutate(Germ_Date = case_when(
+    Germ_Date == "2022-12-05" ~ "2021-12-05",
+    Germ_Date == "2022-11-03" ~ "2021-11-03"))
+
+
+#
+#Adjust Donor and Recipient names for easy sorting - three digits (leading zeros)
+#Specify Germ_Date as 'date' class variable
+AC_germ_W4 <- AC_germ_W3 %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor)))) %>% 
+  mutate(Donor = as.character(str_c("AC_", Donor_num))) %>%
+  mutate(Germ_Date = as_date(Germ_Date)) %>% #set variable to class = date
+  mutate(Plant_ID = as.numeric(Plant_ID)) %>% #set Plant ID to numeric for sorting purposes
+  select(-c(Stage, Co., Donor_num, Recipient_num))
+
+
+#
+##Add in Sow Date & Update Sequence number & add block ('W')
+AC_germ_W5 <- AC_germ_W4 %>% 
+  mutate(Sow_Date = as_date("2021-11-04")) %>% 
+  mutate(Sequence = (Sequence + 321)) %>% 
+  mutate(Block = "W") %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Plant_ID, everything()) %>% 
+  arrange(Transect, Sequence, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
+
+
+#
+## Flipping Plant numbers not required for watering transects - plugs planted top-to-bottom for ID 1 through 8
+
+
+#
+#
+## Combine watered and main experiment germination data
+
+AC_germ_full <- rbind(AC_germ_df6, AC_germ_W5)
+
+write_csv(AC_germ_full, here::here("data_sheets", "compiled_sheets", "AC_germination_full_2021-2022.csv"))
+
+```
+
+
+
+
+**Flower Check sheets**  
+-- Organize flowering data
+-- Do not trust the fitness plant data in the flowering check data sheets (add in later).  
+
+*Important Step!!*  
+In the csv file, select all data with dates (visit dates, leaf sampling, and flower photos). Right click --> format cells. Select the date category --> YYYY-MM-DD. Save the csv and close it. This will standardize all dates to the same format and make working with them in R much easier!  
+
+
+
+```{r}
+##AC##
+
+ACflr_df <- read_csv(file = here::here( "data_sheets", "season_end_flowerchecks_2022",  "AC_flowercheck_2022_06_28.csv"), na = c("", "NA"))
+##Ignore 'F' plants - more up-to-date fitness plant data is matched in below 
+
+#split groups
+f1_AClong <- ACflr_df[c(1:15)] # Group 1: plants 1-4
+f2_AClong <- ACflr_df[c(1, 16:29)] # Group 2: plants 5-8
+
+#Revise names
+colnames(f1_AClong) <- c("Transect", "Recipient", "Plant_ID", "F.", "Fl_4.9", "Fl_4.21", "Fl_5.3", "Fl_5.13", "Fl_5.25", "Fl_6.8", "Fl_6.22", "D", "D1", "LEAF", "flr_P")
+colnames(f2_AClong) <- c("Transect", "Recipient", "Plant_ID", "F.", "Fl_4.9", "Fl_4.21", "Fl_5.3", "Fl_5.13", "Fl_5.25", "Fl_6.8", "Fl_6.22", "D", "D1", "LEAF", "flr_P")
+
+#rbind, tidy up and remove unnecessary columns
+f_AClong <- rbind(f1_AClong, f2_AClong) %>% arrange(Transect, Recipient, Plant_ID) %>% select(-c(F., D, D1)) %>% remove_empty("rows") #sort by transect, then Recipient, then Plant ID
+
+
+#Format recipient IDs for easier sorting - three digits (includes leading zeros)
+f_AClong_2 <- f_AClong %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
+  select(Transect, Recipient, Recipient_num, Plant_ID, everything()) %>% 
+  select(-Recipient_num)
+
+
+#Old - LK
+####f_AClongTEST <- f_AClong[complete.cases(f_AClong[ , 5]), ] #This removes plants that didn't flower on 4/9, but also plants that may have flowered later
+
+##f_AClong$ff_date <- with(f_AClong, coalesce(X4.9, X04.21, X5.3, X5.13, X5.25, X6.8, x6.22))
+##write.csv(f_AClong, "cAC_07142022.csv" )
+
+```
+
+
+Combine Germination and Flowering data frames
+```{r}
+#Merge by Recipient, Transect, and Plant ID
+AC_GermFlow_1 <- left_join(AC_germ_full, f_AClong_2, by = c("Recipient", "Transect", "Plant_ID"))
+
+```
+
+
+<br>  
+
+
+#### Fitness Plant data  
+- Indicate which plants were fitness plants
+- Replicated? Indicate which maternal families were present in the main and watering experiment  
+
+```{r message = FALSE}
+AC_Fplants <- read_csv(here::here("data_sheets", "fitness_plants_7-21-2022", "AC_F_plants.csv"), col_types = cols(`ALL Fitness Plants` = col_character())) %>% #retain commas for column with multiple fitness plants
+  rename(F_plant = `SINGLE Fitness Plant`, F_multi = `ALL Fitness Plants`, F_plant_notes = NOTES) %>% 
+  select(Transect:F_plant_notes)
+
+#Adjust Recipient names to match three-digit format
+AC_Fplants2 <- AC_Fplants %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
+  select(-Recipient_num) %>% 
+  mutate(Replicated = case_when(Replicated == "R" ~ "R",
+                                is.na(Replicated) ~ "n")) #change NAs to 'n' (no) for non-rep'd Recipient IDs
+
+```
+
+
+Index fitness plants & Replicated (y/n) in germination and flowering data
+```{r eval = FALSE}
+# Merge the two dataframes - F plant data will be repeated x10 
+# Create new row (Plant ID) specific variables for main and replicated fitness plants
+AC_GermFlow_2 <- merge(AC_GermFlow_1, AC_Fplants2) %>% 
+  mutate(FitP = case_when(F_plant == Plant_ID ~ TRUE,
+                           F_plant != Plant_ID ~ FALSE)) %>% 
+  mutate(Rep_FitP = case_when(Replicated == "R" & Plant_ID == str_match(F_multi, as.character(Plant_ID)) ~ TRUE,
+                              TRUE ~ FALSE)) #if else, set value to FALSE
+
+#Tidy up
+AC_GermFlow_3 <- AC_GermFlow_2 %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, everything()) %>% 
+  arrange(Transect, Sequence, Recipient, Plant_ID)
+
+
+```
+
+
+
+**Fruit and Seed counts**  
+
+Date added:
+
+
+<br>  
+
+
+## Phenology Calculating  
+
+
+#### Germination Dates  
+
+
+#### Flowering
+
+
+
+
+## Filtering 
+
+Save new csv for each filter constraint  
+
+
+#### Fitness Plants Only
+*** This is a priority  
+
+
+
+**Single Fitness Plants**  
+For the main experiment  
+
+
+#### Only Plants that Flowered
+
+
+**Multiple Fitness Plants**  
+For the watered and replicated segments - my experiment
+- Match only replicated families in the watered and unwatered treatments
+
+
+
+
+
+#### Fitness Estimates
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

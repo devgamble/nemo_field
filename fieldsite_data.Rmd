@@ -1,0 +1,63 @@
+---
+title: "Field_site_climate"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Packages:
+
+```{r}
+library(tidyverse)
+library(elevatr)
+library(janitor)
+library(here)
+```
+
+
+Data frame with site locations and elevation:
+**(Following code is set to eval = FALSE; can skip to line 53 where climate data is loaded)**  
+
+```{r eval = FALSE}
+sitedata <- as.data.frame(tibble(site = c("AC", "BB", "BO", "HR"), long_d = c(-123.6527, -123.0718, -121.7367, -121.5629), lat_d = c(39.7184, 38.3186, 37.3819, 36.3792), elev_m = c(NA, NA, NA, NA)))
+
+sitedata_e <- sitedata
+
+#Obtain elevation data with elevatr
+prj_dd <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" #Define parameters for get_elev_point()
+
+sitedata_e$elev_m <- get_elev_point(sitedata[,2:3], prj = prj_dd, src = "epqs")$elevation #store only elev, function creates new df...
+
+sitedata_f <- sitedata %>% 
+  mutate(elev_m = sitedata_e[[4]]) 
+
+```
+
+
+Standardize csv file for ClimateNA input
+```{r}
+sitedata_CNA_s <- sitedata_f %>% 
+  mutate(ID2 = c(NA, NA, NA, NA)) %>% 
+  select(site, ID2, lat_d, long_d, elev_m) %>% 
+  rename(ID1 = site, lat = lat_d, long = long_d, el = elev_m)
+
+write_csv(sitedata_CNA_s, here::here("climate_data", "site_CNA_s.csv"), na = "")
+```
+
+**Manually clear contents of rows below data in written csv!!!**  
+
+
+Add in extracted ClimateNA data
+```{r message = FALSE}
+
+sites_CNA_51to80Y <- read_csv(here::here("climate_data", "site_CNA_Normal_1951_1980Y.csv"), na = c("-9999", "-9999.0"))
+
+sites_CNA_81to10MSY <- read_csv(here::here("climate_data", "site_CNA_Normal_1981_2010MSY.csv"), na = c("-9999", "-9999.0"))
+
+```
+
+
+
+
