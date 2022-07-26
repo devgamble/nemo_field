@@ -1,0 +1,42 @@
+---
+title: "Exploratory Data Analyses"
+author: "Devin Gamble"
+date: "2022-07-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Exploratory Data Analyses  
+
+Phenotypic Trait and Fitness data from the 2021-2022 Nemophila Field Experiment  
+
+```{r message = FALSE, warning = FALSE}
+#Load Packages
+library(tidyverse)
+library(janitor)
+library(here)
+library(lubridate)
+library(reshape2)
+
+```
+
+####  Summaries & Distributions  
+
+
+
+#### Descriptive Stats  
+
+
+
+#### Relationships between potential fitness measures  
+
+
+
+
+
+
+

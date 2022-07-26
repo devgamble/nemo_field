@@ -161,7 +161,6 @@ AC_germ_W5 <- AC_germ_W4 %>%
 
 
 #
-#
 ## Combine watered and main experiment germination data
 
 AC_germ_full <- rbind(AC_germ_df6, AC_germ_W5)
@@ -220,7 +219,8 @@ f_AClong_2 <- f_AClong %>%
 Combine Germination and Flowering data frames
 ```{r}
 #Merge by Recipient, Transect, and Plant ID
-AC_GermFlow_1 <- left_join(AC_germ_full, f_AClong_2, by = c("Recipient", "Transect", "Plant_ID"))
+AC_GermFlow_1 <- left_join(AC_germ_full, f_AClong_2, by = c("Recipient", "Transect", "Plant_ID")) %>% 
+  mutate(Fl_6.22 = as_date(Fl_6.22)) #correct this column to be class 'date'
 
 ```
 
@@ -292,7 +292,7 @@ AC_fruitprod_2 <- AC_fruitprod_1 %>%
 AC_fruitprod_3 <- AC_fruitprod_2 %>% 
   mutate(Total_fruits_F_NEW = Total_fruits_F + damaged_fruits_F) %>% 
   select(-Total_fruits_F) %>% 
-  rename(all_fruits_F = Total_fruits_F_NEW)
+  rename(total_fruits_F = Total_fruits_F_NEW)
 
 
 #
@@ -312,8 +312,8 @@ AC_fruitseed_ct1 <- left_join(AC_fruitprod_3, AC_seedct_1, by = c("Sequence", "T
 # descriptive stats, tidying up
 AC_fruitseed_ct2 <- AC_fruitseed_ct1 %>% 
   mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
-         total_est_seed_production = mean_seeds_per_fruit*all_fruits_F) %>% 
-  select(Transect, Sequence, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, all_fruits_F, nonfitness_fruits, everything()) %>% 
+         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) %>% 
+  select(Transect, Sequence, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
   arrange(Transect, Sequence, Recipient)
 
 
@@ -335,6 +335,7 @@ AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct2, by = c("Transect", "Sequ
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
+
 ```
 
 
@@ -342,69 +343,88 @@ AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct2, by = c("Transect", "Sequ
 
 
 
-## Trait calculations
+## Trait calculations  
 
 
 #### Phenology  
 
 ```{r}
 
+AC_merged_df_fl <- AC_merged_df1 %>% 
+  mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
+         days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
+         days_sow2flower = as.numeric(FFD - Sow_Date), #days from germination to flowering
+         LFD = do.call(pmax, c(select(., starts_with('Fl_')), na.rm = TRUE)), #last flowering date
+         fl_duration = as.numeric(LFD - FFD)) #Flowering duration
 
+
+#Survival measures
+AC_merged_df_fl2 <- AC_merged_df_fl %>% 
+  mutate(surv_to_germ = case_when(!is.na(Germ_Date) ~ 1, #plants that germinated
+                                  is.na(Germ_Date) ~ 0),
+         surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
+                                  is.na(FFD) ~ 0),
+         surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
+                                       total_fruits_F == 0 ~ 0),
+         surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
+                                       seed_ct == 0 ~ 0))
+  
+#Note: it appears that only 1 plant was recorded as having 0 fruits. Is this because 0s were generally not input? 
+# Regardless, survival to seed production would be a better metric here
+         
+
+
+## Note 2: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
 ```
 
 
+<br>  
 
 
 
 ## Filtering 
 
-Save new csv for each filter constraint  
-
-
-#### Fitness Plants Only
-*** This is a priority  
-
-
-
-**Single Fitness Plants**  
-For the main experiment  
-
-
-#### Only Plants that Flowered...?????
-
-
-**Multiple Fitness Plants**  
-For the watered and replicated segments - my experiment
-- Match only replicated families in the watered and unwatered treatments
-
-
-
-
-
-#### Fitness Estimates
-
-
-
-
+Save new csv for each filter constraint?
 
 ```{r}
-##Final merged sheets:
-
 ## 'Long' version with all data - one row per plant ID
+#Sort by transect and ID variables, then by Fitness plants and those that flowered...
 
 
-## 'Short' version with one row = one segment
+AC_mastersheet_v1 <- AC_merged_df_fl2 %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
+write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv"))
+
+#Create meta data sheet
+
+
+
+#
+## Fitness Plants Only
+#
+
+
+AC_mastersheet_v1_Fonly <-  AC_mastersheet_v1 %>% 
+  filter(FitP == TRUE | Rep_FitP == TRUE)
+
+
+write_csv(AC_mastersheet_v1_Fonly, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv"))
 
 
 ```
 
 
 
+**Single Fitness Plants** ? 
+For the main experiment  
 
 
 
-
+**Multiple Fitness Plants**  
+For the watered and replicated segments - my experiment
+- Match only replicated families in the watered and unwatered treatments
 
 
 
