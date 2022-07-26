@@ -20,12 +20,14 @@ library(stringr)
 
 ## Load and Clean Data   
 
-NOTE: All date data should be standardized prior to importing into R. In Excel, set format to YYYY-MM-DD for consistency. Unfortunately, this process in Excel will autopopulate the year (when not already present) based on system settings. For germination data, this means that the year should be corrected to 2021!!
+NOTE: All date data should be standardized prior to importing into R. In Excel, set format to YYYY-MM-DD for consistency. Unfortunately, this process in Excel will auto-populate the year (when not already present) based on system settings. For germination data, this means that the year should be corrected to 2021!!
+
+
+NOTE 2: All paths are relative thanks to the 'here' package.  
 
 
 **Germination Data**  
 - Add 'Date Sown' column and data in as well.
-
 
 <<AC>>  
 -NOTE: for AC, plant number must be FLIPPED (i.e., plants 1,2,3,4,5,6,7,8,9,10 become plants 10,9,8,7,6,5,4,3,2,1, respectively)  
@@ -247,7 +249,7 @@ AC_Fplants2 <- AC_Fplants %>%
 
 
 Index fitness plants & Replicated (y/n) in germination and flowering data
-```{r eval = FALSE}
+```{r message = FALSE}
 # Merge the two dataframes - F plant data will be repeated x10 
 # Create new row (Plant ID) specific variables for main and replicated fitness plants
 AC_GermFlow_2 <- merge(AC_GermFlow_1, AC_Fplants2) %>% 
@@ -268,19 +270,88 @@ AC_GermFlow_3 <- AC_GermFlow_2 %>%
 
 **Fruit and Seed counts**  
 
-Date added:
+Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. The same applies to estimates of seed weight. For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on.
+
+Date added: 7/25/2022
+
+*NOTE*: Update with later versions of data sheet when more seed counts have been entered
+```{r message = FALSE}
+#
+# Fruit count data
+# Data on *when* fruits were collected will be omitted here; only the total fruit counts (closed, open, non-fitness) are retained from the csv
+
+AC_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "AC-Fruit-Production.csv"), skip = 2) %>% 
+  select(1:11) #omit sow and flower date, seed count, and date-specific fruit counts by column index
+
+AC_fruitprod_2 <- AC_fruitprod_1 %>% 
+  select(-c(Recipient, 9)) %>% 
+  rename(Recipient = `Recipient for Sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `Number of closed fruits used to estimate mean seeds per fruit (include multiple dates)`, open_fruits_F = `Open Fruits`, damaged_fruits_F = `Eaten or damaged fruits`, Total_fruits_F = `Total number of all fruits produced by the plant (open + closed)`, nonfitness_fruits = `Total number of non-fitness fruits collected from segment`) 
+
+
+#Fix - total fruits does not include eaten/damaged fruits (of which there were very few here)
+AC_fruitprod_3 <- AC_fruitprod_2 %>% 
+  mutate(Total_fruits_F_NEW = Total_fruits_F + damaged_fruits_F) %>% 
+  select(-Total_fruits_F) %>% 
+  rename(all_fruits_F = Total_fruits_F_NEW)
+
+
+#
+# Seed count data (viable seeds)
+# Similarly, only seed count data are retained from this spreadsheet to minimize errors
+
+AC_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "AC-seed-count.csv"), skip = 2) %>% 
+  select(-c(3, 6, 7, 9:29)) %>% 
+  rename(Recipient = `Recipient for Sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `Total number of viable seeds counted across multiple dates`)
+
+
+
+#merge data
+AC_fruitseed_ct1 <- left_join(AC_fruitprod_3, AC_seedct_1, by = c("Sequence", "Transect", "Recipient", "Plant_ID"))
+
+
+# descriptive stats, tidying up
+AC_fruitseed_ct2 <- AC_fruitseed_ct1 %>% 
+  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
+         total_est_seed_production = mean_seeds_per_fruit*all_fruits_F) %>% 
+  select(Transect, Sequence, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, all_fruits_F, nonfitness_fruits, everything()) %>% 
+  arrange(Transect, Sequence, Recipient)
+
+
+```
+
+
+**Seed Weights**  
+```{r}
+
+
+
+```
+
+
+
+Merge everything together:  
+```{r}
+AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct2, by = c("Transect", "Sequence", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, everything()) %>% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID)
+
+```
 
 
 <br>  
 
 
-## Phenology Calculating  
+
+## Trait calculations
 
 
-#### Germination Dates  
+#### Phenology  
+
+```{r}
 
 
-#### Flowering
+```
+
 
 
 
@@ -299,7 +370,7 @@ Save new csv for each filter constraint
 For the main experiment  
 
 
-#### Only Plants that Flowered
+#### Only Plants that Flowered...?????
 
 
 **Multiple Fitness Plants**  
@@ -316,6 +387,17 @@ For the watered and replicated segments - my experiment
 
 
 
+```{r}
+##Final merged sheets:
+
+## 'Long' version with all data - one row per plant ID
+
+
+## 'Short' version with one row = one segment
+
+
+
+```
 
 
 
