@@ -255,12 +255,16 @@ Index fitness plants & Replicated (y/n) in germination and flowering data
 AC_GermFlow_2 <- merge(AC_GermFlow_1, AC_Fplants2) %>% 
   mutate(FitP = case_when(F_plant == Plant_ID ~ TRUE,
                            F_plant != Plant_ID ~ FALSE)) %>% 
-  mutate(Rep_FitP = case_when(Replicated == "R" & Plant_ID == str_match(F_multi, as.character(Plant_ID)) ~ TRUE,
-                              TRUE ~ FALSE)) #if else, set value to FALSE
+  mutate(Rep_FitP = case_when(Replicated == "R" & Plant_ID != 1 & Plant_ID == str_match(F_multi, as.character(Plant_ID)) ~ TRUE, #prevent str_match from matching '1' to the 1 in '10'
+                              Replicated == "R" & Plant_ID == 1 & Plant_ID == str_match(F_multi, "1(?!0)") ~ TRUE, #cases where Rep_FitP should == 1
+                              TRUE ~ FALSE)) %>%  #if else, set value to FALSE
+  mutate(any_FitP = case_when(FitP == TRUE | Rep_FitP == TRUE ~ TRUE, #plant is any form of fitness plant
+                              TRUE ~ FALSE))
+
 
 #Tidy up
 AC_GermFlow_3 <- AC_GermFlow_2 %>% 
-  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, everything()) %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>% 
   arrange(Transect, Sequence, Recipient, Plant_ID)
 
 
@@ -270,9 +274,9 @@ AC_GermFlow_3 <- AC_GermFlow_2 %>%
 
 **Fruit and Seed counts**  
 
-Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. The same applies to estimates of seed weight. For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on.
+Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. Info on plants' Block, Transect, sequence, etc. will be pulled from the fruit count sheets (assumed to be up-to-date). For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on.
 
-Date added: 7/25/2022
+Date added: **7/28/2022**  
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}
@@ -285,14 +289,9 @@ AC_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", 
 
 AC_fruitprod_2 <- AC_fruitprod_1 %>% 
   select(-c(Recipient, 9)) %>% 
-  rename(Recipient = `Recipient for Sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `Number of closed fruits used to estimate mean seeds per fruit (include multiple dates)`, open_fruits_F = `Open Fruits`, damaged_fruits_F = `Eaten or damaged fruits`, Total_fruits_F = `Total number of all fruits produced by the plant (open + closed)`, nonfitness_fruits = `Total number of non-fitness fruits collected from segment`) 
+  rename(Recipient = `Recipient for Sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `Number of closed fruits used to estimate mean seeds per fruit (include multiple dates)`, open_fruits_F = `Open Fruits`, damaged_fruits_F = `Eaten or damaged fruits`, total_fruits_F = `Total number of all fruits produced by the plant (open + closed)`, nonfitness_fruits = `Total number of non-fitness fruits collected from segment`) 
 
-
-#Fix - total fruits does not include eaten/damaged fruits (of which there were very few here)
-AC_fruitprod_3 <- AC_fruitprod_2 %>% 
-  mutate(Total_fruits_F_NEW = Total_fruits_F + damaged_fruits_F) %>% 
-  select(-Total_fruits_F) %>% 
-  rename(total_fruits_F = Total_fruits_F_NEW)
+#Note: total fruits should not include eaten/damaged fruit
 
 
 #
@@ -306,23 +305,24 @@ AC_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "AC
 
 
 #merge data
-AC_fruitseed_ct1 <- left_join(AC_fruitprod_3, AC_seedct_1, by = c("Sequence", "Transect", "Recipient", "Plant_ID"))
+AC_fruitseed_ct1 <- left_join(AC_fruitprod_2, AC_seedct_1, by = c("Sequence", "Transect", "Recipient", "Plant_ID"))
+#Sequence data in fruit count sheets may be unreliable for some sites (e.g., BO)
 
 
-# descriptive stats, tidying up
+# summary variables, tidying up
 AC_fruitseed_ct2 <- AC_fruitseed_ct1 %>% 
-  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
-         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) %>% 
   select(Transect, Sequence, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
   arrange(Transect, Sequence, Recipient)
 
+## NOTE: total number of non-fitness fruits per segment may be unrepresented here since not all counts were matched to fitness plants and therefore merged in.
 
 ```
 
 
+
 **Seed Weights**  
 ```{r}
-
+# Add in once weighing completed
 
 
 ```
@@ -332,25 +332,74 @@ AC_fruitseed_ct2 <- AC_fruitseed_ct1 %>%
 Merge everything together:  
 ```{r}
 AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct2, by = c("Transect", "Sequence", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
-  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, everything()) %>% 
-  arrange(Block, Transect, Sequence, Recipient, Plant_ID)
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID) %>% 
+  mutate(closed_fruits_F = as.numeric(closed_fruits_F),
+         total_fruits_F = as.numeric(total_fruits_F)) #correct counts to numeric values
 
+
+#Correct Fruit/seed NAs to 0s in cases where no fruit data was entered (fitness and non-fitness plants):
+
+AC_merged_df2 <- AC_merged_df1 %>% 
+  mutate(closed_fruits_F = replace_na(closed_fruits_F, 0),
+         total_fruits_F = replace_na(total_fruits_F, 0),
+         seed_ct = replace_na(seed_ct, 0)) %>% 
+  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
+         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) 
+
+
+#Calculate mean seeds per fruit, total_est_seed prod
+AC_merged_df3 <- AC_merged_df2 %>% 
+  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
+         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) %>% 
+  mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE & closed_fruits_F == 0 ~ 0, 
+                                          TRUE ~ mean_seeds_per_fruit)) %>%  #else, original value
+  mutate(total_est_seed_production = case_when(any_FitP == TRUE & mean_seeds_per_fruit == 0 ~ 0,
+                                               TRUE ~ total_est_seed_production))
+
+##commented out code was first used to replace NAs with 0s when fitness plants had closed fruits for mean seeds & est seed production
+
+
+#mean seeds per fruit and total est fruit production have NAs/NaNs for when there were no closed fruits/seeds (fitness plants only)
 
 ```
 
 
+Error checks:
+
+```{r eval = FALSE}
+##Check for mismatched (fitness) plants
+
+AC_Echeck1 <- AC_merged_df3 %>% 
+  filter(any_FitP == FALSE & total_fruits_F != 0) #do the same for seed count, using `>` and `!=`
+
+AC_Echeck2 <- AC_merged_df3 %>% 
+  filter(any_FitP == TRUE) %>% 
+  filter(closed_fruits_F == 0 & seed_ct > 0)
+
+##NA/NaN/Info values for mean seeds/est seed prod
+AC_Echeck3 <- AC_merged_df3 %>% 
+  filter(any_FitP == TRUE & is.na(as.numeric(mean_seeds_per_fruit)))
+
+AC_Echeck4 <- AC_merged_df3 %>% 
+  filter(any_FitP == TRUE & !is.finite(mean_seeds_per_fruit))
+
+
+```
+
 <br>  
 
 
+## Trait calculations 
 
-## Trait calculations  
+Some trait calculations performed in `Fitness_and_EDA.Rmd`  
 
 
 #### Phenology  
 
 ```{r}
 
-AC_merged_df_fl <- AC_merged_df1 %>% 
+AC_merged_df_fl <- AC_merged_df3 %>% 
   mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
          days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
          days_sow2flower = as.numeric(FFD - Sow_Date), #days from germination to flowering
@@ -377,14 +426,10 @@ AC_merged_df_fl2 <- AC_merged_df_fl %>%
 ## Note 2: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
 ```
 
-
 <br>  
 
+## Master sheets (v1)  
 
-
-## Filtering 
-
-Save new csv for each filter constraint?
 
 ```{r}
 ## 'Long' version with all data - one row per plant ID
@@ -392,7 +437,7 @@ Save new csv for each filter constraint?
 
 
 AC_mastersheet_v1 <- AC_merged_df_fl2 %>% 
-  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
 write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv"))
@@ -405,26 +450,32 @@ write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_ma
 ## Fitness Plants Only
 #
 
+AC_mastersheet_Fonly_v1 <-  AC_mastersheet_v1 %>% 
+  filter(FitP == TRUE) #Only single fitness plants
 
-AC_mastersheet_v1_Fonly <-  AC_mastersheet_v1 %>% 
-  filter(FitP == TRUE | Rep_FitP == TRUE)
+AC_mastersheet_Fonly_v2 <- AC_mastersheet_v1 %>% 
+  filter(any_FitP == TRUE) #single and multiple fitness plants (replicated IDs)
 
 
-write_csv(AC_mastersheet_v1_Fonly, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv"))
+##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
+write_csv(AC_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_Fitness-only_2022-07-26.csv"))
 ```
 
 
-
-**Single Fitness Plants** ? 
-For the main experiment  
+```{r eval = FALSE}
 
 
+# Calculate Maternal- and paterna- genotype fitness by FRIDAY
 
-**Multiple Fitness Plants**  
-For the watered and replicated segments - my experiment
-- Match only replicated families in the watered and unwatered treatments
+
+## UPDATE EVERYTHING
+# (0) After all rounds of typo-correcting complete
+# (1) After seed weighing complete
+# (2) after watered plant data complete (seed count and weight?)
+
+```
 
 
 
