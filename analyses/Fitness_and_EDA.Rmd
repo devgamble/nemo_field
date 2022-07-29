@@ -22,15 +22,46 @@ library(reshape2)
 ```
 
 
+```{r}
+###NOTES 
+
+#long data set
+#Fitness data set
+
+
+#Analyze fitness as fecundity alone vs surv*fecundity
+
+#Total number of fruits may be better than seed # - less downward bias (due to seeds lost after dehiscence)
+
+
+
+#To-Do
+# - single 'Fitness' data sheet with all variables required for analysis / visualizations!
+# - calculate fitness metrics based on the master sheet first? includes sample sizes in df (or, merge back in the fitness sheets below..)
+# - correlations among all fitness measures
+#NAs vs 0s: when there were 0 closed fruit (i.e. no viable seeds collected), but possibly non-zero total fruits (open, etc.)??? Included as 0s in data, but may decide to remove
+
+#1 or more fruits but 0 seeds --> 0 fecundity (for est seed prod)
+
+#Do we even need a 'fitness plant only' master sheet as calculated in the other Rmd?
+
+
+
+
+#
+# Sample Mat fams equally for seeds, but account for differences in individual Mat fam/segment fitness later on in aster
+# In aster, include fruit number and/or fecundity (may be incomplete wieth 0 clsoed fruits) as hierarchical fitness estimates
+
+```
+
+
 
 Load master sheets:  
-```{r message = FALSE}
+```{r message = FALSE, warning = FALSE}
 ## AC
 AC_master_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv")) # Fl_6.22 read in as logical - it should be a date. Parsing problem with row 1398 - unsure of issue (FFD but no Germ Date?) Or the single instance of 6-22-2022 flowering date.
 
 AC_master_Fonly_1 <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_Fitness-only_2022-07-26.csv"))
-
-
 
 ```
 
@@ -38,289 +69,323 @@ AC_master_Fonly_1 <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_m
 ## Fitness Estimates  
 
 
-#### Genotype Fitness  
-
 NOTE: Use `surv_to_x` variables to delimit groups in calculating certain fitness components; NAs were changed to 0s for seed counts/means when 0 closed fruit were collected, though some of these instances occur for plants that did not survive to produce any fruit (i.e, total fruits = 0).  
 
 ##### Fitness = Survival to flowering x Estimated seed production
 
 **AC**  
 ```{r}
-#Check for errors - compare mean seeds per fruit // est seed prod for TRUE and FALSE any_FitP
 
 #Survivorship of individual segments to flowering (maintain block)
 
 Fitness_AC_df1 <- AC_master_df1 %>% group_by(Block, Transect, Donor, Recipient) %>% 
   summarize(
-    P_surv_flower = mean(surv_to_flower)
-  ) 
+    P_surv_flower = mean(surv_to_flower)) %>% 
+  filter(Block != "W") #Remove transects W1 and W2
 
 
-#include surv to fruit prod only??
+#include surv to fruit prod only?
+
 Fitness_AC_df2 <- AC_master_df1 %>% group_by(Block, Transect, Donor, Recipient) %>%
   filter(FitP == TRUE) %>% 
   summarize(
-    est_seed_prod = total_est_seed_production
-  )
-#Fewer rows than the summarization of P_surv_flower
-
-
-#
-## Maternal Fitness
-
-Fitness_AC_matfam_1 <- merge(Fitness_AC_df1, Fitness_AC_df2, by = c("Block", "Transect", "Donor", "Recipient")) %>% 
-  mutate(surv_x_seedprod = P_surv_flower*est_seed_prod)
-#only keeps rows with est seed prod
-
-
-#Average within blocks - one value per segment
-Fitness_AC_matfam_2 <- Fitness_AC_matfam_1 %>% group_by(Block, Donor, Recipient) %>% 
-  summarize(
-    mat_surv_x_seedprod = mean(surv_x_seedprod)
+    est_seed_prod = total_est_seed_production,
+    total_fruit_prod = total_fruits_F,
+    closed_fruits = closed_fruits_F,
+    seed_count = seed_ct
   )
 
-#Average across blocks - one value per mat fam
-Fitness_AC_matfam_3 <- Fitness_AC_matfam_1 %>% group_by(Donor, Recipient) %>% 
+#Two Fewer rows than the summarization of P_surv_flower - possibly because two segments never had fitness plants chosen
+
+
+Fitness_AC_df3 <- merge(Fitness_AC_df2, Fitness_AC_df1, by = c("Block", "Transect", "Donor", "Recipient")) %>% 
+  mutate(FIT_surv_x_seedprod = P_surv_flower*est_seed_prod,
+         FIT_surv_x_fruitprod = P_surv_flower*total_fruit_prod)
+
+
+#Calculate Block means of fitness variables:
+Fitness_AC_blockmeans <- Fitness_AC_df3 %>% group_by(Block) %>% 
   summarize(
-    mat_surv_x_seedprod = mean(surv_x_seedprod)
-  )
-
-#
-## Paternal Fitness  
-
-Fitness_AC_patfam_1 <- Fitness_AC_matfam_3 %>% group_by(Donor) %>% 
-  summarize(
-    pat_surv_x_seedprod = mean(mat_surv_x_seedprod))
-
-
-# calculate average fitness per block
-mean_block_fitness_AC <- Fitness_AC_matfam_1 %>% group_by(Block) %>% 
-  summarize(
-    Block_surv_x_seedprod = mean(surv_x_seedprod)
+    BLOCKmean_FIT_surv_x_seedprod = mean(FIT_surv_x_seedprod),
+    BLOCKmean_FIT_surv_x_fruitprod = mean(FIT_surv_x_fruitprod),
+    BLOCKmean_est_seed_prod = mean(est_seed_prod),
+    BLOCKmean_total_fruit_prod = mean(total_fruit_prod),
+    BLOCKmean_seed_count = mean(seed_count),
+    BLOCKmean_P_surv_flower = mean(P_surv_flower)
   )
 
 
-Fitness_AC_df3 <- left_join(Fitness_AC_matfam_2, Fitness_AC_matfam_3, by = c("Donor", "Recipient"), all.x = TRUE) %>% 
-  rename(mat_fitness_mean = mat_surv_x_seedprod.y, #averaged across blocks
-         mat_fitness_indv = mat_surv_x_seedprod.x) #within each block, not an average
+#Calculate relative fitness measures for each individual segment (Block means = 1)
+Fitness_AC_df3.5 <- merge(Fitness_AC_df3, Fitness_AC_blockmeans, by = "Block") %>% 
+  mutate(
+    Rel_FIT_surv_x_seedprod = FIT_surv_x_seedprod/BLOCKmean_FIT_surv_x_seedprod,
+    Rel_FIT_surv_x_fruitprod = FIT_surv_x_fruitprod/BLOCKmean_FIT_surv_x_fruitprod,
+    Rel_est_seed_prod = est_seed_prod/BLOCKmean_est_seed_prod,
+    Rel_total_fruit_prod = total_fruit_prod/BLOCKmean_total_fruit_prod,
+    Rel_seed_count = seed_count/BLOCKmean_seed_count,
+    Rel_P_surv_flower = P_surv_flower/BLOCKmean_P_surv_flower,
+  )
 
 
-Fitness_AC_df4 <- left_join(Fitness_AC_df3, Fitness_AC_patfam_1, by = "Donor", all.x = TRUE) %>% 
-  rename(pat_fitness_mean = pat_surv_x_seedprod)
+# Average across blocks - MATERNAL mean fitness estimates
+Fitness_AC_df4 <- Fitness_AC_df3.5 %>% group_by(Donor, Recipient) %>% 
+  summarize(
+    FIT_MATmean_surv_x_seedprod = mean(FIT_surv_x_seedprod),
+    FIT_MATmean_surv_x_fruitprod = mean(FIT_surv_x_fruitprod),
+    MATmean_est_seed_prod = mean(est_seed_prod),
+    MATmean_total_fruit_prod = mean(total_fruit_prod),
+    MATmean_seed_count = mean(seed_count),
+    MATmean_P_surv_flower = mean(P_surv_flower), #Relative measures of fitness
+    Rel_FIT_MATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod),
+    Rel_FIT_MATmean_surv_x_fruitprod = mean(Rel_FIT_surv_x_fruitprod),
+    Rel_MATmean_est_seed_prod = mean(Rel_est_seed_prod),
+    Rel_MATmean_total_fruit_prod = mean(Rel_total_fruit_prod),
+    Rel_MATmean_seed_count = mean(Rel_seed_count),
+    Rel_MATmean_P_surv_flower = mean(Rel_P_surv_flower)
+    )
 
-#Calculate fitness relative to block means
-Fitness_AC_df5 <- left_join(Fitness_AC_df4, mean_block_fitness_AC, by = "Block", all.x = TRUE) %>% 
-  mutate(mean_mat_fitness_REL = mat_fitness_mean/Block_surv_x_seedprod,
-         mean_pat_fitness_REL = pat_fitness_mean/Block_surv_x_seedprod)
+
+#Average across recipients - PATERNAL mean fitness estimates
+Fitness_AC_df5 <- Fitness_AC_df3.5 %>% group_by(Donor) %>% 
+  summarize(
+    FIT_PATmean_surv_x_seedprod = mean(FIT_surv_x_seedprod),
+    FIT_PATmean_surv_x_fruitprod = mean(FIT_surv_x_fruitprod),
+    PATmean_est_seed_prod = mean(est_seed_prod),
+    PATmean_total_fruit_prod = mean(total_fruit_prod),
+    PATmean_seed_count = mean(seed_count),
+    PATmean_P_surv_flower = mean(P_surv_flower),
+    Rel_FIT_PATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod),
+    Rel_FIT_PATmean_surv_x_fruitprod = mean(Rel_FIT_surv_x_fruitprod),
+    Rel_PATmean_est_seed_prod = mean(Rel_est_seed_prod),
+    Rel_PATmean_total_fruit_prod = mean(Rel_total_fruit_prod),
+    Rel_PATmean_seed_count = mean(Rel_seed_count),
+    Rel_PATmean_P_surv_flower = mean(Rel_P_surv_flower)
+  )
+
+
+Maternal_Paternal_Fitness <- merge(Fitness_AC_df4, Fitness_AC_df5, by = "Donor")
+
+#write_csv()
+
+```
+
+<br>  
+
+
+#### Visualizations    
+
+```{r eval = FALSE}
+######
+### Data frame organization: 
+######
+
+# Segment Fitness: Fitness_AC_df3.5
+# (Includes relative fitness measures)
+
+# Maternal Fitness: Fitness_AC_df4
+
+# Paternal Fitness: Fitness_AC_df5
+```
+
+
+**Fitness = Total Fruit Production**  
+
+```{r}
+## Individual Segment fitness
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = total_fruit_prod), fill = "#00A9FF", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,70)) +
+  ylab("Count") +
+  xlab("Segment Fruit Production (N=319)")
+
+## Individual Segment fitness (Relative)
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_total_fruit_prod), fill = "#00A9FF", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,70)) +
+  ylab("Count") +
+  xlab("Segment Relative Fruit Production (N=319)")
+
+## Segment Fitness organized by Block
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_total_fruit_prod, fill = Block), color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,70)) +
+  ylab("Count") +
+  xlab("Segment Relative Fruit Production (N=319) (By Block)")
+
+
+
+
+## Average Maternal Family Fitness  
+ggplot(data = Fitness_AC_df4) +
+  geom_histogram(aes(x = MATmean_total_fruit_prod), fill = "#00A9FF", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,20)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Fruit Production (N=107)")
+
+
+## Average Maternal Family Fitness  
+ggplot(data = Fitness_AC_df4) +
+  geom_histogram(aes(x = Rel_MATmean_total_fruit_prod), fill = "#00A9FF", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,20)) +
+  ylab("Count") +
+  xlab("Avg. Relative Maternal Fruit Production (N=107)")
+
+
+
+## Average Paternal Family Fitness  
+ggplot(data = Fitness_AC_df5) +
+  geom_histogram(aes(x = PATmean_total_fruit_prod), fill = "#00A9FF", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,10)) +
+  ylab("Count") +
+  xlab("Avg. Paternal Fruit Production (N=40)")
+
+## Average Paternal Family Fitness  
+ggplot(data = Fitness_AC_df5) +
+  geom_histogram(aes(x = Rel_PATmean_total_fruit_prod), fill = "#00A9FF", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,10)) +
+  ylab("Count") +
+  xlab("Avg. Relative Paternal Fruit Production (N=40)")
 
 ```
 
 
-**Visualizations**  
+**Fitness = Estimated Seed Production**  
 
-Fitness = Survival to flowering X Estimated Seed Production
-```{r}
-#Mean maternal genotype fitness
-ggplot(data = Fitness_AC_df5) +
-  geom_histogram(aes(x = mat_fitness_mean), fill = "#00A9FF", color = "black") + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
-  ylab("Count") +
-  xlab("Maternal Avg. Survival x Estimated seed production")
+NOTE: From here on, only fitness estimates relative to Block means are presented.  
 
-ggplot(data = Fitness_AC_df5) +
-  geom_histogram(aes(x = mean_mat_fitness_REL), fill = "#00A9FF", color = "black") + #Relative to block means
+```{r echo = FALSE}
+## Individual Segment fitness
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_est_seed_prod), fill = "#A58AFF", color = "black") + 
   theme_classic() +
   scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
   ylab("Count") +
-  xlab("Maternal Avg. *Relative* Survival x Estimated seed production")
+  xlab("Segment Estimated Seed Production (N=319) (Relative)")
+
+## Segment Fitness organized by Block
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_est_seed_prod, fill = Block), color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
+  ylab("Count") +
+  xlab("Segment Estimated Seed Production (N=319) (Relative)")
 
 
-#Mean paternal group fitness
+
+## Average Maternal Family Fitness  
+ggplot(data = Fitness_AC_df4) +
+  geom_histogram(aes(x = Rel_MATmean_est_seed_prod), fill = "#A58AFF", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,25)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Estimated Seed Production (N=107) (Relative)")
+
+
+## Average Paternal Family Fitness  
 ggplot(data = Fitness_AC_df5) +
-  geom_histogram(aes(x = pat_fitness_mean), fill = "#00A9FF", color = "black") + 
+  geom_histogram(aes(x = Rel_PATmean_est_seed_prod), fill = "#A58AFF", color = "black") + 
   theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,10)) +
   ylab("Count") +
-  xlab("Paternal Avg. Survival x Estimated seed production")
+  xlab("Avg. Paternal Estimated Seed Production (N=40) (Relative)")
 
+```
+
+
+
+**Fitness = Survival x Estimated Seed Production**  
+
+```{r echo = FALSE}
+## Individual Segment fitness
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_FIT_surv_x_seedprod), fill = "#00BE67", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
+  ylab("Count") +
+  xlab("Segment Survival x Estimated Seed Production (N=319) (Relative)")
+
+## Segment Fitness organized by Block
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_FIT_surv_x_seedprod, fill = Block), color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
+  ylab("Count") +
+  xlab("egment Survival x Estimated Seed Production (N=319) (Relative)")
+
+
+
+## Average Maternal Family Fitness  
+ggplot(data = Fitness_AC_df4) +
+  geom_histogram(aes(x = Rel_FIT_MATmean_surv_x_seedprod), fill = "#00BE67", color = "black") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,25)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Estimated Seed Production (N=107) (Relative)")
+
+
+## Average Paternal Family Fitness  
 ggplot(data = Fitness_AC_df5) +
-  geom_histogram(aes(x = mean_pat_fitness_REL), fill = "#00A9FF", color = "black") + #Relative to block means
+  geom_histogram(aes(x = Rel_FIT_PATmean_surv_x_seedprod), fill = "#00BE67", color = "black") + 
   theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,10)) +
   ylab("Count") +
-  xlab("Paternal Avg. *Relative* Survival x Estimated seed production")
+  xlab("Avg. Paternal Estimated Seed Production (N=40) (Relative)")
+
 ```
 
-Variations of the above code are used to generate the following distribtuions for different fitness metrics.  
-
-
-
-##### Fitness = Estimated Fruit Production (total fruit x mean number viable seeds)  
+**Fitness = Survival x Total Fruit Production**  
 
 ```{r echo = FALSE}
-
-#Average within blocks
-Fitness_AC_matfam_2b <- Fitness_AC_df2 %>% group_by(Block, Donor, Recipient) %>% 
-  summarize(
-    mean_est_seed_prod = mean(est_seed_prod)
-  )
-
-#Average across blocks - one value per mat fam
-Fitness_AC_matfam_3b <- Fitness_AC_df2 %>% group_by(Donor, Recipient) %>% 
-  summarize(
-     mean_est_seed_prod = mean(est_seed_prod)
-  )
-
-#Paternal fitness 
-Fitness_AC_patfam_1b <- Fitness_AC_matfam_3b %>% group_by(Donor) %>% 
-  summarize(
-    pat_est_seed_prod = mean(mean_est_seed_prod))
-
-
-# calculate average fitness per block
-mean_block_fitness_ACb <- Fitness_AC_df2 %>% group_by(Block) %>% 
-  summarize(
-    Block_mean_est_seed_prod = mean(est_seed_prod)
-  )
-
-
-Fitness_AC_df6 <- left_join(Fitness_AC_matfam_2b, Fitness_AC_matfam_3b, by = c("Donor", "Recipient"), all.x = TRUE) %>% 
-  rename(mat_fitness_mean = mean_est_seed_prod.y, #averaged across blocks
-         mat_fitness_indv = mean_est_seed_prod.x) #within each block, not an average
-
-
-Fitness_AC_df7 <- left_join(Fitness_AC_df6, Fitness_AC_patfam_1b, by = "Donor", all.x = TRUE) %>% 
-  rename(pat_fitness_mean = pat_est_seed_prod)
-
-#Calculate fitness relative to block means
-Fitness_AC_df8 <- left_join(Fitness_AC_df7, mean_block_fitness_ACb, by = "Block", all.x = TRUE) %>% 
-  mutate(mean_mat_fitness_REL = mat_fitness_mean/Block_mean_est_seed_prod,
-         mean_pat_fitness_REL = pat_fitness_mean/Block_mean_est_seed_prod)
-```
-
-**Visualizaitons**  
-
-Fitness = Estimated Seed Production  
-```{r echo = FALSE}
-#Mean maternal genotype fitness
-ggplot(data = Fitness_AC_df8) +
-  geom_histogram(aes(x = mat_fitness_mean), fill = "#A58AFF", color = "black") + 
+## Individual Segment fitness
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_FIT_surv_x_fruitprod), fill = "#FFA500", color = "black") + 
   theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
   ylab("Count") +
-  xlab("Maternal Avg. Estimated seed production")
+  xlab("Segment Survival x Estimated fruit Production (N=319) (Relative)")
 
-ggplot(data = Fitness_AC_df8) +
-  geom_histogram(aes(x = mean_mat_fitness_REL), fill = "#A58AFF", color = "black") + #Relative to block means
+## Segment Fitness organized by Block
+ggplot(data = Fitness_AC_df3.5) +
+  geom_histogram(aes(x = Rel_FIT_surv_x_fruitprod, fill = Block), color = "black") + 
   theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
   ylab("Count") +
-  xlab("Maternal Avg. *Relative* Estimated seed production")
+  xlab("egment Survival x Estimated fruit Production (N=319) (Relative)")
 
 
-#Mean paternal group fitness
-ggplot(data = Fitness_AC_df8) +
-  geom_histogram(aes(x = pat_fitness_mean), fill = "#A58AFF", color = "black") + 
+
+## Average Maternal Family Fitness  
+ggplot(data = Fitness_AC_df4) +
+  geom_histogram(aes(x = Rel_FIT_MATmean_surv_x_fruitprod), fill = "#FFA500", color = "black") + 
   theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,25)) +
   ylab("Count") +
-  xlab("Paternal Avg. Estimated seed production")
+  xlab("Avg. Maternal Estimated fruit Production (N=107) (Relative)")
 
-ggplot(data = Fitness_AC_df8) +
-  geom_histogram(aes(x = mean_pat_fitness_REL), fill = "#A58AFF", color = "black") + #Relative to block means
+
+## Average Paternal Family Fitness  
+ggplot(data = Fitness_AC_df5) +
+  geom_histogram(aes(x = Rel_FIT_PATmean_surv_x_fruitprod), fill = "#FFA500", color = "black") + 
   theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,10)) +
   ylab("Count") +
-  xlab("Paternal Avg. *Relative* Estimated seed production")
+  xlab("Avg. Paternal Estimated fruit Production (N=40) (Relative)")
 
 ```
 
 
 
-##### Fitness = Total fruit production  
 
-```{r echo = FALSE}
-#Average within blocks
-Fitness_AC_fruitprod_1 <- AC_master_df1 %>% group_by(Block, Transect, Donor, Recipient) %>%
-  filter(FitP == TRUE) %>% 
-  summarize(
-    fruit_prod = total_fruits_F
-  )
+**SAVE CSV - MATERNAL & PATERNAL MEAN FITNESS ESTIMATES**  
 
-#Average across blocks - one value per mat fam
-Fitness_AC_matfam_3c <- Fitness_AC_fruitprod_1 %>% group_by(Donor, Recipient) %>% 
-  summarize(
-     mean_fruit_prod = mean(fruit_prod)
-  )
-
-#Paternal fitness 
-Fitness_AC_patfam_1c <- Fitness_AC_matfam_3c %>% group_by(Donor) %>% 
-  summarize(
-    pat_fruit_prod = mean(mean_fruit_prod))
-
-
-# calculate average fitness per block
-mean_block_fitness_ACc <- Fitness_AC_fruitprod_1 %>% group_by(Block) %>% 
-  summarize(
-    Block_mean_fruit_prod = mean(fruit_prod)
-  )
-
-
-Fitness_AC_df9 <- left_join(Fitness_AC_fruitprod_1, Fitness_AC_matfam_3c, by = c("Donor", "Recipient"), all.x = TRUE) %>% 
-  rename(mat_fitness_indv = fruit_prod, #averaged across blocks
-         mat_fitness_mean = mean_fruit_prod) #within each block, not an average
-
-
-Fitness_AC_df10 <- left_join(Fitness_AC_df9, Fitness_AC_patfam_1c, by = "Donor", all.x = TRUE) %>% 
-  rename(pat_fitness_mean = pat_fruit_prod)
-
-
-#Calculate fitness relative to block means
-Fitness_AC_df11 <- left_join(Fitness_AC_df7, mean_block_fitness_ACc, by = "Block", all.x = TRUE) %>% 
-  mutate(mean_mat_fitness_REL = mat_fitness_mean/Block_mean_fruit_prod,
-         mean_pat_fitness_REL = pat_fitness_mean/Block_mean_fruit_prod)
-
-
-```
-
-**Visualizaitons**  
-
-Fitness = Total Fruit Production  
-```{r echo = FALSE}
-#Mean maternal genotype fitness
-ggplot(data = Fitness_AC_df11) +
-  geom_histogram(aes(x = mat_fitness_mean), fill = "#00BE67", color = "black") + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
-  ylab("Count") +
-  xlab("Maternal Avg. Fruit production")
-
-ggplot(data = Fitness_AC_df11) +
-  geom_histogram(aes(x = mean_mat_fitness_REL), fill = "#00BE67", color = "black") + #Relative to block means
-  theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
-  ylab("Count") +
-  xlab("Maternal Avg. *Relative* Fruit production")
-
-
-#Mean paternal group fitness
-ggplot(data = Fitness_AC_df11) +
-  geom_histogram(aes(x = pat_fitness_mean), fill = "#00BE67", color = "black") + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
-  ylab("Count") +
-  xlab("Paternal Avg. Fruit production")
-
-ggplot(data = Fitness_AC_df11) +
-  geom_histogram(aes(x = mean_pat_fitness_REL), fill = "#00BE67", color = "black") + #Relative to block means
-  theme_classic() +
-  scale_y_continuous(expand = c(0,0), limits = c(0,75)) +
-  ylab("Count") +
-  xlab("Paternal Avg. *Relative* Fruit production")
-
-```
-
+<br>  
 
 
 
