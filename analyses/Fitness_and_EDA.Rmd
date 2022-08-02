@@ -25,6 +25,8 @@ library(reshape2)
 ```{r}
 ###NOTES 
 
+## REVIEW: mean seeds per fruit & estimated seeed production are still 0s when seed_ct = NA...
+
 #long data set
 #Fitness data set
 

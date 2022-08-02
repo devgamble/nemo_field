@@ -188,8 +188,8 @@ ACflr_df <- read_csv(file = here::here( "data_sheets", "season_end_flowerchecks_
 ##Ignore 'F' plants - more up-to-date fitness plant data is matched in below 
 
 #split groups
-f1_AClong <- ACflr_df[c(1:15)] # Group 1: plants 1-4
-f2_AClong <- ACflr_df[c(1, 16:29)] # Group 2: plants 5-8
+f1_AClong <- ACflr_df[c(1:15)] # Group 1: plants 1-5
+f2_AClong <- ACflr_df[c(1, 16:29)] # Group 2: plants 6-10
 
 #Revise names
 colnames(f1_AClong) <- c("Transect", "Recipient", "Plant_ID", "F.", "Fl_4.9", "Fl_4.21", "Fl_5.3", "Fl_5.13", "Fl_5.25", "Fl_6.8", "Fl_6.22", "D", "D1", "LEAF", "flr_P")
@@ -207,6 +207,20 @@ f_AClong_2 <- f_AClong %>%
   select(-Recipient_num)
 
 
+
+##Fix Dates!
+
+f_AClong_3 <- f_AClong_2 %>% 
+  mutate(Fl_4.21 = case_when(Fl_4.9 == "2022-04-22" ~ "2022-04-22",
+                             Fl_4.21 == "2022-04-22" ~ "2022-04-22",
+                             Fl_4.21 == "2022-04-21" ~ "2022-04-21")) %>% 
+  mutate(Fl_4.9 = case_when(Fl_4.9 == "2022-04-09" ~ "2022-04-09",
+                            TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_6.22 = case_when(Fl_6.22 == 19165 ~ "2022-06-22",
+                             TRUE ~ as.character(NA)))
+
+
+
 #Old - LK
 ####f_AClongTEST <- f_AClong[complete.cases(f_AClong[ , 5]), ] #This removes plants that didn't flower on 4/9, but also plants that may have flowered later
 
@@ -219,8 +233,10 @@ f_AClong_2 <- f_AClong %>%
 Combine Germination and Flowering data frames
 ```{r}
 #Merge by Recipient, Transect, and Plant ID
-AC_GermFlow_1 <- left_join(AC_germ_full, f_AClong_2, by = c("Recipient", "Transect", "Plant_ID")) %>% 
-  mutate(Fl_6.22 = as_date(Fl_6.22)) #correct this column to be class 'date'
+AC_GermFlow_1 <- left_join(AC_germ_full, f_AClong_3, by = c("Recipient", "Transect", "Plant_ID")) %>% 
+  mutate(Fl_6.22 = as_date(Fl_6.22),
+         Fl_4.9 = as_date(Fl_4.9),
+         Fl_4.21 = as_date(Fl_4.21)) #correct this column to be class 'date'
 
 ```
 
@@ -276,7 +292,7 @@ AC_GermFlow_3 <- AC_GermFlow_2 %>%
 
 Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. Info on plants' Block, Transect, sequence, etc. will be pulled from the fruit count sheets (assumed to be up-to-date). For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on.
 
-Date added: **7/28/2022**  
+Date added: **8/01/2022**  
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}
@@ -284,7 +300,7 @@ Date added: **7/28/2022**
 # Fruit count data
 # Data on *when* fruits were collected will be omitted here; only the total fruit counts (closed, open, non-fitness) are retained from the csv
 
-AC_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "AC-Fruit-Production.csv"), skip = 2) %>% 
+AC_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "AC-fruit-production.csv"), skip = 2) %>% 
   select(1:11) #omit sow and flower date, seed count, and date-specific fruit counts by column index
 
 AC_fruitprod_2 <- AC_fruitprod_1 %>% 
@@ -314,7 +330,7 @@ AC_fruitseed_ct2 <- AC_fruitseed_ct1 %>%
   select(Transect, Sequence, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
   arrange(Transect, Sequence, Recipient)
 
-## NOTE: total number of non-fitness fruits per segment may be unrepresented here since not all counts were matched to fitness plants and therefore merged in.
+## NOTE: total number of non-fitness fruits per segment may be under-represented here since not all counts were matched to fitness plants and therefore merged in.
 
 ```
 
@@ -338,14 +354,11 @@ AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct2, by = c("Transect", "Sequ
          total_fruits_F = as.numeric(total_fruits_F)) #correct counts to numeric values
 
 
-#Correct Fruit/seed NAs to 0s in cases where no fruit data was entered (fitness and non-fitness plants):
+#Correct Fruit NAs (but not seed count NAs) to 0s in cases where no fruit data was entered (fitness and non-fitness plants):
 
 AC_merged_df2 <- AC_merged_df1 %>% 
   mutate(closed_fruits_F = replace_na(closed_fruits_F, 0),
-         total_fruits_F = replace_na(total_fruits_F, 0),
-         seed_ct = replace_na(seed_ct, 0)) %>% 
-  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
-         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) 
+         total_fruits_F = replace_na(total_fruits_F, 0)) %>% 
 
 
 #Calculate mean seeds per fruit, total_est_seed prod
@@ -385,6 +398,11 @@ AC_Echeck4 <- AC_merged_df3 %>%
   filter(any_FitP == TRUE & !is.finite(mean_seeds_per_fruit))
 
 
+## Check for NA seed counts for fitness plants (when fruit production > 0)
+AC_Echeck5 <- AC_merged_df3 %>% 
+  filter(any_FitP == TRUE & is.na(seed_ct))
+
+
 ```
 
 <br>  
@@ -416,14 +434,12 @@ AC_merged_df_fl2 <- AC_merged_df_fl %>%
          surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
                                        total_fruits_F == 0 ~ 0),
          surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
-                                       seed_ct == 0 ~ 0))
-  
-#Note: it appears that only 1 plant was recorded as having 0 fruits. Is this because 0s were generally not input? 
-# Regardless, survival to seed production would be a better metric here
+                                       TRUE ~ 0)) #else = 0 (applies to seed_ct = NA)
+
          
 
 
-## Note 2: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
+## Note: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
 ```
 
 <br>  

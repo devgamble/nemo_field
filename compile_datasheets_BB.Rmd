@@ -1,0 +1,486 @@
+---
+title: "compile_datasheets_BB"
+author: "Devin Gamble"
+date: "2022-07-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r message = FALSE, warning = FALSE}
+#Load Packages
+library(tidyverse)
+library(janitor)
+library(here)
+library(lubridate)
+library(reshape2)
+library(stringr)
+
+```
+
+
+
+## Load and Clean Data   
+
+NOTE: All date data should be standardized prior to importing into R. In Excel, set format to YYYY-MM-DD for consistency. Unfortunately, this process in Excel will auto-populate the year (when not already present) based on system settings. For germination data, this means that the year should be corrected to 2021!!
+
+
+NOTE 2: All paths are relative thanks to the 'here' package.  
+
+
+**Germination Data**  
+- Add 'Date Sown' column and data in as well.
+
+
+```{r message = FALSE}
+#Load csv
+
+#Skip first nonsense row (the second row is the header)
+BB_germ_df1 <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "BB_germ_data.csv"), skip = 1) %>%
+  rename(Block = 'Block (1-3)', Location = 'Location (1-156)', Sequence = 'Seq (1-441)', Donor = "Donor_ID", Recipient = "Recipient_ID", Stage = 'mm/dd') %>% 
+  filter(!Stage == "Flow Date")   #Remove empty flowering date rows
+
+#
+#Reshape data sheet to 'long' format
+BB_germ_df2 <- BB_germ_df1 %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'Germ_Date') 
+
+
+#
+##Fix typos in date values
+##MAJOR TYPO: Excel auto-populated year as 2022 when in fact the year should be 2021!
+unique(BB_germ_df2$Germ_Date)
+
+BB_germ_df3 <- BB_germ_df2 %>% 
+  mutate(Germ_Date = replace(Germ_Date, Germ_Date %in% c("??"), NA)) %>% #specify values to assign 'NA'
+  mutate(
+    Germ_Date = case_when(
+    Germ_Date %in% c("12/12/2022", "12/12/2021") ~ "2021-12-12",
+    Germ_Date %in% c("12/13/2022", "12/13/2021 ?") ~ "2021-12-13",
+    Germ_Date == "12/19/2022" ~ "2021-12-19",
+    Germ_Date == "12/20/2022" ~ "2021-12-20",
+    Germ_Date == "12/30/2022" ~ "2021-12-30"))
+
+#check again
+unique(BB_germ_df3$Germ_Date)
+#Use sum(is.na(BB_germ_df2$Germ_Date)) to compare change in number of NA values
+
+
+#
+#Adjust Donor and Recipient names for easy sorting - three digits (leading zeros)
+#Specify Germ_Date as 'date' class variable
+BB_germ_df4 <- BB_germ_df3 %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor)))) %>% 
+  mutate(Donor = as.character(str_c("BB_", Donor_num))) %>%
+  mutate(Germ_Date = as_date(Germ_Date)) %>% #set variable to class = date
+  select(Block, Location, Sequence, Donor, Donor_num, Recipient, Recipient_num, Plant_ID, everything()) %>% 
+  select(-c(Stage, Donor_num, Recipient_num, ...16:`Notes 12/30`))
+
+
+#
+##Add in Sow Date  
+BB_germ_df5 <- BB_germ_df4 %>% 
+  mutate(Sow_Date = as_date("2021-12-02")) %>% 
+  arrange(Block, Location, Sequence, Donor, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
+#Plugs planted in ground from December 2-4,2021, but all seeds were sown on the same day (or two) in the lab
+
+
+```
+
+
+Add in watered transect germination data
+```{r message = FALSE}
+
+## Add in watered transects
+
+BB_germ_W1 <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "watered_BB_germ.csv"), skip = 1) %>%
+  rename(Sequence = 'Seq (1-42)', Donor = "Donor_ID", Recipient = "Recipient_ID", Stage = 'Date (mm/dd)') %>% 
+  filter(!Stage == "Flow") #Remove empty flowering date rows
+
+  
+#
+#Reshape data sheet to 'long' format
+BB_germ_W2 <- BB_germ_W1 %>% 
+  pivot_longer(cols = c('1':'8'),
+               names_to = 'Plant_ID',
+               values_to = 'Germ_Date') 
+
+#
+##Fix typos in date values
+##MAJOR TYPO: Excel auto-populated year as 2022 when in fact the year should be 2021!
+unique(BB_germ_W2$Germ_Date) #no typos here
+
+BB_germ_W3 <- BB_germ_W2 %>% 
+  mutate(Germ_Date = case_when(
+    Germ_Date == "2022-12-12" ~ "2021-12-12",
+    Germ_Date == "2022-12-13" ~ "2021-12-13",
+    Germ_Date == "2022-12-20" ~ "2021-12-20",
+    Germ_Date == "2022-12-30" ~ "2021-12-30",
+    ))
+
+
+#
+#Adjust Donor and Recipient names for easy sorting - three digits (leading zeros)
+#Specify Germ_Date as 'date' class variable
+BB_germ_W4 <- BB_germ_W3 %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor)))) %>% 
+  mutate(Donor = as.character(str_c("BB_", Donor_num))) %>%
+  mutate(Germ_Date = as_date(Germ_Date)) %>% #set variable to class = date
+  mutate(Plant_ID = as.numeric(Plant_ID)) %>% #set Plant ID to numeric for sorting purposes
+  select(-c(Stage, Donor_num, Recipient_num, `Notes 12/12`:`Notes 12/30`))
+
+
+#
+##Add in Sow Date & Update Sequence number & add block ('W')
+BB_germ_W5 <- BB_germ_W4 %>% 
+  mutate(Sow_Date = as_date("2021-12-02")) %>% 
+  mutate(Sequence = NA) %>% # Sequence in this data will not align with Sequence in the main points
+  mutate(Block = "W") %>% 
+  select(Block, Location, Co., Donor, Recipient, Plant_ID, everything()) %>% 
+  arrange(Location, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
+
+
+#
+## Combine watered and main experiment germination data
+
+BB_germ_full <- rbind(BB_germ_df5, BB_germ_W5) %>% 
+    mutate(Plant_ID = as.numeric(Plant_ID))
+
+write_csv(BB_germ_full, here::here("data_sheets", "compiled_sheets", "BB_germination_full_2021-2022.csv"))
+
+```
+
+
+
+**Flower Check sheets**  
+-- Organize flowering data
+-- Do not trust the fitness plant data in the flowering check data sheets (add in later).  
+
+*Important Step!!*  
+In the csv file, select all data with dates (visit dates, leaf sampling, and flower photos). Right click --> format cells. Select the date category --> YYYY-MM-DD. Save the csv and close it. This will standardize all dates to the same format and make working with them in R much easier!  
+
+
+
+```{r}
+
+BBflr_df <- read_csv(file = here::here( "data_sheets", "season_end_flowerchecks_2022",  "BB_flowercheck_2022_05_30.csv"), na = c("", "NA", "missing", "buried"))
+##Ignore 'F' plants - more up-to-date fitness plant data is matched in below 
+
+#split groups
+f1_BBlong <- BBflr_df[c(1:20)] # Group 1: plants 1-4
+f2_BBlong <- BBflr_df[c(1:2, 21:38)] # Group 2: plants 5-8
+
+#Revise names
+colnames(f1_BBlong) <- c("Block", "Location", "Recipient", "Plant_ID", "F.", "Fl_2.25", "Fl_3.3", "Fl_3.11", "Fl_3.17", "Fl_3.25", "Fl_4.1", "Fl_4.9", "Fl_4.22", "Fl_4.28", "Fl_5.4", "Fl_5.12", "Fl_5.19", "Fl_5.25", "LEAF", "flr_P")
+colnames(f2_BBlong) <- c("Block", "Location", "Recipient", "Plant_ID", "F.", "Fl_2.25", "Fl_3.3", "Fl_3.11", "Fl_3.17", "Fl_3.25", "Fl_4.1", "Fl_4.9", "Fl_4.22", "Fl_4.28", "Fl_5.4", "Fl_5.12", "Fl_5.19", "Fl_5.25", "LEAF", "flr_P")
+
+#rbind, tidy up and remove unnecessary columns
+f_BBlong <- rbind(f1_BBlong, f2_BBlong) %>% arrange(Block, Location, Recipient, Plant_ID) %>% select(-F.)
+
+
+#Format recipient IDs for easier sorting - three digits (includes leading zeros)
+f_BBlong_2 <- f_BBlong %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
+  select(Block, Location, Recipient, Recipient_num, Plant_ID, everything()) %>% 
+  select(-Recipient_num)
+
+
+#### Fix Dates
+
+#Individually check each column (e.g., Fl_3.3) for the correct date format (unique(df$col)). Multiple dates are okay.
+
+f_BBlong_3 <- f_BBlong_2 %>% 
+  mutate(Fl_2.25 = case_when(!is.na(Fl_2.25) ~ "2022-02-25")) %>% 
+  mutate(Fl_3.25 = case_when(Fl_3.25 == "2022-03-25" ~ "2022-03-25",
+                             Fl_3.25 == "2022-03-26" ~ "2022-03-26",
+                             TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_4.1 = case_when(Fl_4.1 %in% c("2022-04-01", "19083") ~ "2022-04-01",
+                            Fl_4.1 %in% c("2022-04-02", "19084") ~ "2022-04-02",
+                            TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_4.22 = case_when(Fl_4.22 %in% c("2022-04-22", "19104") ~ "2022-04-22",
+                            Fl_4.22 %in% c("2022-04-23", "19105") ~ "2022-04-23",
+                            TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_5.4 = case_when(Fl_5.4 == 19116 ~ "2022-05-04",
+                            TRUE ~ as.character(NA))) %>%  #only one plant checked on this date
+  mutate(Fl_5.12 = case_when(Fl_5.12 %in% c("2022-05-12", "19124") ~ "2022-05-12",
+                             TRUE ~ as.character(NA)))
+
+```
+
+
+Combine Germination and Flowering data frames
+```{r}
+#Merge by Recipient, Transect, and Plant ID
+BB_GermFlow_1 <- left_join(BB_germ_full, f_BBlong_3, by = c("Block", "Location", "Recipient", "Plant_ID")) #
+
+```
+
+
+
+<br>  
+
+
+#### Fitness Plant data  
+- Indicate which plants were fitness plants
+- Replicated? Indicate which maternal families were present in the main and watering experiment  
+
+```{r message = FALSE}
+BB_Fplants <- read_csv(here::here("data_sheets", "fitness_plants_7-21-2022", "BB_F_plants.csv"), col_types = cols(`ALL Fitness Plants` = col_character())) %>% #retain commas for column with multiple fitness plants
+  rename(F_plant = `SINGLE Fitness Plant`, F_multi = `ALL Fitness Plants`, F_plant_notes = NOTES) %>% 
+  select(Block:F_plant_notes)
+
+#Adjust Recipient names to match three-digit format
+BB_Fplants2 <- BB_Fplants %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
+  select(-Recipient_num) %>% 
+  rename(Replicated = `Replicated?`) %>% 
+  mutate(Replicated = case_when(Replicated == "R" ~ "R",
+                                is.na(Replicated) ~ "n")) #change NAs to 'n' (no) for non-rep'd Recipient IDs
+
+```
+
+
+Index fitness plants & Replicated (y/n) in germination and flowering data
+```{r message = FALSE}
+# Merge the two dataframes 
+# Create new row (Plant ID) specific variables for main and replicated fitness plants
+BB_GermFlow_2 <- merge(BB_GermFlow_1, BB_Fplants2) %>% 
+  mutate(FitP = case_when(F_plant == Plant_ID ~ TRUE,
+                           F_plant != Plant_ID ~ FALSE)) %>% 
+  mutate(Rep_FitP = case_when(Replicated == "R" & Plant_ID == str_match(F_multi, as.character(Plant_ID)) ~ TRUE,   
+                              TRUE ~ FALSE)) %>%  #if else, set value to FALSE
+  mutate(any_FitP = case_when(FitP == TRUE | Rep_FitP == TRUE ~ TRUE, #plant is any form of fitness plant
+                              TRUE ~ FALSE))
+
+
+#Tidy up
+BB_GermFlow_3 <- BB_GermFlow_2 %>% 
+  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, everything()) %>%
+  arrange(Location, Sequence, Recipient, Plant_ID)
+
+## Fit_P has NA values for when a fitness plant was never chosen
+
+```
+
+
+
+**Fruit and Seed counts**  
+
+Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. Info on plants' Block, Transect, sequence, etc. will be pulled from the fruit count sheets (assumed to be up-to-date). For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on. 
+
+Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
+
+Date added: **Aug 1, 2022**  
+
+*NOTE*: Update with later versions of data sheet when more seed counts have been entered
+```{r message = FALSE}
+#
+# Fruit count data
+# Data on *when* fruits were collected will be omitted here; only the total fruit counts (closed, open, non-fitness) are retained from the csv
+
+BB_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "BB-fruit-production.csv"), skip = 1) %>% 
+  select(1:9, 11, 12) %>% #omit sow and flower date, seed count, and date-specific fruit counts by column index
+  filter_all(any_vars(!is.na(.))) #omit empty rows at end of df
+
+BB_fruitprod_2 <- BB_fruitprod_1 %>% 
+  select(-c(Recipient, Sequence)) %>% # Sequence in this data set is incorrect
+  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `Number of closed fruits used to estimate mean seeds per fruit (include multiple dates)`, open_fruits_F = `Total number of all Open fruits`, damaged_fruits_F = `Eaten or damaged fruits`, total_fruits_F = `Total number of all fruits produced by the plant (open + closed)`, nonfitness_fruits = `Total number of non-fitness fruits collected from segment`) 
+
+#Note: total fruits should not include eaten/damaged fruit
+
+
+#
+# Seed count data (viable seeds)
+# Similarly, only seed count data are retained from this spreadsheet to minimize errors
+
+BB_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "BB-seed-count.csv"), skip = 1) %>% 
+  select(-c(1, 4, 8:47)) %>% 
+  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `Total number of viable seeds counted across multiple dates...7`) %>% 
+  mutate(Plant_ID = as.numeric(Plant_ID)) %>% 
+  filter_all(any_vars(!is.na(.)))
+  
+
+#merge data
+BB_fruitseed_ct1 <- left_join(BB_fruitprod_2, BB_seedct_1, by = c("Block", "Location", "Recipient", "Plant_ID"))
+#Sequence data in fruit count sheets is unreliable for these data sheets
+#Rows without matches in fruit_prod data sheet are not included
+
+
+# summary variables, tidying up
+BB_fruitseed_ct2 <- BB_fruitseed_ct1 %>% 
+  select(Block, Location, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
+  arrange(Block, Location, Recipient)
+
+## NOTE: total number of non-fitness fruits per segment may be under-represented here since not all counts were matched to fitness plants and therefore merged in.
+
+```
+
+
+
+**Seed Weights**  
+```{r}
+# Add in once weighing completed
+
+
+```
+
+
+
+Merge everything together:  
+```{r}
+BB_merged_df1 <- merge(BB_GermFlow_3, BB_fruitseed_ct2, by = c("Block", "Location", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
+  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>%
+  arrange(Block, Location, Sequence, Recipient, Plant_ID) %>% 
+  mutate(closed_fruits_F = as.numeric(closed_fruits_F),
+         total_fruits_F = as.numeric(total_fruits_F)) #correct counts to numeric values
+
+
+#Correct FruitNAs to 0s in cases where no fruit data was entered (fitness and non-fitness plants):
+
+#
+BB_merged_df2 <- BB_merged_df1 %>% 
+  mutate(closed_fruits_F = replace_na(closed_fruits_F, 0),
+         total_fruits_F = replace_na(total_fruits_F, 0))
+
+#Calculate mean seeds per fruit, total_est_seed prod
+BB_merged_df3 <- BB_merged_df2 %>% 
+  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
+         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) %>% 
+  mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE & closed_fruits_F == 0 ~ 0, 
+                                          TRUE ~ mean_seeds_per_fruit)) %>%  #else, original value
+  mutate(total_est_seed_production = case_when(any_FitP == TRUE & mean_seeds_per_fruit == 0 ~ 0,
+                                               TRUE ~ total_est_seed_production))
+
+
+#mean seeds per fruit and total est fruit production have NAs/NaNs for when there were no closed fruits/seeds (fitness plants only)
+
+
+
+#Correct formatting issues
+
+BB_merged_df4 <- BB_merged_df3 %>% 
+  mutate(Fl_2.25 = as_date(Fl_2.25),
+         Fl_3.25 = as_date(Fl_3.25),
+         Fl_4.1 = as_date(Fl_4.1),
+         Fl_4.22 = as_date(Fl_4.22),
+         Fl_5.4 = as_date(Fl_5.4),
+         Fl_5.12 = as_date(Fl_5.12))
+
+
+```
+
+
+Error checks:
+
+```{r eval = FALSE}
+##Check for mismatched (fitness) plants
+
+BB_Echeck1 <- BB_merged_df4 %>% 
+  filter(any_FitP == FALSE & seed_ct != 0) #do the same for seed count, using `>` and `!=`
+
+BB_Echeck2 <- BB_merged_df4 %>% 
+  filter(any_FitP == TRUE) %>% 
+  filter(closed_fruits_F == 0 & seed_ct > 0)
+
+##NA/NaN/Info values for mean seeds/est seed prod
+BB_Echeck3 <- BB_merged_df4 %>% 
+  filter(any_FitP == TRUE & is.na(as.numeric(mean_seeds_per_fruit)))
+######Loc. 16 ID BB_166 plant 5 shows up as NA for seed count??
+
+BB_Echeck4 <- BB_merged_df4 %>% 
+  filter(any_FitP == TRUE & !is.finite(mean_seeds_per_fruit))
+
+## Check for NA seed counts for fitness plants (when fruit production > 0)
+BB_Echeck5 <- AC_merged_df4 %>% 
+  filter(any_FitP == TRUE & is.na(seed_ct))
+
+
+```
+
+<br>  
+
+
+## Trait calculations 
+
+Some trait calculations performed in `Fitness_and_EDA.Rmd`  
+
+
+#### Phenology  
+
+```{r}
+
+BB_merged_df_fl <- BB_merged_df4 %>% 
+  mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
+         days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
+         days_sow2flower = as.numeric(FFD - Sow_Date), #days from germination to flowering
+         LFD = do.call(pmax, c(select(., starts_with('Fl_')), na.rm = TRUE)), #last flowering date
+         fl_duration = as.numeric(LFD - FFD)) #Flowering duration
+
+
+#Survival measures
+BB_merged_df_fl2 <- BB_merged_df_fl %>% 
+  mutate(surv_to_germ = case_when(!is.na(Germ_Date) ~ 1, #plants that germinated
+                                  is.na(Germ_Date) ~ 0),
+         surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
+                                  is.na(FFD) ~ 0),
+         surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
+                                       total_fruits_F == 0 ~ 0),
+         surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
+                                       TRUE ~ 0)) #else = 0 (applies to seed_ct = NA)
+
+         
+
+
+## Note: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
+```
+
+<br>  
+
+## Master sheets (v1)  
+
+
+```{r}
+## 'Long' version with all data - one row per plant ID
+#Sort by transect and ID variables, then by Fitness plants and those that flowered...
+
+
+BB_mastersheet_v1 <- BB_merged_df_fl2 %>% 
+  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  arrange(Block, Location, Sequence, Recipient, Plant_ID)
+
+write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_2022-07-26.csv"))
+
+#Create meta data sheet
+
+
+
+#
+## Fitness Plants Only
+#
+
+BB_mastersheet_Fonly_v1 <-  BB_mastersheet_v1 %>% 
+  filter(FitP == TRUE) #Only single fitness plants
+
+BB_mastersheet_Fonly_v2 <- BB_mastersheet_v1 %>% 
+  filter(any_FitP == TRUE) #single and multiple fitness plants (replicated IDs)
+
+
+##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
+
+
+write_csv(BB_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_Fitness-only_2022-07-26.csv"))
+```
+
+
+
