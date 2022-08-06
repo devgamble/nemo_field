@@ -303,22 +303,21 @@ BO_fruitprod_2 <- BO_fruitprod_1 %>%
 # Similarly, only seed count data are retained from this spreadsheet to minimize errors
 
 BO_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "BO-seed-count.csv"), skip = 1) %>% 
-  select(-c(1, 4, 8:47)) %>% 
-  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `Total number of viable seeds counted across multiple dates...7`) %>% 
-  mutate(Plant_ID = as.numeric(Plant_ID)) %>% 
-  filter_all(any_vars(!is.na(.)))
+  select(-c(1, 3, 7:33)) %>% 
+  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `viable_seeds`) %>% 
+  mutate(Plant_ID = as.numeric(Plant_ID)) 
   
 
 #merge data
-BO_fruitseed_ct1 <- left_join(BO_fruitprod_2, BO_seedct_1, by = c("Block", "Location", "Recipient", "Plant_ID"))
+BO_fruitseed_ct1 <- left_join(BO_fruitprod_2, BO_seedct_1, by = c("Transect", "Recipient", "Plant_ID"))
 #Sequence data in fruit count sheets is unreliable for these data sheets
 #Rows without matches in fruit_prod data sheet are not included
 
 
 # summary variables, tidying up
 BO_fruitseed_ct2 <- BO_fruitseed_ct1 %>% 
-  select(Block, Location, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
-  arrange(Block, Location, Recipient)
+  select(Transect, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
+  arrange(Transect, Recipient)
 
 ## NOTE: total number of non-fitness fruits per segment may be under-represented here since not all counts were matched to fitness plants and therefore merged in.
 
@@ -337,9 +336,9 @@ BO_fruitseed_ct2 <- BO_fruitseed_ct1 %>%
 
 Merge everything together:  
 ```{r}
-BO_merged_df1 <- merge(BO_GermFlow_3, BO_fruitseed_ct2, by = c("Block", "Location", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
-  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>%
-  arrange(Block, Location, Sequence, Recipient, Plant_ID) %>% 
+BO_merged_df1 <- merge(BO_GermFlow_3, BO_fruitseed_ct2, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>%
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID) %>% 
   mutate(closed_fruits_F = as.numeric(closed_fruits_F),
          total_fruits_F = as.numeric(total_fruits_F)) #correct counts to numeric values
 
@@ -368,12 +367,9 @@ BO_merged_df3 <- BO_merged_df2 %>%
 #Correct formatting issues
 
 BO_merged_df4 <- BO_merged_df3 %>% 
-  mutate(Fl_2.25 = as_date(Fl_2.25),
-         Fl_3.25 = as_date(Fl_3.25),
-         Fl_4.1 = as_date(Fl_4.1),
-         Fl_4.22 = as_date(Fl_4.22),
-         Fl_5.4 = as_date(Fl_5.4),
-         Fl_5.12 = as_date(Fl_5.12))
+  mutate(Fl_4.13 = as_date(Fl_4.13),
+         Fl_4.21 = as_date(Fl_4.21),
+         Fl_5.25 = as_date(Fl_5.25))
 
 
 ```
@@ -385,7 +381,7 @@ Error checks:
 ##Check for mismatched (fitness) plants
 
 BO_Echeck1 <- BO_merged_df4 %>% 
-  filter(any_FitP == FALSE & seed_ct != 0) #do the same for seed count, using `>` and `!=`
+  filter(any_FitP == FALSE & total_fruits_F != 0) #do the same for seed count, using `>` and `!=`
 
 BO_Echeck2 <- BO_merged_df4 %>% 
   filter(any_FitP == TRUE) %>% 
@@ -394,13 +390,13 @@ BO_Echeck2 <- BO_merged_df4 %>%
 ##NA/NaN/Info values for mean seeds/est seed prod
 BO_Echeck3 <- BO_merged_df4 %>% 
   filter(any_FitP == TRUE & is.na(as.numeric(mean_seeds_per_fruit)))
-######Loc. 16 ID BO_166 plant 5 shows up as NA for seed count??
+
 
 BO_Echeck4 <- BO_merged_df4 %>% 
   filter(any_FitP == TRUE & !is.finite(mean_seeds_per_fruit))
 
 ## Check for NA seed counts for fitness plants (when fruit production > 0)
-BO_Echeck5 <- AC_merged_df4 %>% 
+BO_Echeck5 <- BO_merged_df4 %>% 
   filter(any_FitP == TRUE & is.na(seed_ct))
 
 
@@ -454,10 +450,10 @@ BO_merged_df_fl2 <- BO_merged_df_fl %>%
 
 
 BO_mastersheet_v1 <- BO_merged_df_fl2 %>% 
-  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
-  arrange(Block, Location, Sequence, Recipient, Plant_ID)
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_2022-07-26.csv"))
+write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_2022-08-02.csv"))
 
 #Create meta data sheet
 
@@ -477,7 +473,10 @@ BO_mastersheet_Fonly_v2 <- BO_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(BO_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_Fitness-only_2022-07-26.csv"))
+write_csv(BO_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_Fitness-only_2022-08-02.csv"))
+
+write_csv(BO_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v2_all-Fitness-only_2022-08-02.csv"))
+
 ```
 
 

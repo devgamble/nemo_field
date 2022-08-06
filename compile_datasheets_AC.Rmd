@@ -292,9 +292,9 @@ AC_GermFlow_3 <- AC_GermFlow_2 %>%
 
 Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. Info on plants' Block, Transect, sequence, etc. will be pulled from the fruit count sheets (assumed to be up-to-date). For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on.
 
-Date added: **8/01/2022**  
+Date added: **8/06/2022**  
 
-*NOTE*: Update with later versions of data sheet when more seed counts have been entered
+*NOTE*: All typos believed to have been removed. Individual rows of fruit/seed data cross-checked against listed fitness plant and look good. 
 ```{r message = FALSE}
 #
 # Fruit count data
@@ -358,7 +358,7 @@ AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct2, by = c("Transect", "Sequ
 
 AC_merged_df2 <- AC_merged_df1 %>% 
   mutate(closed_fruits_F = replace_na(closed_fruits_F, 0),
-         total_fruits_F = replace_na(total_fruits_F, 0)) %>% 
+         total_fruits_F = replace_na(total_fruits_F, 0)) 
 
 
 #Calculate mean seeds per fruit, total_est_seed prod
@@ -477,20 +477,8 @@ AC_mastersheet_Fonly_v2 <- AC_mastersheet_v1 %>%
 
 
 write_csv(AC_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_Fitness-only_2022-07-26.csv"))
-```
 
-
-```{r eval = FALSE}
-
-
-# Calculate Maternal- and paterna- genotype fitness by FRIDAY
-
-
-## UPDATE EVERYTHING
-# (0) After all rounds of typo-correcting complete
-# (1) After seed weighing complete
-# (2) after watered plant data complete (seed count and weight?)
-
+write_csv(AC_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v2_allFitness-only_2022-08-02.csv"))
 ```
 
 

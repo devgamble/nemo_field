@@ -172,12 +172,12 @@ write_csv(HR_germ_full, here::here("data_sheets", "compiled_sheets", "HR_germina
 *Important Step!!*  
 In the csv file, select all data with dates (visit dates, leaf sampling, and flower photos). Right click --> format cells. Select the date category --> YYYY-MM-DD. Save the csv and close it. This will standardize all dates to the same format and make working with them in R much easier!  
 
+NOTE: Opening CSVs after doing this step appears to reset the standardization back to M/D/YYYY !
 
 
 ```{r}
 
-HRflr_df <- read_csv(file = here::here( "data_sheets", "season_end_flowerchecks_2022",  "HR_flowercheck_2022_03_14.csv"), na = c("", "NA", "G")) %>% 
-  mutate(across(c(5:18, 23:36), as_date)) #specify date columns
+HRflr_df <- read_csv(file = here::here( "data_sheets", "season_end_flowerchecks_2022",  "HR_flowercheck_2022_03_14.csv"), col_types = cols(`10-Mar...5` = col_date(), `10-Mar...23` = col_date()), na = c("", "NA", "G")) #specify date columns
 ##Ignore 'F' plants - more up-to-date fitness plant data is matched in below 
 
 #split groups
@@ -205,14 +205,25 @@ f_HRlong_2 <- f_HRlong %>%
 #Individually check each column (e.g., Fl_3.3) for the correct date format (unique(df$col)). Include LEAF and flr_p. Multiple dates are okay.
 
 f_HRlong_3 <- f_HRlong_2 %>% 
-  mutate(Fl_4.21 = case_when(Fl_4.13 == "2022-04-21" ~ "2022-04-21",
-                             Fl_4.21 == "2022-04-21" ~ "2022-04-21",
-                             Fl_4.21 == "2022-04-20" ~ "2022-04-20",
+  mutate(Fl_3.16 = case_when(Fl_3.16 == 19067 ~ "2022-03-16",
                              TRUE ~ as.character(NA))) %>% 
-  mutate(Fl_4.13 = case_when(Fl_4.13 == "2022-04-13" ~ "2022-04-13",
+  mutate(Fl_3.31 = case_when(Fl_3.24 == "2022-03-31" ~ "2022-03-31",
+                             Fl_3.31 == "2022-03-31" ~ "2022-03-31",
                              TRUE ~ as.character(NA))) %>% 
-  mutate(Fl_5.25 = case_when(Fl_5.25 == "2022-05-25" ~ "2022-05-25",
-                             Fl_5.25 == "2022-05-26" ~ "2022-05-26",
+  mutate(Fl_3.24 = case_when(Fl_3.24 == "2022-03-24" ~ "2022-03-24",
+                             TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_4.7 = case_when(Fl_4.7 == "2022-04-07" ~ "2022-04-07",
+                             Fl_4.14 == "2022-04-07" ~ "2022-04-07",
+                             TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_4.14 = case_when(Fl_4.14 == "2022-04-14" ~ "2022-04-14",
+                             TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_4.26 = case_when(Fl_4.20 == "2022-04-27" ~ "2022-04-27",
+                             Fl_4.26 == "2022-04-27" ~ "2022-04-27",
+                             Fl_4.26 == "2022-04-26" ~ "2022-04-26",
+                             TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_4.20 = case_when(Fl_4.20 == "2022-04-20" ~ "2022-04-20",
+                             TRUE ~ as.character(NA))) %>% 
+  mutate(Fl_5.20 = case_when(Fl_5.20 == "2022-05-20" ~ "2022-05-20",
                              TRUE ~ as.character(NA)))
 
 ```
@@ -223,15 +234,19 @@ Combine Germination and Flowering data frames
 #Merge by Recipient, Transect, and Plant ID
 HR_GermFlow_1 <- left_join(HR_germ_full, f_HRlong_3, by = c("Transect", "Recipient", "Plant_ID")) #
 
+
+##Correct date columns!
 ```
 
 
 <br>  
 
 
+
 #### Fitness Plant data  
 - Indicate which plants were fitness plants
 - Replicated? Indicate which maternal families were present in the main and watering experiment  
+
 
 ```{r message = FALSE}
 HR_Fplants <- read_csv(here::here("data_sheets", "fitness_plants_7-21-2022", "HR_F_plants.csv"), col_types = cols(`ALL Fitness Plants` = col_character())) %>% #retain commas for column with multiple fitness plants
@@ -273,6 +288,8 @@ HR_GermFlow_3 <- HR_GermFlow_2 %>%
 ```
 
 
+#######STOPPING POINT#######  
+
 
 **Fruit and Seed counts**  
 
@@ -305,22 +322,21 @@ HR_fruitprod_2 <- HR_fruitprod_1 %>%
 # Similarly, only seed count data are retained from this spreadsheet to minimize errors
 
 HR_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-seed-count.csv"), skip = 1) %>% 
-  select(-c(1, 4, 8:47)) %>% 
-  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `Total number of viable seeds counted across multiple dates...7`) %>% 
-  mutate(Plant_ID = as.numeric(Plant_ID)) %>% 
-  filter_all(any_vars(!is.na(.)))
+  select(-c(1, 3, 7:33)) %>% 
+  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `viable_seeds`) %>% 
+  mutate(Plant_ID = as.numeric(Plant_ID)) 
   
 
 #merge data
-HR_fruitseed_ct1 <- left_join(HR_fruitprod_2, HR_seedct_1, by = c("Block", "Location", "Recipient", "Plant_ID"))
+HR_fruitseed_ct1 <- left_join(HR_fruitprod_2, HR_seedct_1, by = c("Transect", "Recipient", "Plant_ID"))
 #Sequence data in fruit count sheets is unreliable for these data sheets
 #Rows without matches in fruit_prod data sheet are not included
 
 
 # summary variables, tidying up
 HR_fruitseed_ct2 <- HR_fruitseed_ct1 %>% 
-  select(Block, Location, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
-  arrange(Block, Location, Recipient)
+  select(Transect, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
+  arrange(Transect, Recipient)
 
 ## NOTE: total number of non-fitness fruits per segment may be under-represented here since not all counts were matched to fitness plants and therefore merged in.
 
@@ -339,9 +355,9 @@ HR_fruitseed_ct2 <- HR_fruitseed_ct1 %>%
 
 Merge everything together:  
 ```{r}
-HR_merged_df1 <- merge(HR_GermFlow_3, HR_fruitseed_ct2, by = c("Block", "Location", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
-  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>%
-  arrange(Block, Location, Sequence, Recipient, Plant_ID) %>% 
+HR_merged_df1 <- merge(HR_GermFlow_3, HR_fruitseed_ct2, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>%
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID) %>% 
   mutate(closed_fruits_F = as.numeric(closed_fruits_F),
          total_fruits_F = as.numeric(total_fruits_F)) #correct counts to numeric values
 
@@ -370,12 +386,9 @@ HR_merged_df3 <- HR_merged_df2 %>%
 #Correct formatting issues
 
 HR_merged_df4 <- HR_merged_df3 %>% 
-  mutate(Fl_2.25 = as_date(Fl_2.25),
-         Fl_3.25 = as_date(Fl_3.25),
-         Fl_4.1 = as_date(Fl_4.1),
-         Fl_4.22 = as_date(Fl_4.22),
-         Fl_5.4 = as_date(Fl_5.4),
-         Fl_5.12 = as_date(Fl_5.12))
+  mutate(Fl_4.13 = as_date(Fl_4.13),
+         Fl_4.21 = as_date(Fl_4.21),
+         Fl_5.25 = as_date(Fl_5.25))
 
 
 ```
@@ -387,7 +400,7 @@ Error checks:
 ##Check for mismatched (fitness) plants
 
 HR_Echeck1 <- HR_merged_df4 %>% 
-  filter(any_FitP == FALSE & seed_ct != 0) #do the same for seed count, using `>` and `!=`
+  filter(any_FitP == FALSE & total_fruits_F != 0) #do the same for seed count, using `>` and `!=`
 
 HR_Echeck2 <- HR_merged_df4 %>% 
   filter(any_FitP == TRUE) %>% 
@@ -396,13 +409,13 @@ HR_Echeck2 <- HR_merged_df4 %>%
 ##NA/NaN/Info values for mean seeds/est seed prod
 HR_Echeck3 <- HR_merged_df4 %>% 
   filter(any_FitP == TRUE & is.na(as.numeric(mean_seeds_per_fruit)))
-######Loc. 16 ID HR_166 plant 5 shows up as NA for seed count??
+
 
 HR_Echeck4 <- HR_merged_df4 %>% 
   filter(any_FitP == TRUE & !is.finite(mean_seeds_per_fruit))
 
 ## Check for NA seed counts for fitness plants (when fruit production > 0)
-HR_Echeck5 <- AC_merged_df4 %>% 
+HR_Echeck5 <- HR_merged_df4 %>% 
   filter(any_FitP == TRUE & is.na(seed_ct))
 
 
@@ -456,8 +469,8 @@ HR_merged_df_fl2 <- HR_merged_df_fl %>%
 
 
 HR_mastersheet_v1 <- HR_merged_df_fl2 %>% 
-  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
-  arrange(Block, Location, Sequence, Recipient, Plant_ID)
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
 write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_2022-07-26.csv"))
 
@@ -480,6 +493,9 @@ HR_mastersheet_Fonly_v2 <- HR_mastersheet_v1 %>%
 
 
 write_csv(HR_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_Fitness-only_2022-07-26.csv"))
+
+write_csv(HR_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v2_all-Fitness-only_2022-07-26.csv"))
+
 ```
 
 

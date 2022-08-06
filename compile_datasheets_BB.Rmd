@@ -31,6 +31,11 @@ NOTE: All date data should be standardized prior to importing into R. In Excel, 
 NOTE 2: All paths are relative thanks to the 'here' package.  
 
 
+NOTE 3: Two iterations of a maternal family ID (names fixed before saving csv):
+**BB_205_A** occurs at locations 33, 99, and 154 and has Donor BB_217 (greenhouse cohort 5)
+**BB_205_B** occurs at locations 48, 96, and 126 and has Donor BB_188 (cohort 6)
+
+
 **Germination Data**  
 - Add 'Date Sown' column and data in as well.
 
@@ -281,7 +286,7 @@ Due to the structure of excel data sheets, it seems easiest to upload fruit and 
 
 Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
 
-Date added: **Aug 1, 2022**  
+Date added: **Aug 2, 2022**  
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}
@@ -387,7 +392,7 @@ Error checks:
 ##Check for mismatched (fitness) plants
 
 BB_Echeck1 <- BB_merged_df4 %>% 
-  filter(any_FitP == FALSE & seed_ct != 0) #do the same for seed count, using `>` and `!=`
+  filter(any_FitP == FALSE & total_fruits_F != 0) #do the same for seed count, using `>` and `!=`
 
 BB_Echeck2 <- BB_merged_df4 %>% 
   filter(any_FitP == TRUE) %>% 
@@ -402,7 +407,7 @@ BB_Echeck4 <- BB_merged_df4 %>%
   filter(any_FitP == TRUE & !is.finite(mean_seeds_per_fruit))
 
 ## Check for NA seed counts for fitness plants (when fruit production > 0)
-BB_Echeck5 <- AC_merged_df4 %>% 
+BB_Echeck5 <- BB_merged_df4 %>% 
   filter(any_FitP == TRUE & is.na(seed_ct))
 
 
@@ -457,9 +462,12 @@ BB_merged_df_fl2 <- BB_merged_df_fl %>%
 
 BB_mastersheet_v1 <- BB_merged_df_fl2 %>% 
   select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
-  arrange(Block, Location, Sequence, Recipient, Plant_ID)
+  arrange(Block, Location, Sequence, Recipient, Plant_ID) %>% #Correct Recipient names - two mat fams with different donors
+  mutate(Recipient = case_when(Donor == "BB_217" & Location %in% c("33", "99", "154") ~ "BB_205_A",
+                               Donor == "BB_188" & Location %in% c("48", "96", "126") ~ "BB_205_B",
+                               TRUE ~ Recipient))
 
-write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_2022-07-26.csv"))
+write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_2022-08-02.csv"))
 
 #Create meta data sheet
 
@@ -479,7 +487,10 @@ BB_mastersheet_Fonly_v2 <- BB_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(BB_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_Fitness-only_2022-07-26.csv"))
+write_csv(BB_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_Fitness-only_2022-08-02.csv"))
+
+write_csv(BB_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v2_allFitness-only_2022-08-02.csv"))
+
 ```
 
 
