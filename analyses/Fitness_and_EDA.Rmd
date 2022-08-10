@@ -221,6 +221,8 @@ AC_FitSummary_1 <- Maternal_Paternal_Fitness %>%
 #Include total seed count for every mat fam (and paternal fam)
 
 write_csv(AC_FitSummary_1, here::here("data_sheets", "compiled_sheets", "fitness_summary_AC1.csv"))
+#Data for main fitness plants only
+
 
 ```
 
@@ -343,7 +345,6 @@ BB_FitSummary_1 <- Maternal_Paternal_Fitness_BB %>%
 #Include total seed count for every mat fam (and paternal fam)
 
 write_csv(BB_FitSummary_1, here::here("data_sheets", "compiled_sheets", "fitness_summary_BB1.csv"))
-
 
 ```
 
@@ -470,6 +471,8 @@ write_csv(BO_FitSummary_1, here::here("data_sheets", "compiled_sheets", "fitness
 
 ```
 
+
+**HR**  
 
 
 

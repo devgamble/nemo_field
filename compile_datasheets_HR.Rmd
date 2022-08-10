@@ -297,7 +297,7 @@ Due to the structure of excel data sheets, it seems easiest to upload fruit and 
 
 Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
 
-Date added: **Aug 2, 2022**  
+Date added: **Aug 10, 2022**  
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}

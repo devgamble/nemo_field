@@ -278,7 +278,7 @@ Due to the structure of excel data sheets, it seems easiest to upload fruit and 
 
 Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
 
-Date added: **Aug 2, 2022**  
+Date added: **Aug 10, 2022**  
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}
@@ -292,7 +292,7 @@ BO_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", 
 
 BO_fruitprod_2 <- BO_fruitprod_1 %>% 
   select(-c(Recipient, Sequence)) %>% # Sequence in this data set is incorrect
-  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `total_closed_fruits`, open_fruits_F = `total_open_fruits`, damaged_fruits_F = `eaten_damaged_fruits`, total_fruits_F = `total_fruits (open and closed)`, nonfitness_fruits = `nonfitness_fruis`) 
+  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `total_closed_fruits`, open_fruits_F = `total_open_fruits`, damaged_fruits_F = `eaten_damaged_fruits`, total_fruits_F = `total_fruits (open and closed)`, nonfitness_fruits = `nonfitness_fruits`) 
 
 #Note: total fruits should not include eaten/damaged fruit
 

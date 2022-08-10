@@ -286,7 +286,7 @@ Due to the structure of excel data sheets, it seems easiest to upload fruit and 
 
 Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
 
-Date added: **Aug 2, 2022**  
+Date added: **Aug 10, 2022**  
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}
@@ -461,8 +461,8 @@ BB_merged_df_fl2 <- BB_merged_df_fl %>%
 
 
 BB_mastersheet_v1 <- BB_merged_df_fl2 %>% 
-  select(Block, Location, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
-  arrange(Block, Location, Sequence, Recipient, Plant_ID) %>% #Correct Recipient names - two mat fams with different donors
+  select(Block, Location, Sequence, Co., Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  arrange(Block, Location, Sequence, Co., Recipient, Plant_ID) %>% #Correct Recipient names - two mat fams with different donors
   mutate(Recipient = case_when(Donor == "BB_217" & Location %in% c("33", "99", "154") ~ "BB_205_A",
                                Donor == "BB_188" & Location %in% c("48", "96", "126") ~ "BB_205_B",
                                TRUE ~ Recipient))
