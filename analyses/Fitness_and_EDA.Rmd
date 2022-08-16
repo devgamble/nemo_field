@@ -26,18 +26,12 @@ library(reshape2)
 ###NOTES 
 
 
-### ADD IN Cohort to each of the master data sheets
-
-
-
 
 ## REVIEW: mean seeds per fruit & estimated seed production are still 0s when seed_ct = NA...
 
 #long data set
 #Fitness data set
 
-
-#Analyze fitness as fecundity alone vs surv*fecundity
 
 #Total number of fruits may be better than seed # - less downward bias (due to seeds lost after dehiscence)
 
@@ -50,9 +44,6 @@ library(reshape2)
 #NAs vs 0s: when there were 0 closed fruit (i.e. no viable seeds collected), but possibly non-zero total fruits (open, etc.)??? Included as 0s in data, but may decide to remove
 
 #1 or more fruits but 0 seeds --> 0 fecundity (for est seed prod)
-
-#Do we even need a 'fitness plant only' master sheet as calculated in the other Rmd?
-
 
 
 
@@ -68,25 +59,67 @@ Specifically for estimating how many seeds two sow in year 2 of the field experi
 - Estimated Total Seed Production (average seeds per fruit x total fruits)  
 - Combined Fitness (Estimated seed production x sibship [segment] survival to flowering)  
 - Total Number of Fruits  
-- ?? Survival x Total Fruit Production?? (Probably not) 
 
 
 
 Load master sheets:  
+
+`Co.` referes to the greenhouse cohort of plants used to generate G1 seeds. Cohort data is merged in below for sites where it was not tracked (AC, BO, HR). 
 ```{r message = FALSE}
+#2021 Tray position data sheets - extract and merge in greenhouse cohort data:
+AC_tray21 <- read_csv(here::here("data_sheets", "2021_tray_positions", "AC_tray_rand.csv"), skip = 1) %>% 
+  select(Cohort, Donor_ID, Recipient_ID) %>% #Block and Transect not necessary to save here
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient_ID)))) %>% #Fix Recipient/Donor names
+  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor_ID)))) %>% 
+  mutate(Donor = as.character(str_c("AC_", Donor_num))) %>%
+  select(-c(Donor_num, Recipient_num, Donor_ID, Recipient_ID)) %>% 
+  distinct() #remove duplicate cases
+
+BO_tray21 <- read_csv(here::here("data_sheets", "2021_tray_positions", "BO_tray_rand.csv"), skip = 1) %>% 
+  select(Cohort, Donor_ID, Recipient_ID) %>% #Block and Transect not necessary to save here
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient_ID)))) %>% #Fix Recipient/Donor names
+  mutate(Recipient = as.character(str_c("BO_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor_ID)))) %>% 
+  mutate(Donor = as.character(str_c("BO_", Donor_num))) %>%
+  select(-c(Donor_num, Recipient_num, Donor_ID, Recipient_ID)) %>% 
+  distinct()
+
+HR_tray21 <- read_csv(here::here("data_sheets", "2021_tray_positions", "HR_tray_rand.csv"), skip = 1) %>% 
+  select(Cohort, Donor_ID, Recipient_ID) %>% #Block and Transect not necessary to save here
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient_ID)))) %>% #Fix Recipient/Donor names
+  mutate(Recipient = as.character(str_c("HR_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor_ID)))) %>% 
+  mutate(Donor = as.character(str_c("HR_", Donor_num))) %>%
+  select(-c(Donor_num, Recipient_num, Donor_ID, Recipient_ID)) %>% 
+  distinct()
+
+
+
+
+
 ## AC
-AC_master_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv")) #Parsing issue with 6-22 flowering date
+AC_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv")) #Parsing issue with 6-22 flowering date
+AC_master_df1 <- left_join(AC_master_df, AC_tray21, by = c("Donor", "Recipient")) %>% 
+  rename(Co. = Cohort)
+
 
 ## BB
 BB_master_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_2022-08-02.csv"))
 #No watered points present
+## Already has greenhouse cohort data
 
 
 ## BO
-BO_master_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_2022-08-02.csv")) #Parsing issue with Fl_3.11 flowering date
+BO_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_2022-08-02.csv")) #Parsing issue with Fl_3.11 flowering date
+BO_master_df1 <- left_join(BO_master_df, BO_tray21, by = c("Donor", "Recipient")) %>% 
+  rename(Co. = Cohort)
 
 
 ## HR
+HR_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_2022-08-16.csv"))
+HR_master_df1 <- left_join(HR_master_df, HR_tray21, by = c("Donor", "Recipient")) %>% 
+  rename(Co. = Cohort)
 
 ```
 
@@ -105,7 +138,6 @@ NOTE: Use `surv_to_x` variables to delimit groups in calculating certain fitness
 ```{r}
 
 #Survivorship of individual segments to flowering (maintain block)
-
 Fitness_AC_df1 <- AC_master_df1 %>% group_by(Block, Transect, Donor, Recipient) %>% 
   summarize(
     P_surv_flower = mean(surv_to_flower)) %>% 
@@ -473,7 +505,122 @@ write_csv(BO_FitSummary_1, here::here("data_sheets", "compiled_sheets", "fitness
 
 
 **HR**  
+```{r}
+#Survivorship of individual segments to flowering (maintain block)
 
+Fitness_HR_df1 <- HR_master_df1 %>% group_by(Block, Transect, Donor, Recipient) %>% 
+  summarize(
+    P_surv_flower = mean(surv_to_flower)) %>% 
+  filter(Block != "W") #Watered points already removed
+
+
+Fitness_HR_df2 <- HR_master_df1 %>% group_by(Block, Transect, Donor, Recipient) %>%
+  filter(FitP == TRUE) %>% 
+  summarize(
+    est_seed_prod = total_est_seed_production,
+    total_fruit_prod = total_fruits_F,
+    closed_fruits = closed_fruits_F,
+    seed_count = seed_ct
+  ) %>% ungroup() %>% 
+  mutate(est_seed_prod = case_when(closed_fruits == 0 ~ as.numeric(as.character(NA)), 
+                                   TRUE ~ est_seed_prod)) #option: set est_seed_prod to NA when 0 closed fruits were gathered (mean seeds per fruit not reliably estimated)
+### This will introduce NAs below when before there were 0s for combined fitness (surv x est seed prod)
+
+
+## 5 fewer rows than survival to flowering df
+
+
+
+Fitness_HR_df3 <- merge(Fitness_HR_df2, Fitness_HR_df1, by = c("Block", "Transect", "Donor", "Recipient")) %>% 
+  mutate(FIT_surv_x_seedprod = P_surv_flower*est_seed_prod,
+         FIT_surv_x_fruitprod = P_surv_flower*total_fruit_prod)
+
+
+#Calculate Block means of fitness variables:
+Fitness_HR_blockmeans <- Fitness_HR_df3 %>% group_by(Block) %>% 
+  summarize(
+    BLOCKmean_FIT_surv_x_seedprod = mean(FIT_surv_x_seedprod, na.rm = TRUE),
+    BLOCKmean_FIT_surv_x_fruitprod = mean(FIT_surv_x_fruitprod, na.rm = TRUE),
+    BLOCKmean_est_seed_prod = mean(est_seed_prod, na.rm = TRUE),
+    BLOCKmean_total_fruit_prod = mean(total_fruit_prod, na.rm = TRUE),
+    BLOCKmean_seed_count = mean(seed_count, na.rm = TRUE),
+    BLOCKmean_P_surv_flower = mean(P_surv_flower, na.rm = TRUE)
+  ) #NA values removed from these averages
+
+
+#Calculate relative fitness measures for each individual segment (Block means = 1)
+#Retain NAs for this df; individual segments may have produced 0 closed fruit
+Fitness_HR_df3.5 <- merge(Fitness_HR_df3, Fitness_HR_blockmeans, by = "Block") %>% 
+  mutate(
+    Rel_FIT_surv_x_seedprod = FIT_surv_x_seedprod/BLOCKmean_FIT_surv_x_seedprod,
+    Rel_FIT_surv_x_fruitprod = FIT_surv_x_fruitprod/BLOCKmean_FIT_surv_x_fruitprod,
+    Rel_est_seed_prod = est_seed_prod/BLOCKmean_est_seed_prod,
+    Rel_total_fruit_prod = total_fruit_prod/BLOCKmean_total_fruit_prod,
+    Rel_seed_count = seed_count/BLOCKmean_seed_count,
+    Rel_P_surv_flower = P_surv_flower/BLOCKmean_P_surv_flower,
+  )
+
+
+# Average across blocks - MATERNAL mean fitness estimates
+Fitness_HR_df4 <- Fitness_HR_df3.5 %>% group_by(Donor, Recipient) %>% 
+  summarize(
+    FIT_MATmean_surv_x_seedprod = mean(FIT_surv_x_seedprod, na.rm = TRUE),
+    #FIT_MATmean_surv_x_fruitprod = mean(FIT_surv_x_fruitprod, na.rm = TRUE),
+    MATmean_est_seed_prod = mean(est_seed_prod, na.rm = TRUE),
+    MATmean_total_fruit_prod = mean(total_fruit_prod, na.rm = TRUE),
+    MATmean_seed_count = mean(seed_count, na.rm = TRUE),
+    MATmean_P_surv_flower = mean(P_surv_flower, na.rm = TRUE), #Relative measures of fitness
+    Rel_FIT_MATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod, na.rm = TRUE),
+    #Rel_FIT_MATmean_surv_x_fruitprod = mean(Rel_FIT_surv_x_fruitprod, na.rm = TRUE),
+    Rel_MATmean_est_seed_prod = mean(Rel_est_seed_prod, na.rm = TRUE),
+    Rel_MATmean_total_fruit_prod = mean(Rel_total_fruit_prod, na.rm = TRUE),
+    Rel_MATmean_seed_count = mean(Rel_seed_count, na.rm = TRUE),
+    #Rel_MATmean_P_surv_flower = mean(Rel_P_surv_flower, na.rm = TRUE),
+    Total_seed_count_F = sum(seed_count, na.rm = TRUE) #Seed totals summed for each maternal family
+    )
+
+
+#Average across recipients - PATERNAL mean fitness estimates
+Fitness_HR_df5 <- Fitness_HR_df3.5 %>% group_by(Donor) %>% 
+  summarize(
+    FIT_PATmean_surv_x_seedprod = mean(FIT_surv_x_seedprod, na.rm = TRUE),
+    #FIT_PATmean_surv_x_fruitprod = mean(FIT_surv_x_fruitprod, na.rm = TRUE),
+    PATmean_est_seed_prod = mean(est_seed_prod, na.rm = TRUE),
+    PATmean_total_fruit_prod = mean(total_fruit_prod, na.rm = TRUE),
+    PATmean_seed_count = mean(seed_count, na.rm = TRUE),
+    PATmean_P_surv_flower = mean(P_surv_flower, na.rm = TRUE),
+    Rel_FIT_PATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod, na.rm = TRUE),
+    #Rel_FIT_PATmean_surv_x_fruitprod = mean(Rel_FIT_surv_x_fruitprod, na.rm = TRUE),
+    Rel_PATmean_est_seed_prod = mean(Rel_est_seed_prod, na.rm = TRUE),
+    Rel_PATmean_total_fruit_prod = mean(Rel_total_fruit_prod, na.rm = TRUE),
+    Rel_PATmean_seed_count = mean(Rel_seed_count, na.rm = TRUE),
+    #Rel_PATmean_P_surv_flower = mean(Rel_P_surv_flower, na.rm = TRUE), survival probably doesn't need to be relative
+    Total_seed_count_pat = sum(seed_count, na.rm = TRUE)
+  )
+
+
+Maternal_Paternal_Fitness_HR <- merge(Fitness_HR_df4, Fitness_HR_df5, by = "Donor")
+
+
+
+#Save a fitness-estimate data sheet
+#Fitness components: mean survivorship, mean total fruit production, estimated total seed production (relative), Combined fitness (relative), total seed count
+
+HR_FitSummary_1 <- Maternal_Paternal_Fitness_HR %>% 
+  select(Donor, Recipient, MATmean_P_surv_flower, MATmean_total_fruit_prod, Rel_MATmean_est_seed_prod, Rel_FIT_MATmean_surv_x_seedprod, Total_seed_count_F) %>% 
+  rename(mean_surv_to_flowering = MATmean_P_surv_flower,
+         mean_fruit_prod = MATmean_total_fruit_prod,
+         mean_est_seed_prod_R =  Rel_MATmean_est_seed_prod,
+         mean_surv_x_est_seed_prod_R = Rel_FIT_MATmean_surv_x_seedprod,
+         total_seed_count = Total_seed_count_F)
+
+
+#Include total seed count for every mat fam (and paternal fam)
+
+write_csv(HR_FitSummary_1, here::here("data_sheets", "compiled_sheets", "fitness_summary_HR1.csv"))
+
+
+```
 
 
 

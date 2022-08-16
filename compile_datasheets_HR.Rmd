@@ -310,8 +310,8 @@ HR_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", 
   #filter_all(any_vars(!is.na(.))) #omit empty rows at end of df
 
 HR_fruitprod_2 <- HR_fruitprod_1 %>% 
-  select(-c(Recipient, Sequence)) %>% # Sequence in this data set is incorrect
-  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `total_closed_fruits`, open_fruits_F = `total_open_fruits`, damaged_fruits_F = `eaten_damaged_fruits`, total_fruits_F = `total_fruits (open and closed)`, nonfitness_fruits = `nonfitness_fruis`) 
+  select(-c(Recipient)) %>% # Sequence in this data set is incorrect
+  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `total_closed_fruits`, open_fruits_F = `total_open_fruits`, damaged_fruits_F = `eaten_damaged_fruits`, total_fruits_F = `total_fruits (open and closed)`, nonfitness_fruits = `nonfitness_fruits`) 
 
 #Note: total fruits should not include eaten/damaged fruit
 
@@ -322,20 +322,21 @@ HR_fruitprod_2 <- HR_fruitprod_1 %>%
 # Similarly, only seed count data are retained from this spreadsheet to minimize errors
 
 HR_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-seed-count.csv"), skip = 1) %>% 
-  select(-c(1, 3, 7:33)) %>% 
+  select(-c(3, 7:33)) %>% 
   rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `viable_seeds`) %>% 
   mutate(Plant_ID = as.numeric(Plant_ID)) 
   
 
 #merge data
 HR_fruitseed_ct1 <- left_join(HR_fruitprod_2, HR_seedct_1, by = c("Transect", "Recipient", "Plant_ID"))
-#Sequence data in fruit count sheets is unreliable for these data sheets
+#Sequence data may not be accurate - add in later
 #Rows without matches in fruit_prod data sheet are not included
 
 
 # summary variables, tidying up
 HR_fruitseed_ct2 <- HR_fruitseed_ct1 %>% 
   select(Transect, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
+  select(-c(Sequence.x, Sequence.y)) %>% 
   arrange(Transect, Recipient)
 
 ## NOTE: total number of non-fitness fruits per segment may be under-represented here since not all counts were matched to fitness plants and therefore merged in.
@@ -386,9 +387,14 @@ HR_merged_df3 <- HR_merged_df2 %>%
 #Correct formatting issues
 
 HR_merged_df4 <- HR_merged_df3 %>% 
-  mutate(Fl_4.13 = as_date(Fl_4.13),
-         Fl_4.21 = as_date(Fl_4.21),
-         Fl_5.25 = as_date(Fl_5.25))
+  mutate(Fl_3.16 = as_date(Fl_3.16),
+         Fl_3.24 = as_date(Fl_3.24),
+         Fl_3.31 = as_date(Fl_3.31),
+         Fl_4.7 = as_date(Fl_4.7),
+         Fl_4.14 = as_date(Fl_4.14),
+         Fl_4.20 = as_date(Fl_4.20),
+         Fl_4.26 = as_date(Fl_4.26),
+         Fl_5.20 = as_date(Fl_5.20))
 
 
 ```
@@ -400,7 +406,7 @@ Error checks:
 ##Check for mismatched (fitness) plants
 
 HR_Echeck1 <- HR_merged_df4 %>% 
-  filter(any_FitP == FALSE & total_fruits_F != 0) #do the same for seed count, using `>` and `!=`
+  filter(any_FitP == FALSE & seed_ct != 0) #do the same for seed count, using `>` and `!=`
 
 HR_Echeck2 <- HR_merged_df4 %>% 
   filter(any_FitP == TRUE) %>% 
@@ -472,7 +478,7 @@ HR_mastersheet_v1 <- HR_merged_df_fl2 %>%
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_2022-07-26.csv"))
+write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_2022-08-16.csv"))
 
 #Create meta data sheet
 
@@ -492,9 +498,9 @@ HR_mastersheet_Fonly_v2 <- HR_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(HR_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_Fitness-only_2022-07-26.csv"))
+write_csv(HR_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_Fitness-only_2022-08-16.csv"))
 
-write_csv(HR_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v2_all-Fitness-only_2022-07-26.csv"))
+write_csv(HR_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v2_all-Fitness-only_2022-08-16.csv"))
 
 ```
 
