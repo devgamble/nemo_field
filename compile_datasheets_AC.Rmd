@@ -292,7 +292,7 @@ AC_GermFlow_3 <- AC_GermFlow_2 %>%
 
 Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. Info on plants' Block, Transect, sequence, etc. will be pulled from the fruit count sheets (assumed to be up-to-date). For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on.
 
-Date added: **8/06/2022**  
+Date added: **8/18/2022**  
 
 *NOTE*: All typos believed to have been removed. Individual rows of fruit/seed data cross-checked against listed fitness plant and look good. 
 ```{r message = FALSE}
@@ -337,9 +337,41 @@ AC_fruitseed_ct2 <- AC_fruitseed_ct1 %>%
 
 
 **Seed Weights**  
-```{r}
-# Add in once weighing completed
 
+*Note*: Prior to csv reading:
+- header row for seed weights was moved down to line up with other headers
+
+
+```{r}
+# Read in only # seeds weighed and total weight
+# Calculate mean weight per seed
+
+AC_seedmass_1 <- read_csv(here::here("data_sheets", "seed_mass", "AC_Seed_Mass.csv"), skip = 2)
+
+colnames(AC_seedmass_1) <- c("Sequence", "Transect", "Recipient_old", "Recipient", "Plant_ID", "closed_fruits_d1", "viable_seeds_d1", "seeds_weighed_d1", "seed_mass_mg_d1", "closed_fruits_d2", "viable_seeds_d2", "seeds_weighed_d2", "seed_mass_mg_d2", "closed_fruits_d3", "viable_seeds_d3", "seeds_weighed_d3", "seed_mass_mg_d3", "closed_fruits_d4", "viable_seeds_d4", "seeds_weighed_d4", "seed_mass_mg_d4", "closed_fruits_d5", "viable_seeds_d5", "seeds_weighed_d5", "seed_mass_mg_d5")
+
+
+#Unsure how to account for number of seeds weighed - each statistical 'unit' is the mean seed weight calculated on a given date
+
+AC_seedmass_2 <- AC_seedmass_1 %>% 
+  select(-starts_with(c("closed_fruits_", "viable_seeds_")), -Recipient_old) %>% 
+  mutate(msm_d1 = seed_mass_mg_d1/seeds_weighed_d1,
+         msm_d2 = seed_mass_mg_d2/seeds_weighed_d2,
+         msm_d3 = seed_mass_mg_d3/seeds_weighed_d3,
+         msm_d4 = seed_mass_mg_d4/seeds_weighed_d4,
+         msm_d5 = seed_mass_mg_d5/seeds_weighed_d5)
+         
+
+AC_seedmass_3 <- AC_seedmass_2 %>%
+  mutate(msm_all = rowMeans(select(AC_seedmass_2, starts_with("msm_")), na.rm = TRUE)) %>% 
+  rowwise() %>% 
+  mutate(sd_msm_all = sd(c_across(c(msm_d1:msm_d5)), na.rm = TRUE))
+         
+  
+##Merge with fruit/seed count data frame
+
+AC_fruitseed_ct3 <- merge(AC_fruitseed_ct2, AC_seedmass_3, by = c("Transect", "Sequence", "Recipient", "Plant_ID"), all.x = TRUE)
+#all.x means that any fitness plant x ID combos that don't match up won't be included.
 
 ```
 
@@ -347,7 +379,7 @@ AC_fruitseed_ct2 <- AC_fruitseed_ct1 %>%
 
 Merge everything together:  
 ```{r}
-AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct2, by = c("Transect", "Sequence", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
+AC_merged_df1 <- merge(AC_GermFlow_3, AC_fruitseed_ct3, by = c("Transect", "Sequence", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID) %>% 
   mutate(closed_fruits_F = as.numeric(closed_fruits_F),
@@ -403,6 +435,11 @@ AC_Echeck5 <- AC_merged_df3 %>%
   filter(any_FitP == TRUE & is.na(seed_ct))
 
 
+#Seed mass
+AC_Echeck5 <- AC_merged_df3 %>% 
+  filter(any_FitP == FALSE & !is.na(msm_all))
+
+
 ```
 
 <br>  
@@ -456,7 +493,7 @@ AC_mastersheet_v1 <- AC_merged_df_fl2 %>%
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv"))
+write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-08-18.csv"))
 
 #Create meta data sheet
 
@@ -476,9 +513,9 @@ AC_mastersheet_Fonly_v2 <- AC_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(AC_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_Fitness-only_2022-07-26.csv"))
+write_csv(AC_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_Fitness-only_2022-08-18.csv"))
 
-write_csv(AC_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v2_allFitness-only_2022-08-02.csv"))
+write_csv(AC_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v2_allFitness-only_2022-08-18.csv"))
 ```
 
 

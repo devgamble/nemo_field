@@ -99,25 +99,25 @@ HR_tray21 <- read_csv(here::here("data_sheets", "2021_tray_positions", "HR_tray_
 
 
 ## AC
-AC_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-07-26.csv")) #Parsing issue with 6-22 flowering date
+AC_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v1_2022-08-18.csv")) #Parsing issue with 6-22 flowering date
 AC_master_df1 <- left_join(AC_master_df, AC_tray21, by = c("Donor", "Recipient")) %>% 
   rename(Co. = Cohort)
 
 
 ## BB
-BB_master_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_2022-08-02.csv"))
+BB_master_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_2022-08-18.csv"))
 #No watered points present
 ## Already has greenhouse cohort data
 
 
 ## BO
-BO_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_2022-08-02.csv")) #Parsing issue with Fl_3.11 flowering date
+BO_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v1_2022-08-18.csv")) #Parsing issue with Fl_3.11 flowering date
 BO_master_df1 <- left_join(BO_master_df, BO_tray21, by = c("Donor", "Recipient")) %>% 
   rename(Co. = Cohort)
 
 
 ## HR
-HR_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_2022-08-16.csv"))
+HR_master_df <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_2022-08-18.csv"))
 HR_master_df1 <- left_join(HR_master_df, HR_tray21, by = c("Donor", "Recipient")) %>% 
   rename(Co. = Cohort)
 
