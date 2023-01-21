@@ -7,6 +7,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+**Description**:  
+
+Organizational Rmd for the creation of data sheets and the fixing of typos. 
+
+Code chunks are set to eval = FALSE once the necessary sheets or changes have been made.  
+
 Load Packages:
 ```{r}
 library(tidyverse)
@@ -17,12 +24,29 @@ library(here)
 
 **NOTE:** This code was used to organize flowering/germination data sheets early in the 2022 field season. These sheets were revised again and the versions created below were never used. Paths have been updated to indicate that much of these files are old versions.  
 
+### Load Master Sheets  
+```{r}
+# 2021-2022 field season
+
+#Main & Extra Fitness plants
+nemo_allFs_AC <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v2_allFitness-only_2022-08-18.csv"))
+
+nemo_allFs_BB <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v2_allFitness-only_2022-08-18.csv"))
+
+nemo_allFs_BO <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v2_all-Fitness-only_2022-08-18.csv"))
+
+nemo_allFs_HR <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v2_all-Fitness-only_2022-08-18.csv"))
+
+```
+
+
+
 #### Update Bodega Bay Data Sheet  
 
 Data sheet should have one row (section) per plant, plus multiple columns to record flowering date.
 
 
-```{r}
+```{r eval = FALSE}
 #Load original germination and flowering date sheet
 # - Some data present already
 
@@ -85,7 +109,7 @@ BB_pivlong_split <- cbind(BB_pivlong_14, BB_pivlong_58)
 ##### Update Hastings  
 
 
-```{r}
+```{r eval = FALSE}
 
 HR_germflow_old <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Hastings Ranch- Germination Monitoring Data Sheets 2021_12_06.csv")) %>% 
   rename(Block = 'Block (1-3)', Transect = 'Transect (1-12)', Seq = 'Sequence (1-396)', Donor = "Pollen Donor ID", Recipient = "Maternal Sibship", Stage = 'mm/dd') %>% 
@@ -144,7 +168,7 @@ HR_pivlong_split <- cbind(HR_pivlong_14, HR_pivlong_58)
 
 ##### Update Blue Oak  
 
-```{r}
+```{r eval = FALSE}
 
 BO_germflow_old <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Blue Oak- Data Sheets 2021-12-21_Germ and Flow Dates.csv")) %>% 
   rename(Block = 'Block (1-3)', Transect = 'Transect (1-12)', Seq = 'Sequence (1-396)', Donor = "Pollen Donor ID", Recipient = "Maternal Sibship", Stage = 'mm/dd') %>% 
@@ -206,7 +230,7 @@ BO_pivlong_split <- cbind(BO_pivlong_14, BO_pivlong_58)
 
 ##### Update Angelo Coast 
 
-```{r}
+```{r eval = FALSE}
 
 AC_germflow_old <- read_csv(here::here("data_sheets", "germination_checks_2021-2022", "old_versions", "Angelo Coast - Data Sheets 2021-10-31_Germ and Flow Dates.csv")) %>% 
   rename(Block = 'Block (1-3)', Transect = 'Transect (1-9)', Seq = 'Sequence (1-321)', Donor = "Pollen Donor ID", Recipient = "Maternal Sibship", Stage = 'mm/dd') %>% 
@@ -277,6 +301,74 @@ AC_pivlong_split3 <- rbind(AC_pivlong_split1, AC_pivlong_split2)
 ```
 
 
+<br>  
 
+
+#### Update HR skeleton weighing datasheet  
+- merge in the segments for which skeletons have already been weighed  
+
+
+```{r}
+
+nemo_allFs <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v2_all-Fitness-only_2022-08-18.csv"))
+
+
+nemo_HR_skel_temp <- read_csv(here::here("Skeleton Data - HR Skeletons.csv")) %>% 
+  rename(SK_weights = `Skeleton Weights`,
+         SK_notes = Notes)
+
+
+nemo_HR_skel_new <- merge(nemo_allFs, nemo_HR_skel_temp, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
+  select(Transect, Recipient, Plant_ID, SK_weights, Units, SK_notes) %>% 
+  rename(`Skeleton Weights` = SK_weights,
+         Notes = SK_notes)
+
+write_csv(nemo_HR_skel_new, here::here("data_sheets", "nemo_HR_skeleton_weights.csv"), na = "")
+
+
+```
+
+
+
+#### Create Pulverization Data Sheets  
+
+Using Skeleton weights data sheets
+
+**AC**  
+
+```{r}
+AC_weights <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_AC.csv")) %>% select(-Units) %>% 
+  filter(is.na(Notes)|Notes != "DNE") #prevent loss of NA rows in notes
+
+colnames(AC_weights) <- c("Transect", "Recipient", "Plant_ID", "skel_weight", "skel_notes")
+
+#rows without any notes might be incomplete and still able to be pulverized
+
+
+# Attempt to keep only rows for which skeleton collections exist
+# Exclude DNE rows
+#Check and make sure ID x plant combos line up with main or extra fitness plants
+
+mergetestAC <- merge(AC_weights, nemo_allFs_AC, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
+#No need right now to save this, just check that there are no all-NA rows from the master sheet (that would imply a mismatch)
+
+#Create Sample IDs
+
+pulv_sheet1 <- AC_weights %>% 
+  mutate(Transect_00 = sprintf("%03d", Transect), Plant_ID_0 = sprintf("%02d", Plant_ID)) %>% 
+  unite(`Sample ID`, c(Recipient, Transect_00, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(Transect, Recipient, Plant_ID, `Sample ID`, skel_weight, skel_notes, -c(Transect_00, Plant_ID_0))
+
+#Add columns for Tray ID, sample position, and sample weight (mg)
+# Column names should approx. match those in the Davis Isotop sample example data sheet
+
+pulv_sheet2 <- pulv_sheet1 %>% 
+  mutate(`Amount (mg)` = NA, `Tray Name` = NA, `Well ID` = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+  select(Transect, Recipient, Plant_ID, `Sample ID`, `Amount (mg)`, `Tray Name`, `Well ID` = seq(from = A1, to = H16), `Type of Material`, Analysis, Enriched)
+  
+
+write_csv(pulv_sheet2, here::here("data_sheets", "skeleton_and_stem_data", "pulv_sample_sheet_AC.csv"), na = "")
+
+```
 
 

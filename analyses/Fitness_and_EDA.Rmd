@@ -25,7 +25,7 @@ library(reshape2)
 ```{r}
 ###NOTES 
 
-
+############ Add fitness measure: Fecundity (total seed number) x mean seed mass.......
 
 ## REVIEW: mean seeds per fruit & estimated seed production are still 0s when seed_ct = NA...
 
@@ -35,6 +35,7 @@ library(reshape2)
 
 #Total number of fruits may be better than seed # - less downward bias (due to seeds lost after dehiscence)
 
+#Typo in 'seed_count' - there are 0s that should be NAs when closed fruit == 0
 
 
 #To-Do
@@ -818,8 +819,11 @@ ggplot(data = Fitness_AC_df3.5) +
   scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
   ylab("Count") +
   xlab("egment Survival x Estimated fruit Production (N=319) (Relative)")
+```
 
 
+```{r eval = FALSE, echo = FALSE}
+##These measures not estimated - commented out above
 
 ## Average Maternal Family Fitness  
 ggplot(data = Fitness_AC_df4) +
@@ -848,6 +852,7 @@ ggplot(data = Fitness_AC_df5) +
 
 
 
+
 ## Exploratory Data Analyses  
 
 Phenotypic Trait and Fitness data from the 2021-2022 Nemophila Field Experiment  
@@ -856,6 +861,192 @@ Explore:
 - Block effects (on fruit prod, fecundity, fitness)
 - 
 
+
+Proportion of individuals with reproductive fitness = 0? 
+- Note: 0s in seed count need to be corrected to NA when closed_fruit = 0
+
+```{r}
+##AC##
+
+#Closed Fruit
+nrow(filter(Fitness_AC_df3.5, closed_fruits == 0))/nrow(Fitness_AC_df3.5)
+
+#Relative estimated seed production
+#nrow(filter(Fitness_AC_df3.5, Rel_est_seed_prod == 0))/nrow(Fitness_AC_df3.5)
+
+
+##BB##  
+
+nrow(filter(Fitness_BB_df3.5, closed_fruits == 0))/nrow(Fitness_BB_df3.5)
+
+
+
+##BO##  
+
+nrow(filter(Fitness_BO_df3.5, closed_fruits == 0))/nrow(Fitness_BO_df3.5)
+
+
+##HR##  
+
+nrow(filter(Fitness_HR_df3.5, closed_fruits == 0))/nrow(Fitness_HR_df3.5)
+
+```
+
+**Variation in Fitness by Genotype with vs. without 0s**:  
+
+
+**AC**:  
+
+```{r}
+
+#New df for 0s removed, only a couple fitness measures included relative to AC_df4
+FITAC_no_0s <- filter(Fitness_AC_df3.5, closed_fruits > 0) %>% group_by(Donor, Recipient) %>% 
+  summarize(
+    MATmean_est_seed_prod = mean(est_seed_prod, na.rm = TRUE),
+    MATmean_seed_count = mean(seed_count, na.rm = TRUE),
+    MATmean_P_surv_flower = mean(P_surv_flower, na.rm = TRUE), #Relative measures of fitness
+    Rel_FIT_MATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod, na.rm = TRUE),
+    Rel_MATmean_est_seed_prod = mean(Rel_est_seed_prod, na.rm = TRUE),
+    Rel_MATmean_total_fruit_prod = mean(Rel_total_fruit_prod, na.rm = TRUE),
+    Rel_MATmean_seed_count = mean(Rel_seed_count, na.rm = TRUE),
+    Total_seed_count_F = sum(seed_count, na.rm = TRUE) #Seed totals summed for each maternal family
+    ) 
+  
+
+ggplot() +
+  geom_density(data = Fitness_AC_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_density(data = FITAC_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  #scale_y_continuous(expand = c(0,0), limits = c(0,25)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+ggplot() +
+  geom_histogram(data = Fitness_AC_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_histogram(data = FITAC_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0), limits = c(0,25)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+
+#Estimated Seed production not affected by inclusion/exclusion of 0s - due to no change in seed_ct = 0 when only >1 closed fruits producers included.
+
+
+```
+
+
+**BB**:  
+
+```{r}
+FITBB_no_0s <- filter(Fitness_BB_df3.5, closed_fruits > 0) %>% group_by(Donor, Recipient) %>% 
+  summarize(
+    MATmean_est_seed_prod = mean(est_seed_prod, na.rm = TRUE),
+    MATmean_seed_count = mean(seed_count, na.rm = TRUE),
+    MATmean_P_surv_flower = mean(P_surv_flower, na.rm = TRUE), #Relative measures of fitness
+    Rel_FIT_MATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod, na.rm = TRUE),
+    Rel_MATmean_est_seed_prod = mean(Rel_est_seed_prod, na.rm = TRUE),
+    Rel_MATmean_total_fruit_prod = mean(Rel_total_fruit_prod, na.rm = TRUE),
+    Rel_MATmean_seed_count = mean(Rel_seed_count, na.rm = TRUE),
+    Total_seed_count_F = sum(seed_count, na.rm = TRUE) #Seed totals summed for each maternal family
+    ) 
+  
+
+ggplot() +
+  geom_density(data = Fitness_BB_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_density(data = FITBB_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+ggplot() +
+  geom_histogram(data = Fitness_BB_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_histogram(data = FITBB_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+
+```
+
+
+**BO**:  
+
+```{r}
+FITBO_no_0s <- filter(Fitness_BO_df3.5, closed_fruits > 0) %>% group_by(Donor, Recipient) %>% 
+  summarize(
+    MATmean_est_seed_prod = mean(est_seed_prod, na.rm = TRUE),
+    MATmean_seed_count = mean(seed_count, na.rm = TRUE),
+    MATmean_P_surv_flower = mean(P_surv_flower, na.rm = TRUE), #Relative measures of fitness
+    Rel_FIT_MATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod, na.rm = TRUE),
+    Rel_MATmean_est_seed_prod = mean(Rel_est_seed_prod, na.rm = TRUE),
+    Rel_MATmean_total_fruit_prod = mean(Rel_total_fruit_prod, na.rm = TRUE),
+    Rel_MATmean_seed_count = mean(Rel_seed_count, na.rm = TRUE),
+    Total_seed_count_F = sum(seed_count, na.rm = TRUE) #Seed totals summed for each maternal family
+    ) 
+  
+
+ggplot() +
+  geom_density(data = Fitness_BO_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_density(data = FITBO_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+ggplot() +
+  geom_histogram(data = Fitness_BO_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_histogram(data = FITBO_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+
+```
+
+
+**HR**:  
+
+```{r}
+FITHR_no_0s <- filter(Fitness_HR_df3.5, closed_fruits > 0) %>% group_by(Donor, Recipient) %>% 
+  summarize(
+    MATmean_est_seed_prod = mean(est_seed_prod, na.rm = TRUE),
+    MATmean_seed_count = mean(seed_count, na.rm = TRUE),
+    MATmean_P_surv_flower = mean(P_surv_flower, na.rm = TRUE), #Relative measures of fitness
+    Rel_FIT_MATmean_surv_x_seedprod = mean(Rel_FIT_surv_x_seedprod, na.rm = TRUE),
+    Rel_MATmean_est_seed_prod = mean(Rel_est_seed_prod, na.rm = TRUE),
+    Rel_MATmean_total_fruit_prod = mean(Rel_total_fruit_prod, na.rm = TRUE),
+    Rel_MATmean_seed_count = mean(Rel_seed_count, na.rm = TRUE),
+    Total_seed_count_F = sum(seed_count, na.rm = TRUE) #Seed totals summed for each maternal family
+    ) 
+  
+
+ggplot() +
+  geom_density(data = Fitness_HR_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_density(data = FITHR_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+ggplot() +
+  geom_histogram(data = Fitness_HR_df4, aes(x = Rel_MATmean_total_fruit_prod), fill = "#A58AFF", color = "black", alpha = 0.3) + 
+  geom_histogram(data = FITHR_no_0s, aes(x = Rel_MATmean_total_fruit_prod), fill = "orange", color = "black", alpha = 0.3) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  ylab("Count") +
+  xlab("Avg. Maternal Total Fruit Production (N=107) (Relative)")
+
+
+```
+
+
+
+
+Scatter plots:  
 
 
 

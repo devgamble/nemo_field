@@ -1,0 +1,201 @@
+---
+title: "Effect of Supplemental Watering on Trait Expression in Nemophila menziesii"
+author: "John Milinazzo"
+date: "2022-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Description:**  
+This .Rmd will include exploratory data analyses (EDA) on the phenotypic plasticity of traits measured in four populations of *Nemophila menziesii* during the 2021-2022 growing season of the Mazer lab's Nemophila project. 
+
+
+
+**Load Packages**  
+
+```{r message = FALSE}
+library(tidyverse) #For data organization and tidying
+library(janitor) #more tidying functions
+library(here) #great for specifying relative file paths
+library(lubridate) #for adjusting 'date' values if any need cleaning up
+#add more packages here
+
+
+```
+
+
+
+#### Load Fitness Plant Data  
+
+**Bodega Bay**  
+
+Load and tidy up data.
+```{r}
+
+#BB_fitness_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v2_allFitness-only_2022-08-18.csv")) # You should edit the file path (i.e., edit/remove folder names) to load the csv from the folder you've stored it in
+
+
+##Note on the data:
+## This data frame includes data on all selected fitness plants at Bodega Bay from 2021-2022. There were 3 experimental blocks and a total of 156 (+1; 160) point-locations. Plants in block 'W' received supplemental water and had, when available, 3 fitness plants chosen. Recipient ID's (Genotypes) that were present in both the regular and water blocks had, when available, 3 fitness plants chosen (Replicated = R). Important trait-related columns include germination date, the number of closed fruit, number of total fruit, seed count, mean seed mass (msm_all), mean seeds per fruit, total estimated seed production, first flowering date (FFD), days from germination to flower, flowering duration, and survival.
+
+
+
+##Remove Unnecessary columns and data
+#BB_fitness_df2 <- BB_fitness_df1 %>% 
+ # select(-c(Sequence, Co., FitP, any_FitP, F_multi, F_plant_notes, Fl_2.25:flr_P, seeds_weighed_d1:msm_d9))
+
+
+#Keep only fitness plants that were replicated in both experiments
+#BB_fitness_df3 <- BB_fitness_df2 %>% 
+#  filter(Replicated == "R")
+  
+
+```
+
+
+```{r}
+BB_fitness_df1 <- read.csv("BB_mastersheet_v2_allFitness-only_2022-08-18.csv")
+```
+
+```{r}
+BB_fitness_df2 <- BB_fitness_df1 %>% 
+  select(-c(Sequence, Co., FitP, any_FitP, F_multi, F_plant_notes, Fl_2.25:flr_P, seeds_weighed_d1:msm_d9))
+
+
+#Keep only fitness plants that were replicated in both experiments
+BB_fitness_df3 <- BB_fitness_df2 %>% 
+  filter(Replicated == "R")
+```
+
+#### Exploration  
+
+```{r}
+
+#Examine the structure of the data set
+
+str(BB_fitness_df3)
+
+head(BB_fitness_df3)
+
+summary(BB_fitness_df3)
+
+
+
+```
+
+
+**Some questions**:
+- How many watered v.s. non-watered fitness plants (observations) are there?
+#130 non-watered & 95 watered
+- On average, how many fitness plants are there to each Recipient ID (in each block)?
+#3 fitness plants
+- What kind of trends in quantitative/numeric trait variables can you identify?
+
+- How do trait values differ across locations and between experiments?
+
+```{r}
+ggplot(BB_fitness_df3, aes(x=Block, y=total_est_seed_production)) + 
+  geom_boxplot(fill = "palevioletred1", color="palevioletred4") + labs(title="Seed Prooduction per Block",x="Block", y = "Estimated Seed Production") +
+  theme_gray()
+```
+
+```{r}
+ggplot(BB_fitness_df3, aes(x=Block, y=total_fruits_F)) + 
+  geom_boxplot(fill = "palevioletred1", color="palevioletred4") + labs(title="Total fruits per Block",x="Block", y = "Total Fruits") +
+  theme_gray()
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=Block, y=seed_ct)) + 
+  geom_boxplot(fill = "palevioletred1", color="palevioletred4") + labs(title="Seed Count per Block",x="Block", y = "seed count") +
+  theme_gray()
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=Block, y=days_germ2flower)) + 
+  geom_boxplot(fill = "palevioletred1", color="palevioletred4") + labs(title="Germ Time per Block",x="Block", y = "Days from Germination to Flower") +
+  theme_gray()
+```
+
+```{r}
+ggplot(BB_fitness_df3, aes(x=Block, y=days_sow2flower)) + 
+  geom_boxplot(fill = "palevioletred1", color="palevioletred4") + labs(title="Days to Flower per Block",x="Block", y = "Days from Sow to Flower") +
+  theme_gray()
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=Block, y=fl_duration)) + 
+  geom_boxplot(fill = "palevioletred1", color="palevioletred4") + labs(title="Flower Duration per Block",x="Block", y = "Flower Duration") +
+  theme_gray()
+```
+
+```{r}
+BB_fitness_df3 <- BB_fitness_df2 %>% 
+  filter(Replicated == "R") %>% 
+  mutate(watered = case_when(Block %in% c("1","2","3") ~ "n" ,
+                             Block == "W" ~ "y")) %>% 
+  mutate(FFD_DOY = yday(FFD))
+```
+
+```{r}
+ggplot(BB_fitness_df3, aes(x=FFD_DOY, y=total_est_seed_production)) + geom_point(shape=1, size=1, col="darkgreen") + theme_minimal() + labs(title="Seed Prooduction vs. Flowering Date",x="First Flowering Date", y = "Estimated Seed Production")
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=days_germ2flower, y=total_est_seed_production)) + geom_point(shape=1, size=1, col="darkgreen") + theme_minimal() + labs(title="Seed Prooduction vs Days from Germination to Flower",x="Days From Germination to Flower", y = "Estimated Seed Production")
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=days_sow2flower, y=total_est_seed_production)) + geom_point(shape=1, size=1, col="darkgreen") + theme_minimal() + labs(title="Seed Prooduction vs. Days from Sow to Flower",x="Days from Sow to Flower", y = "Estimated Seed Production")
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=fl_duration, y=total_est_seed_production)) + geom_point(shape=1, size=1, col="darkgreen") + theme_minimal()+geom_smooth() + labs(title="Flower Duaration",x="Flower Duration", y = "Estimated Seed Production")
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=watered, y=fl_duration)) + 
+  geom_boxplot(fill = "darkolivegreen1", color="darkolivegreen4") + labs(title="Seed Prooduction per Block",x="Water Status", y = "Flower Duration") +
+  theme_gray()
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=watered, y=seed_ct)) + 
+  geom_boxplot(fill = "darkseagreen", color="darkseagreen4") + labs(title="Seed Prooduction per Block",x="Water Status", y = "Seed Count") +
+  theme_gray()
+```
+
+```{r}
+ggplot(BB_fitness_df3, aes(x=fl_duration, y=seed_ct)) + geom_point(shape=1, size=2, col="darkgreen") + theme_minimal() + labs(title="Seed Count vs. Flowering Duration",x="Flower Duration", y = "Seed Count")
+```
+
+```{r}
+ggplot(BB_fitness_df3, aes(x=watered, y=FFD_DOY)) + 
+  geom_boxplot(fill = "darkseagreen", color="darkseagreen4") + labs(title="Seed Prooduction per Block",x="First Flower Day", y = "Seed Count") +
+  theme_gray()
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=watered, y=days_germ2flower)) + 
+  geom_boxplot(fill = "darkseagreen", color="darkseagreen4") + labs(title="Seed Prooduction per Block",x="Water Status", y = "Days From Germination to Flower") +
+  theme_gray()
+```
+```{r}
+ggplot(BB_fitness_df3, aes(x=watered, y=days_sow2flower)) + 
+  geom_boxplot(fill = "darkseagreen", color="darkseagreen4") + labs(title="Seed Prooduction per Block",x="Water Status", y = "Days From Sow to Flower") +
+  theme_gray()
+```
+
+```{r}
+t.test(BB_fitness_df3$fl_duration~BB_fitness_df3$watered) 
+```
+This is a significant p-value. The mean flower duration of watered plants was significantly greater that that of non-watered plants.
+
+
+
+
+```{r}
+t.test(BB_fitness_df3$FFD_DOY~BB_fitness_df3$watered) 
+```
+```{r}
+t.test(BB_fitness_df3$days_germ2flower~BB_fitness_df3$watered) 
+```
+```{r}
+t.test(BB_fitness_df3$days_sow2flower~BB_fitness_df3$watered) 
+```
+
+

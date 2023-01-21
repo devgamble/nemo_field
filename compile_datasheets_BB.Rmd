@@ -218,7 +218,10 @@ f_BBlong_3 <- f_BBlong_2 %>%
   mutate(Fl_5.4 = case_when(Fl_5.4 == 19116 ~ "2022-05-04",
                             TRUE ~ as.character(NA))) %>%  #only one plant checked on this date
   mutate(Fl_5.12 = case_when(Fl_5.12 %in% c("2022-05-12", "19124") ~ "2022-05-12",
-                             TRUE ~ as.character(NA)))
+                             TRUE ~ as.character(NA))) %>% 
+  mutate(Block = case_when(Location %in% c("30", "40", "50", "60", "70", "80.5", "90", "100", "110", "120", "130", "140", "150", "160") ~ "W",
+                            TRUE ~ Block)) #Rename blocks so they match across .csvs
+
 
 ```
 
@@ -251,8 +254,9 @@ BB_Fplants2 <- BB_Fplants %>%
   select(-Recipient_num) %>% 
   rename(Replicated = `Replicated?`) %>% 
   mutate(Replicated = case_when(Replicated == "R" ~ "R",
-                                is.na(Replicated) ~ "n")) #change NAs to 'n' (no) for non-rep'd Recipient IDs
-
+                                is.na(Replicated) ~ "n")) %>% #change NAs to 'n' (no) for non-rep'd Recipient IDs
+  mutate(Block = case_when(Location %in% c("30", "40", "50", "60", "70", "80.5", "90", "100", "110", "120", "130", "140", "150", "160") ~ "W",
+                            TRUE ~ Block)) #Rename blocks so they match across .csvs
 ```
 
 
@@ -314,7 +318,9 @@ BB_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "BB
   rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `Total number of viable seeds counted across multiple dates...7`) %>% 
   mutate(Plant_ID = as.numeric(Plant_ID)) %>% 
   filter_all(any_vars(!is.na(.)))
-  
+
+##NOTE##: In this sheet, plant numbers were only double checked for those that had any closed fruit and therefore a count (inc. 0s) of seed number
+
 
 #merge data
 BB_fruitseed_ct1 <- left_join(BB_fruitprod_2, BB_seedct_1, by = c("Block", "Location", "Recipient", "Plant_ID"))
@@ -537,7 +543,7 @@ BB_mastersheet_Fonly_v2 <- BB_mastersheet_v1 %>%
 
 write_csv(BB_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v1_Fitness-only_2022-08-18.csv"))
 
-write_csv(BB_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v2_allFitness-only_2022-08-18.csv"))
+write_csv(BB_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v2_allFitness-only_2022-08-18.csv"))
 
 ```
 
