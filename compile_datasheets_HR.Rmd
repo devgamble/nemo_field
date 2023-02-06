@@ -92,7 +92,8 @@ HR_germ_df4 <- HR_germ_df3 %>%
 #
 ##Add in Sow Date  
 HR_germ_df5 <- HR_germ_df4 %>% 
-  mutate(Sow_Date = as_date("2021-11-19")) %>% 
+  mutate(Sow_Date = as_date("2021-11-10")) %>% #lab sowing date
+  mutate(Plant_Date = as_date("2021-11-19")) %>% #field planting date
   arrange(Block, Transect, Sequence, Donor, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
 #Plugs planted in ground from November 19-20 ,2021
 
@@ -147,7 +148,8 @@ HR_germ_W4 <- HR_germ_W3 %>%
 #
 ##Add in Sow Date & add block ('W')
 HR_germ_W5 <- HR_germ_W4 %>% 
-  mutate(Sow_Date = as_date("2021-11-19")) %>% 
+  mutate(Sow_Date = as_date("2021-11-10")) %>% #lab sowing date
+  mutate(Plant_Date = as_date("2021-11-19")) %>% #field planting date
   mutate(Block = "W") %>% 
   select(Block, Transect, Donor, Recipient, Plant_ID, everything()) %>% 
   arrange(Transect, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
@@ -295,7 +297,7 @@ Due to the structure of excel data sheets, it seems easiest to upload fruit and 
 
 Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
 
-Date added: **Aug 18, 2022**  
+Date added: **Feb 06, 2023**  
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}
@@ -303,7 +305,7 @@ Date added: **Aug 18, 2022**
 # Fruit count data
 # Data on *when* fruits were collected will be omitted here; only the total fruit counts (closed, open, non-fitness) are retained from the csv
 
-HR_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-fruit-production.csv"), skip = 1) %>% 
+HR_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-fruit-production_2023-02-05.csv"), skip = 1) %>% 
   select(1:10) #%>% #omit sow and flower date, seed count, and date-specific fruit counts by column index
   #filter_all(any_vars(!is.na(.))) #omit empty rows at end of df
 
@@ -319,7 +321,7 @@ HR_fruitprod_2 <- HR_fruitprod_1 %>%
 # Seed count data (viable seeds)
 # Similarly, only seed count data are retained from this spreadsheet to minimize errors
 
-HR_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-seed-count.csv"), skip = 1) %>% 
+HR_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-seed-count_2023-02-05.csv"), skip = 1) %>% 
   select(-c(3, 7:33)) %>% 
   rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `viable_seeds`) %>% 
   mutate(Plant_ID = as.numeric(Plant_ID)) 
@@ -350,7 +352,7 @@ HR_fruitseed_ct2 <- HR_fruitseed_ct1 %>%
 # Read in only # seeds weighed and total weight
 # Calculate mean weight per seed
 
-HR_seedmass_1 <- read_csv(here::here("data_sheets", "seed_mass", "HR_Seed_Mass.csv"), skip = 1) %>% 
+HR_seedmass_1 <- read_csv(here::here("data_sheets", "seed_mass", "HR_Seed_Mass_2023-02-05.csv"), skip = 1) %>% 
   select(-2) %>% slice(1:453)
   
 
@@ -401,7 +403,8 @@ HR_merged_df1 <- merge(HR_GermFlow_3, HR_fruitseed_ct3, by = c("Transect", "Reci
 #
 HR_merged_df2 <- HR_merged_df1 %>% 
   mutate(closed_fruits_F = replace_na(closed_fruits_F, 0),
-         total_fruits_F = replace_na(total_fruits_F, 0))
+         total_fruits_F = replace_na(total_fruits_F, 0),
+         seed_ct = replace_na(seed_ct, 0))
 
 #Calculate mean seeds per fruit, total_est_seed prod
 HR_merged_df3 <- HR_merged_df2 %>% 
@@ -431,6 +434,16 @@ HR_merged_df4 <- HR_merged_df3 %>%
 
 
 ```
+
+
+**Skeleton Weights & Corolla area and diameter**  
+
+Load and merge-in these data sheets
+```{r}
+
+
+```
+
 
 
 Error checks:
@@ -480,7 +493,8 @@ Some trait calculations performed in `Fitness_and_EDA.Rmd`
 HR_merged_df_fl <- HR_merged_df4 %>% 
   mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
          days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
-         days_sow2flower = as.numeric(FFD - Sow_Date), #days from germination to flowering
+         days_sow2flower = as.numeric(FFD - Sow_Date), #days from sow to flowering
+         days_plant2flower = as.numeric(FFD - Plant_Date), #days from field planting to flowering
          LFD = do.call(pmax, c(select(., starts_with('Fl_')), na.rm = TRUE)), #last flowering date
          fl_duration = as.numeric(LFD - FFD)) #Flowering duration
 
@@ -516,7 +530,7 @@ HR_mastersheet_v1 <- HR_merged_df_fl2 %>%
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_2022-08-18.csv"))
+write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_full_2023-02-06.csv"))
 
 #Create meta data sheet
 
@@ -526,19 +540,19 @@ write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_ma
 ## Fitness Plants Only
 #
 
-HR_mastersheet_Fonly_v1 <-  HR_mastersheet_v1 %>% 
+HR_mastersheet_F_mains <-  HR_mastersheet_v1 %>% 
   filter(FitP == TRUE) #Only single fitness plants
 
-HR_mastersheet_Fonly_v2 <- HR_mastersheet_v1 %>% 
+HR_mastersheet_F_all <- HR_mastersheet_v1 %>% 
   filter(any_FitP == TRUE) #single and multiple fitness plants (replicated IDs)
 
 
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(HR_mastersheet_Fonly_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v1_Fitness-only_2022-08-18.csv"))
+write_csv(HR_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-02-06.csv"))
 
-write_csv(HR_mastersheet_Fonly_v2, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v2_all-Fitness-only_2022-08-18.csv"))
+write_csv(HR_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-all_2023-02-06.csv"))
 
 ```
 
