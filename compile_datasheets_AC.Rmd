@@ -273,12 +273,13 @@ Index fitness plants & Replicated (y/n) in germination and flowering data
 AC_GermFlow_2 <- merge(AC_GermFlow_1, AC_Fplants2) %>% 
   mutate(FitP = case_when(F_plant == Plant_ID ~ TRUE,
                            F_plant != Plant_ID ~ FALSE)) %>% 
-  mutate(Rep_FitP = case_when(Replicated == "R" & Plant_ID != 1 & Plant_ID == str_match(F_multi, as.character(Plant_ID)) ~ TRUE, #prevent str_match from matching '1' to the 1 in '10'
-                              Replicated == "R" & Plant_ID == 1 & Plant_ID == str_match(F_multi, "1(?!0)") ~ TRUE, #cases where Rep_FitP should == 1
+  mutate(Rep_FitP = case_when(Replicated == "R" & Plant_ID != 1 & Plant_ID == as.numeric(str_match(F_multi, as.character(Plant_ID))) ~ TRUE, #prevent str_match from matching '1' to the 1 in '10'
+                              Replicated == "R" & Plant_ID == 1 & Plant_ID == as.numeric(str_match(F_multi, "1(?!0)")) ~ TRUE, #cases where Rep_FitP should == 1
                               TRUE ~ FALSE)) %>%  #if else, set value to FALSE
   mutate(any_FitP = case_when(FitP == TRUE | Rep_FitP == TRUE ~ TRUE, #plant is any form of fitness plant
                               TRUE ~ FALSE))
 
+#Note - added as.numeric() around the str_match calls above since an R update caused the previous version of this code to not work.
 
 #Tidy up
 AC_GermFlow_3 <- AC_GermFlow_2 %>% 
@@ -420,10 +421,50 @@ AC_merged_df3 <- AC_merged_df2 %>%
 
 Load and merge-in these data sheets
 ```{r}
+##
+skel_weights_AC <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_AC_2023_03_01.csv")) %>% select(-Units, -7, -8) %>% 
+  filter(!grepl("EXCLUDE", Notes)) %>% ## Filter out notes with "Exclude"
+  rename(Plant_ID = `Fitness Plant_ID`, AG_biomass_mg = `Skeleton Weights (mg)`)
+
+#Watered points
+skel_weights_AC_W <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeletons_watered_AC_2023_02_08.csv")) %>% 
+  select(-`Units (mg)`) %>% 
+  rename(Plant_ID = `Plant ID`, AG_biomass_mg = `Skeleton Weights`)
+
+#Combine
+skel_weights_all <- rbind(skel_weights_AC, skel_weights_AC_W) %>% 
+  select(-Notes) %>% 
+  filter(!is.na(AG_biomass_mg))
+
+
+#Merge with full data set
+AC_merged_df4 <- merge(AC_merged_df3, skel_weights_all, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
 
 
 ```
 
+
+Corolla measurements
+```{r}
+corollas_AC <- read_csv(here::here("data_sheets", "corolla_measures", "corollameasures_AC_2023-02-28.csv")) %>% select(1, 3, 4, 6, 7, 9, 11) %>% 
+  rename(photo_date = 4, corolla_diam_mm = 5, corolla_area_mm2 = 6, notes_corolla = 7) %>% 
+  filter(!grepl("REMOVE", notes_corolla)) ## Filter out notes with "REMOVE"
+
+corollas_AC2 <- corollas_AC %>% 
+  filter(!is.na(corolla_diam_mm)) %>% 
+  mutate(photo_date = as_date(photo_date)) %>% #correct missing dates manually
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Fix Recipient names
+  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
+  select(-Recipient_num) %>% 
+  arrange(Transect, Recipient, Plant_ID, photo_date) %>% 
+  distinct(Transect, Recipient, Plant_ID, .keep_all = TRUE) #Keep only the earliest photo date data for duplicates
+#Only about 6 duplicate observations removed
+
+
+## Merge with main data 
+AC_merged_df5 <- merge(AC_merged_df4, corollas_AC2, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
+  
+```
 
 
 
@@ -432,30 +473,30 @@ Error checks:
 ```{r eval = FALSE}
 ##Check for mismatched (fitness) plants
 
-AC_Echeck1 <- AC_merged_df3 %>% 
+AC_Echeck1 <- AC_merged_df5 %>% 
   filter(any_FitP == FALSE & total_fruits_F != 0) #do the same for seed count, using `>` and `!=`
 
-AC_Echeck2 <- AC_merged_df3 %>% 
+AC_Echeck2 <- AC_merged_df5 %>% 
   filter(any_FitP == TRUE) %>% 
   filter(closed_fruits_F == 0 & seed_ct > 0)
 
 ##NA/NaN/Info values for mean seeds/est seed prod
-AC_Echeck3 <- AC_merged_df3 %>% 
+AC_Echeck3 <- AC_merged_df5 %>% 
   filter(any_FitP == TRUE & is.na(as.numeric(mean_seeds_per_fruit)))
 
-AC_Echeck4 <- AC_merged_df3 %>% 
+AC_Echeck4 <- AC_merged_df5 %>% 
   filter(any_FitP == TRUE & !is.finite(mean_seeds_per_fruit))
 
 
 ## Check for NA seed counts for fitness plants (when fruit production > 0)
 #Will be empty when seed_ct NAs are replaced with 0
-AC_Echeck5 <- AC_merged_df3 %>% 
+AC_Echeck5 <- AC_merged_df5 %>% 
   filter(any_FitP == TRUE & is.na(seed_ct))
 ##NAs present here before setting seed_ct NAs to 0 were from fitness plants that had 0 closed fruit
 
 
 #Seed mass
-AC_Echeck5 <- AC_merged_df3 %>% 
+AC_Echeck5 <- AC_merged_df5 %>% 
   filter(any_FitP == FALSE & !is.na(msm_all))
 
 
@@ -473,7 +514,7 @@ Some trait calculations performed in `Fitness_and_EDA.Rmd`
 
 ```{r}
 
-AC_merged_df_fl <- AC_merged_df3 %>% 
+AC_merged_df_fl <- AC_merged_df5 %>% 
   mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
          days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
          days_sow2flower = as.numeric(FFD - Sow_Date), #days from lab sowing to flowering
@@ -513,7 +554,7 @@ AC_mastersheet_v1 <- AC_merged_df_fl2 %>%
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_full_2023-02-05.csv"))
+write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_full_2023-03-01.csv"))
 #Renamed to full - has records of all plants (including non-fitness)
 #Create meta data sheet
 
@@ -533,9 +574,9 @@ AC_mastersheet_F_all <- AC_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(AC_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-mains_2023-02-05.csv"))
+write_csv(AC_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-mains_2023-03-01.csv"))
 
-write_csv(AC_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-all_2023-02-05.csv"))
+write_csv(AC_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-all_2023-03-01.csv"))
 ```
 
 

@@ -29,13 +29,13 @@ library(here)
 # 2021-2022 field season
 
 #Main & Extra Fitness plants
-nemo_allFs_AC <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_v2_allFitness-only_2022-08-18.csv"))
+nemo_allFs_AC <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-all_2023-02-05.csv"))
 
-nemo_allFs_BB <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v2_allFitness-only_2022-08-18.csv"))
+nemo_allFs_BB <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-all_2023-02-06.csv"))
 
-nemo_allFs_BO <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_v2_all-Fitness-only_2022-08-18.csv"))
+nemo_allFs_BO <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-all_2023-02-06.csv"))
 
-nemo_allFs_HR <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_v2_all-Fitness-only_2022-08-18.csv"))
+nemo_allFs_HR <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-all_2023-02-06.csv"))
 
 ```
 
@@ -337,12 +337,13 @@ Using Skeleton weights data sheets
 **AC**  
 
 ```{r}
-AC_weights <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_AC.csv")) %>% select(-Units) %>% 
-  filter(is.na(Notes)|Notes != "DNE") #prevent loss of NA rows in notes
-
+AC_weights <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_AC_2023_02_06.csv")) %>% select(-Units) %>% 
+  filter(is.na(Notes)|Notes != "DNE") %>%  #prevent loss of NA rows in notes
+  filter(`Chosen for Pulverization? (y/n)` == "y") %>% 
+  select(-`Chosen for Pulverization? (y/n)`)
+  
 colnames(AC_weights) <- c("Transect", "Recipient", "Plant_ID", "skel_weight", "skel_notes")
 
-#rows without any notes might be incomplete and still able to be pulverized
 
 
 # Attempt to keep only rows for which skeleton collections exist
@@ -363,12 +364,66 @@ pulv_sheet1 <- AC_weights %>%
 # Column names should approx. match those in the Davis Isotop sample example data sheet
 
 pulv_sheet2 <- pulv_sheet1 %>% 
-  mutate(`Amount (mg)` = NA, `Tray Name` = NA, `Well ID` = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
-  select(Transect, Recipient, Plant_ID, `Sample ID`, `Amount (mg)`, `Tray Name`, `Well ID` = seq(from = A1, to = H16), `Type of Material`, Analysis, Enriched)
-  
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Weight including capsule (mg)` = NA, `Sample weight (mg)` = NA, `Tray Name` = c(rep(c("Nemo_2022_AC_1", "Nemo_2022_AC_2", "Nemo_2022_AC_3"), each=96), rep("Nemo_2022_AC_4", 15)), 
+         `Well ID` = NA, 
+         `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+  select(Transect, Recipient, Plant_ID, `Sample ID`, `Tube ID`, `Weight including capsule (mg)`, `Sample weight (mg)`, `Well ID`, `Tray Name`, `Type of Material`, Analysis, Enriched)
 
 write_csv(pulv_sheet2, here::here("data_sheets", "skeleton_and_stem_data", "pulv_sample_sheet_AC.csv"), na = "")
 
 ```
+
+
+
+
+#### Create SLA Data sheets (2022 data)  
+
+
+**All populations**  
+
+
+```{r}
+#AC
+AC_SLA <- nemo_allFs_AC %>% 
+  distinct(Block, Transect, Recipient) %>% 
+  mutate(Plant_ID = NA, leaf_area_mm2 = NA, area_notes = NA, leaf_dry_weight_mg = NA, weight_notes = NA) %>% 
+  arrange(Block, Transect, Recipient)
+
+write_csv(AC_SLA, here::here("data_sheets", "SLA_measures", "AC_SLA_data_blank.csv"), na = "")
+
+##BB
+BB_SLA <- nemo_allFs_BB %>% 
+  distinct(Block, Location, Recipient) %>% 
+  mutate(Plant_ID = NA, leaf_area_mm2 = NA, area_notes = NA, leaf_dry_weight_mg = NA, weight_notes = NA) %>% 
+  arrange(Block, Location, Recipient)
+
+write_csv(BB_SLA, here::here("data_sheets", "SLA_measures", "BB_SLA_data_blank.csv"), na = "")
+
+
+##BO
+BO_SLA <- nemo_allFs_BO %>% 
+  distinct(Block, Transect, Recipient) %>% 
+  mutate(Plant_ID = NA, leaf_area_mm2 = NA, area_notes = NA, leaf_dry_weight_mg = NA, weight_notes = NA) %>% 
+  arrange(Block, Transect, Recipient)
+
+write_csv(BO_SLA, here::here("data_sheets", "SLA_measures", "BO_SLA_data_blank.csv"), na = "")
+
+
+##BO
+HR_SLA <- nemo_allFs_HR %>% 
+  distinct(Block, Transect, Recipient) %>% 
+  mutate(Plant_ID = NA, leaf_area_mm2 = NA, area_notes = NA, leaf_dry_weight_mg = NA, weight_notes = NA) %>% 
+  arrange(Block, Transect, Recipient)
+
+write_csv(HR_SLA, here::here("data_sheets", "SLA_measures", "HR_SLA_data_blank.csv"), na = "")
+
+
+```
+
+
+
+
+
 
 

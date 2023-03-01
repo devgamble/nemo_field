@@ -1,0 +1,257 @@
+---
+title: "datasheet org year 2"
+author: "Devin Gamble"
+date: "2023-02-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+**Description**:  
+
+Organizational Rmd for the creation of data sheets and the fixing of typos. Year 2 (2022-2023) field season data.
+
+Code chunks are set to eval = FALSE once the necessary sheets or changes have been made.  
+
+Load Packages:
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(reshape2)
+```
+
+
+
+### Creating Flowering Check Data sheets  
+
+**AC**  
+
+
+```{r}
+##Load Planting Locations Data
+
+##AC
+AC_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "AC_planting_locations_fall22.csv"), skip = 1) %>% 
+  select(-c(4,5,10,11))
+
+colnames(AC_plantings) <- c("Transect", "Segment", "Sequence", "Gen.L", "Recipient.L", "Gen.R", "Recipient.R")
+
+#Note: No lat/long recorded here (somewhere else)?
+
+#Reshape to consolidate Gen and Recipient Variables, noting position
+AC_plantings_long <- AC_plantings %>% 
+  gather(key, value, -Transect, -Segment, -Sequence) %>% 
+  separate(key, c("key", "position"), "\\.") %>% 
+  spread(key, value)
+
+
+#Add multiple rows for individual plants
+#Add leading 0s to Recipients
+
+AC_flowersheet1 <- AC_plantings_long %>% 
+  mutate("1" = NA, "2" = NA, "3" = NA, "4" = NA, "5" = NA)
+
+AC_flowersheet2 <- pivot_longer(AC_flowersheet1, cols = c("1":"5"), names_to = "Plant_ID", values_to = "FD_01") %>% 
+  mutate(FD_02 = NA, FD_03 = NA, FD_04 = NA, FD_05 = NA, FD_06 = NA, FD_07 = NA, FLR_P = NA, Fit_plant = NA, LeafD = NA, Notes = NA) %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
+  select(-Recipient_num)
+
+
+
+##Option - Keep the left and right positions in the same row?
+AC_flowersheet2_wide <- AC_plantings %>% 
+  mutate("1" = NA, "2" = NA, "3" = NA, "4" = NA, "5" = NA) %>% 
+  pivot_longer(cols = c("1":"5"), names_to = "Plant_ID", values_to = "FD_01") %>% 
+  rename(Plant_ID.L = Plant_ID) %>% 
+  mutate(Plant_ID.R = Plant_ID.L)
+#Seems too confusing...
+
+
+
+##CHECK comments in excel/google drive version to note which Recipients weren't planted or had fewer than 5 seeds
+
+AC_flowersheet3 <- AC_flowersheet2 %>% 
+  mutate(Notes = case_when(Transect == 5 & Segment == 17 & Recipient == "AC_213" ~ "Only 4 seeds planted",
+                           Transect == 4 & Segment == 29 & Recipient == "AC_203" ~ "Only 4 seeds planted",
+                           Transect == 6 & Segment == 33 & Recipient == "AC_213" ~ "NOT PLANTED")) %>% 
+  select(Sequence, Transect, Segment, position, Gen, Recipient, Plant_ID, Fit_plant, FD_01:FD_07, LeafD, FLR_P, Notes)
+
+
+#Save CSV
+write_csv(AC_flowersheet3, here::here("data_sheets", "2023_year2_data", "flowering_checks", "AC_flowercheck_data_v1.csv"), na = "")
+
+
+
+```
+
+
+<br>  
+
+
+**BB**  
+
+
+```{r}
+##Load Planting Locations Data
+
+##BB
+BB_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "BB_planting_locations_fall22.csv"), skip = 1) %>% 
+  select(-c(1,3))
+
+colnames(BB_plantings) <- c("Location", "Gen.L", "Recipient.L", "Gen.R", "Recipient.R", "Point_lat", "Point_lon")
+
+##Auto-fill Point numbers and point lat/lon
+BB_plantings_2 <- BB_plantings %>% 
+  fill(c(Location, Point_lat, Point_lon)) %>% 
+  replace(is.na(.), "NULL") %>% #replace NAs for following reshaping
+  mutate(Sequence = seq_along(1:n())) %>%  #Need Sequence number 
+  select(-c(Point_lat, Point_lon)) #de-select for reshaping
+  
+#Reshape to consolidate Gen and Recipient Variables, noting position
+BB_plantings_long <- BB_plantings_2 %>% 
+  gather(key, value, -Location, -Sequence) %>% 
+  separate(key, c("key", "position"), "\\.") %>% 
+  spread(key, value)
+
+
+#Add multiple rows for individual plants
+#Add leading 0s to Recipients
+
+BB_flowersheet1 <- BB_plantings_long %>% 
+  mutate("1" = NA, "2" = NA, "3" = NA, "4" = NA, "5" = NA)
+
+BB_flowersheet2 <- pivot_longer(BB_flowersheet1, cols = c("1":"5"), names_to = "Plant_ID", values_to = "FD_01") %>% 
+  mutate(FD_02 = NA, FD_03 = NA, FD_04 = NA, FD_05 = NA, FD_06 = NA, FD_07 = NA, FLR_P = NA, Fit_plant = NA, LeafD = NA, Notes = NA) %>%
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
+  select(-Recipient_num)
+
+
+
+##CHECK comments in excel/google drive version to note which Recipients weren't planted or had fewer than 5 seeds
+
+BB_flowersheet3 <- BB_flowersheet2 %>% 
+  mutate(Notes = case_when(Location == 95 & Gen == "G1" & Recipient == "BB_050" ~ "Only 4 seeds planted",
+                           Location == 70 & Gen == "G2" & Recipient == "BB_157" ~ "NOT PLANTED")) %>% 
+  select(Sequence, Location, position, Gen, Recipient, Plant_ID, Fit_plant, FD_01:FD_07, LeafD, FLR_P, Notes)
+
+
+#Save CSV
+write_csv(BB_flowersheet3, here::here("data_sheets", "2023_year2_data", "flowering_checks", "BB_flowercheck_data_v1.csv"), na = "")
+
+
+
+```
+
+<br>  
+
+**BO**  
+
+
+```{r}
+##Load Planting Locations Data
+
+##BO
+BO_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "BO_planting_locations_fall22.csv"), skip = 1) %>% 
+  select(-c(4,5))
+
+colnames(BO_plantings) <- c("Transect", "Segment", "Sequence", "Gen.L", "Recipient.L", "Gen.R", "Recipient.R", "Seg_lat", "Seg_lon")
+
+## Remove lat and lon
+BO_plantings_2 <- BO_plantings %>% 
+  select(-c(Seg_lat, Seg_lon)) #de-select for reshaping
+
+#Reshape to consolidate Gen and Recipient Variables, noting position
+BO_plantings_long <- BO_plantings_2 %>% 
+  gather(key, value, -Transect, -Segment, -Sequence) %>% 
+  separate(key, c("key", "position"), "\\.") %>% 
+  spread(key, value)
+
+
+#Add multiple rows for individual plants
+#Add leading 0s to Recipients
+
+BO_flowersheet1 <- BO_plantings_long %>% 
+  mutate("1" = NA, "2" = NA, "3" = NA, "4" = NA, "5" = NA)
+
+BO_flowersheet2 <- pivot_longer(BO_flowersheet1, cols = c("1":"5"), names_to = "Plant_ID", values_to = "FD_01") %>% 
+  mutate(FD_02 = NA, FD_03 = NA, FD_04 = NA, FD_05 = NA, FD_06 = NA, FD_07 = NA, FLR_P = NA, Fit_plant = NA, LeafD = NA, Notes = NA) %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("BO_", Recipient_num))) %>% 
+  select(-Recipient_num)
+
+
+##CHECK comments in excel/google drive version to note which Recipients weren't planted or had fewer than 5 seeds
+
+BO_flowersheet3 <- BO_flowersheet2 %>% 
+  mutate(Notes = case_when(Transect == 2 & Segment == 30 & Recipient == "BO_055" ~ "Only 2 seeds planted",
+                           Transect == 3 & Segment == 7 & Recipient == "BO_200" ~ "Only 3 seeds planted")) %>% 
+  select(Sequence, Transect, Segment, position, Gen, Recipient, Plant_ID, Fit_plant, FD_01:FD_07, LeafD, FLR_P, Notes)
+
+
+#Save CSV
+write_csv(BO_flowersheet3, here::here("data_sheets", "2023_year2_data", "flowering_checks", "BO_flowercheck_data_v1.csv"), na = "")
+
+
+
+```
+
+
+
+<br>  
+
+**HR**  
+
+
+
+```{r}
+##Load Planting Locations Data
+
+##AC
+HR_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "HR_planting_locations_fall22.csv"), skip = 1) %>% 
+  select(-c(4,5,10,11))
+
+colnames(HR_plantings) <- c("Transect", "Segment", "Sequence", "Gen.L", "Recipient.L", "Gen.R", "Recipient.R")
+
+
+#Reshape to consolidate Gen and Recipient Variables, noting position
+HR_plantings_long <- HR_plantings %>% 
+  gather(key, value, -Transect, -Segment, -Sequence) %>% 
+  separate(key, c("key", "position"), "\\.") %>% 
+  spread(key, value)
+
+
+#Add multiple rows for individual plants
+#Add leading 0s to Recipients
+HR_flowersheet1 <- HR_plantings_long %>% 
+  mutate("1" = NA, "2" = NA, "3" = NA, "4" = NA, "5" = NA)
+
+HR_flowersheet2 <- pivot_longer(HR_flowersheet1, cols = c("1":"5"), names_to = "Plant_ID", values_to = "FD_01") %>% 
+  mutate(FD_02 = NA, FD_03 = NA, FD_04 = NA, FD_05 = NA, FD_06 = NA, FD_07 = NA, FLR_P = NA, Fit_plant = NA, LeafD = NA, Notes = NA) %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% 
+  mutate(Recipient = as.character(str_c("HR_", Recipient_num))) %>% 
+  select(-Recipient_num)
+
+
+##CHECK comments in excel/google drive version to note which Recipients weren't planted or had fewer than 5 seeds
+
+HR_flowersheet3 <- HR_flowersheet2 %>% 
+  select(Sequence, Transect, Segment, position, Gen, Recipient, Plant_ID, Fit_plant, FD_01:FD_07, LeafD, FLR_P, Notes)
+#Typo present in segment numbering of Transect 7; comment added in flower check google sheet
+#No other notes to add here
+
+
+#Save CSV
+write_csv(HR_flowersheet3, here::here("data_sheets", "2023_year2_data", "flowering_checks", "HR_flowercheck_data_v1.csv"), na = "")
+
+
+
+```
+
+
+
