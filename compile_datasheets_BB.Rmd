@@ -346,8 +346,6 @@ BB_fruitseed_ct2 <- BB_fruitseed_ct1 %>%
 
 **Seed Weights**  
 
-
-
 ```{r}
 # Read in only # seeds weighed and total weight
 # Calculate mean weight per seed
@@ -481,6 +479,8 @@ corollas_BB2 <- corollas_BB %>%
   mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Fix Recipient names
   mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
   select(-Recipient_num) %>% 
+  mutate(Block = case_when(Block %in% c("W1","W2") ~ "W", #Fix blocks
+                           TRUE ~ Block)) %>% 
   arrange(Block, Location, Recipient, Plant_ID, photo_date) %>% 
   distinct(Location, Recipient, Plant_ID, .keep_all = TRUE) #Keep only the earliest photo date data for duplicates
 #Only about 6 duplicate observations removed
@@ -578,7 +578,7 @@ BB_mastersheet_v1 <- BB_merged_df_fl2 %>%
                                Donor == "BB_188" & Location %in% c("48", "96", "126") ~ "BB_205_B",
                                TRUE ~ Recipient))
 
-write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_full_2023-03-01.csv"))
+write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_full_2023-03-11.csv"))
 
 #Create meta data sheet
 
@@ -598,9 +598,9 @@ BB_mastersheet_F_all <- BB_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treat these as 0 fitness or as NAs to remove???
 
 
-write_csv(BB_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-03-01.csv"))
+write_csv(BB_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-03-11.csv"))
 
-write_csv(BB_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-all_2023-03-01.csv"))
+write_csv(BB_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-all_2023-03-11.csv"))
 
 ```
 

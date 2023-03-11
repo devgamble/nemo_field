@@ -375,6 +375,106 @@ write_csv(pulv_sheet2, here::here("data_sheets", "skeleton_and_stem_data", "pulv
 ```
 
 
+**BB**
+
+```{r}
+BB_weights <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_BB_2023_03_01.csv")) %>% select(-Block, -Units, -9) %>% 
+  filter(is.na(Notes)|Notes != "DNE") %>%  #prevent loss of NA rows in notes
+  filter(`Chosen for Pulverization? (y/n)` == "y") %>% 
+  select(-`Chosen for Pulverization? (y/n)`)
+  
+colnames(BB_weights) <- c("Location", "Recipient", "Plant_ID", "skel_weight", "skel_notes")
+
+# Attempt to keep only rows for which skeleton collections exist
+# Exclude DNE rows
+#Check and make sure ID x plant combos line up with main or extra fitness plants
+
+#Create Sample IDs
+pulv_sheet1 <- BB_weights %>% 
+  mutate(Location_00 = sprintf("%03d", Location), Plant_ID_0 = sprintf("%02d", Plant_ID)) %>% 
+  unite(`Sample ID`, c(Recipient, Location_00, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(Location, Recipient, Plant_ID, `Sample ID`, skel_weight, skel_notes, -c(Location_00, Plant_ID_0))
+
+#Add columns for Tray ID, sample position, and sample weight (mg)
+# Column names should approx. match those in the Davis Isotop sample example data sheet
+
+pulv_sheet2 <- pulv_sheet1 %>% 
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Weight including capsule (mg)` = NA, `Sample weight (mg)` = NA, `Tray Name` = c(rep(c("Nemo_2022_BB_1", "Nemo_2022_BB_2"), each=96), rep("Nemo_2022_BB_3", 50)), 
+         `Well ID` = NA, 
+         `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+  select(Location, Recipient, Plant_ID, `Sample ID`, `Tube ID`, `Weight including capsule (mg)`, `Sample weight (mg)`, `Well ID`, `Tray Name`, `Type of Material`, Analysis, Enriched)
+
+write_csv(pulv_sheet2, here::here("data_sheets", "skeleton_and_stem_data", "pulv_sample_sheet_BB.csv"), na = "")
+
+```
+
+
+**BO**
+
+```{r}
+BO_weights <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_BO_2023_03_01.csv")) %>% select(-Units) %>% 
+  filter(is.na(Notes)|Notes != "DNE") %>%  #prevent loss of NA rows in notes
+  filter(`Chosen for Pulverization? (y/n)` == "y") %>% 
+  select(-`Chosen for Pulverization? (y/n)`)
+  
+colnames(BO_weights) <- c("Transect", "Recipient", "Plant_ID", "skel_weight", "skel_notes")
+
+
+#Create Sample IDs
+pulv_sheet1 <- BO_weights %>% 
+  mutate(Transect_00 = sprintf("%03d", Transect), Plant_ID_0 = sprintf("%02d", Plant_ID)) %>% 
+  unite(`Sample ID`, c(Recipient, Transect_00, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(Transect, Recipient, Plant_ID, `Sample ID`, skel_weight, skel_notes, -c(Transect_00, Plant_ID_0))
+
+#Add columns for Tray ID, sample position, and sample weight (mg)
+# Column names should approx. match those in the Davis Isotop sample example data sheet
+
+pulv_sheet2 <- pulv_sheet1 %>% 
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Weight including capsule (mg)` = NA, `Sample weight (mg)` = NA, `Tray Name` = c(rep(c("Nemo_2022_BO_1", "Nemo_2022_BO_2"), each=96), rep("Nemo_2022_BO_3", 45)), 
+         `Well ID` = NA, 
+         `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+  select(Transect, Recipient, Plant_ID, `Sample ID`, `Tube ID`, `Weight including capsule (mg)`, `Sample weight (mg)`, `Tray Name`, `Well ID`,  `Type of Material`, Analysis, Enriched)
+
+write_csv(pulv_sheet2, here::here("data_sheets", "skeleton_and_stem_data", "pulv_sample_sheet_BO.csv"), na = "")
+
+```
+
+
+**HR**
+
+```{r}
+HR_weights <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_HR_2023_03_01.csv")) %>% select(-Units, -8) %>% 
+  filter(is.na(Notes)|Notes != "DNE") %>%  #prevent loss of NA rows in notes
+  filter(`Chosen for Pulverization? (y/n)` == "y") %>% 
+  select(-`Chosen for Pulverization? (y/n)`)
+  
+colnames(HR_weights) <- c("Transect", "Recipient", "Plant_ID", "skel_weight", "skel_notes")
+
+
+#Create Sample IDs
+pulv_sheet1 <- HR_weights %>% 
+  mutate(Transect_00 = sprintf("%03d", Transect), Plant_ID_0 = sprintf("%02d", Plant_ID)) %>% 
+  unite(`Sample ID`, c(Recipient, Transect_00, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(Transect, Recipient, Plant_ID, `Sample ID`, skel_weight, skel_notes, -c(Transect_00, Plant_ID_0))
+
+#Add columns for Tray ID, sample position, and sample weight (mg)
+# Column names should approx. match those in the Davis Isotop sample example data sheet
+
+pulv_sheet2 <- pulv_sheet1 %>% 
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Weight including capsule (mg)` = NA, `Sample weight (mg)` = NA, `Tray Name` = c(rep(c("Nemo_2022_HR_1", "Nemo_2022_HR_2", "Nemo_2022_HR_3"), each=96), rep("Nemo_2022_HR_4", 76)), 
+         `Well ID` = NA, 
+         `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+  select(Transect, Recipient, Plant_ID, `Sample ID`, `Tube ID`, `Weight including capsule (mg)`, `Sample weight (mg)`, `Tray Name`, `Well ID`,  `Type of Material`, Analysis, Enriched)
+
+write_csv(pulv_sheet2, here::here("data_sheets", "skeleton_and_stem_data", "pulv_sample_sheet_HR.csv"), na = "")
+
+```
+
+
+
 
 
 #### Create SLA Data sheets (2022 data)  

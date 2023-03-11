@@ -21,8 +21,9 @@ library(tidyverse) #For data organization and tidying
 library(janitor) #more tidying functions
 library(here) #great for specifying relative file paths
 library(lubridate) #for adjusting 'date' values if any need cleaning up
-#add more packages here
-
+library(lme4)
+library(corrplot)
+library(jtools)
 
 ```
 
@@ -34,33 +35,140 @@ library(lubridate) #for adjusting 'date' values if any need cleaning up
 
 Load and tidy up data.
 ```{r}
+## All data
+BB_allplants <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_full_2023-03-01.csv")) %>% select(-c(Sequence, Co., FitP, F_multi, F_plant_notes, Fl_2.25:flr_P, seeds_weighed_d1:msm_d9)) %>% 
+  filter(Replicated == "R") %>% #Replicated genotypes only
+  mutate(fl_duration = case_when(fl_duration == 0 ~ 1,
+                                 TRUE ~ fl_duration)) %>%  #Replace durations of 0 with 1
+  mutate(FFD_c = scale(yday(FFD), scale = FALSE)[,1], #convert to Julian day of year, but don't scale...
+         fl_dur_c = scale(fl_duration, scale = FALSE)[,1], # Center all variables
+         corolla_d_c = scale(corolla_diam_mm, scale = FALSE)[,1],
+         AG_biom_c = scale(AG_biomass_mg, scale = FALSE)[,1],
+         seed_ct_c = scale(seed_ct, scale = FALSE)[,1],
+         lifet_fec_c = scale(total_est_seed_production, scale = FALSE)[,1]) %>% 
+  mutate(FFD_z = scale(yday(FFD))[,1],
+         fl_dur_z = scale(fl_duration)[,1], # Standardize all variables
+         corolla_d_z = scale(corolla_diam_mm)[,1],
+         AG_biom_z = scale(AG_biomass_mg)[,1],
+         seed_ct_z = scale(seed_ct)[,1],
+         lifet_fec_z = scale(total_est_seed_production)[,1]) %>% 
+  mutate(seed_ct_r = seed_ct/mean(seed_ct),
+         lifet_fec_r = total_est_seed_production/mean(total_est_seed_production)) %>% #fitness relative to population mean
+  mutate(Treatment = as.factor(case_when(Block %in% c("1", "2", "3") ~ "ambient",
+                               Block == "W" ~ "watered")),
+         Treat_bin = as.numeric(case_when(Block %in% c("1", "2", "3") ~ 0, #binary var for treatment: ambient/watered = 0/1
+                               Block == "W" ~ 1))) %>% 
+  mutate(Recipient = as.factor(Recipient))
 
-BB_fitness_df1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_v2_allFitness-only_2022-08-18.csv")) # You should edit the file path (i.e., edit/remove folder names) to load the csv from the folder you've stored it in
 
+
+BB_allplants_f <- BB_allplants %>% 
+  filter(!is.na(FFD_c)) #plants that flowered only
+
+#318 obs vs 225 for fitness plants
+
+##Fitness Plants Only
+BB_Fplants <- BB_allplants %>% 
+  filter(any_FitP == TRUE)
 
 ##Note on the data:
 ## This data frame includes data on all selected fitness plants at Bodega Bay from 2021-2022. There were 3 experimental blocks and a total of 156 (+1; 160) point-locations. Plants in block 'W' received supplemental water and had, when available, 3 fitness plants chosen. Recipient ID's (Genotypes) that were present in both the regular and water blocks had, when available, 3 fitness plants chosen (Replicated = R). Important trait-related columns include germination date, the number of closed fruit, number of total fruit, seed count, mean seed mass (msm_all), mean seeds per fruit, total estimated seed production, first flowering date (FFD), days from germination to flower, flowering duration, and survival.
 
 
 
-##Remove Unnecessary columns and data
-BB_fitness_df2 <- BB_fitness_df1 %>% 
-  select(-c(Sequence, Co., FitP, any_FitP, F_multi, F_plant_notes, Fl_2.25:flr_P, seeds_weighed_d1:msm_d9))
+
+######
+## Exclude genotypes without observations from both treatments???
 
 
-#Keep only fitness plants that were replicated (Rep_FitP = TRUE) in both experiments
-BB_fitness_df3 <- BB_fitness_df2 %>% 
-  filter(Replicated == "R") %>% 
-  mutate(watered = case_when(Block %in% c("1", "2", "3") ~ "n",
-                             Block == "W" ~ "y")) %>% #create variable to indicate treatment
-  mutate(FFD_DOY = yday(FFD))
+```
+
+#### John M's Models
+Statistical approaches matched to each of John's research questions for investigating plasticity in *N. menziesii*:  
+
+
+1. What is the effect of supplemental water on functional traits and fitness in Nemophila menziesii?  
+
+I.e.: What is the magnitude & direction of plastic changes in traits between ambient (dry) and watered plots?  
+
+- Fecundity (seed count & estimated lifetime fecundity (mean seeds/fruit x total fruit))
+- First flowering date
+- Flowering duration (?)
+- Corolla diameter
+- Aboveground biomass
+
+Variable Treatment: All traits mean-centered
+
+Analysis: Calculate Regression coefficients for Trait ~ Treatment
+Models:
+- Bivariate
+- Multivariate
+- MV + random effects
+
+```{r}
+#####
+#Statistical Tests
+#####
+
+### Bivariate Models
+
+#Fecundity
+PL_fec_lm1 <- lm(seed_ct_c ~ Treatment, data = BB_allplants)
+summary(PL_fec_lm1)
+PL_fec_lm2 <- lm(lifet_fec_c ~ Treatment, data = BB_allplants)
+summary(PL_fec_lm2)
+
+#FFD
+PL_FFD_lm1 <- lm(FFD_c ~ Treatment, data = BB_allplants)
+summary(PL_FFD_lm1)
+
+#F duration
+PL_Fdur_lm1 <- lm(fl_dur_c ~ Treatment, data = BB_allplants)
+summary(PL_Fdur_lm1)
+
+#Corolla diam
+PL_Cdiam_lm1 <- lm(corolla_d_c ~ Treatment, data = BB_allplants)
+summary(PL_C_diam_lm1)
+
+##Multivariate Models
+
+
+
+```
+
+```{r}
+#Visualizations
 
 ```
 
 
 
+2. Is the strength and direction of plasticity in functional traits consistent (1) among populations and (2) within populations among genotypes? 
 
-#### Exploration  
+I.e: (a) At the population level, are plastic changes in traits with water addition consistent in direction and in magnitude? (b) Do plastic changes with watering among genotypes within populations mirror one another?  
+
+**Note:** Use standardized trait values, but note that comparisons among populations (at least in magnitude) are fraught due to local climatic differences and differences in the amount of additional soil moisture actually experienced by watered plants relative to ambient plants at each site.  
+
+
+```{r}
+#####
+#Statistical Tests
+#####
+```
+
+```{r}
+#Visualiztions
+
+
+```
+
+
+
+[(c)] Are certain traits more plastic than others, and is this consistent across populations?
+ -- compare standardized coefficients
+
+
+#### Early Exploration  
 
 ```{r}
 
