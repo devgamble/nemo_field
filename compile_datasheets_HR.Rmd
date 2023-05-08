@@ -487,6 +487,38 @@ HR_merged_df6 <- merge(HR_merged_df5, corollas_HR2, by = c("Transect", "Recipien
 ```
 
 
+**Leaf Area & Weight**  
+```{r}
+leaves_HR <- read_csv(here::here("data_sheets", "leaf_data", "HR_SLA_data_20230508.csv")) %>% 
+  rename(leaf_area_mm2 = 5, leafarea_notes = 6, leaf_dryweight_mg = 7, leafweight_notes = 8) %>% 
+  filter(!grepl("EXCLUDE", leafarea_notes)) %>% ## Filter out notes with "EXCLUDE"
+  filter(!is.na(leaf_area_mm2)) #exlcude NA leaf areas?
+
+
+#Eliminate Duplicates
+#Randomly select one leaf to be analyzed per transect x maternal ID combo
+leaves_HR_duped <- leaves_HR %>% 
+  mutate(duped1 = duplicated(select(leaves_HR, c(Block, Transect, Recipient))),
+         duped2 = duplicated(select(leaves_HR, c(Block, Transect, Recipient)), fromLast = TRUE),
+         duped = case_when(duped1|duped2 == TRUE ~ TRUE,
+                           TRUE ~ FALSE)) %>% #highlight all duplicates
+  select(-c(duped1, duped2))
+# Select dupe rows that have both area and weight!
+
+#This seems to work the best!
+leaves_HR_unique <- leaves_HR_duped %>% 
+  group_by(Block, Transect, Recipient) %>% 
+  slice_sample(n = 1) %>%  #select a random row for each  combo of block, transect, recipient
+  select(-c(duped, Plant_ID)) #Don't need plant ID...these were all non-fitness plants
+
+
+#Merge in to main data 
+
+HR_merged_df7 <- merge(HR_merged_df6, leaves_HR_unique, by = c("Block", "Transect", "Recipient"), all.x = TRUE) #replicates leaf area & weight for every plant of a transect recipient combo
+
+
+```
+
 Error checks:
 
 ```{r eval = FALSE}
@@ -531,7 +563,7 @@ Some trait calculations performed in `Fitness_and_EDA.Rmd`
 
 ```{r}
 
-HR_merged_df_fl <- HR_merged_df6 %>% 
+HR_merged_df_fl <- HR_merged_df7 %>% 
   mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
          days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
          days_sow2flower = as.numeric(FFD - Sow_Date), #days from sow to flowering
@@ -591,9 +623,9 @@ HR_mastersheet_F_all <- HR_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(HR_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-03-01.csv"))
+write_csv(HR_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-05-08.csv"))
 
-write_csv(HR_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-all_2023-03-01.csv"))
+write_csv(HR_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-all_2023-05-08.csv"))
 
 ```
 
