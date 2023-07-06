@@ -259,7 +259,9 @@ write_csv(HR_flowersheet3, here::here("data_sheets", "2023_year2_data", "floweri
 
 Also create fitness plant reference sheets
 
-**AC**
+**AC**  
+
+Reminder: Segment number may not line up with sequence number due to mix-ups at AC, BO, HR
 
 ```{r}
 #Copied from code chunk above for creating flowering sheets
@@ -299,10 +301,14 @@ AC_Fitness1 <- AC_flowering %>%
 
 AC_Fitness2 <- merge(AC_Fitness1, AC_Fitps, all.x = TRUE, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient"))
 
+#Find dupes (Multiple fitness plants in a segment)
+#AC_Fitness3 <- AC_Fitness2 %>% 
+#  select(Sequence:Recipient) %>% 
+#  filter(duplicated(.))
 
 
 #save csv Fitness plants
-#write_csv(AC_Fitness2, here::here("data_sheets", "2023_year2_data", "AC_fitnessplants_23.csv"), na = "")
+write_csv(AC_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_plants", "fitness_plants", "AC_fitness_23.csv"), na = "")
 
 #Have a student check this fitness plant sheet against the flowering check sheet
 
@@ -332,6 +338,79 @@ write_csv(AC_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed
 
 **BB**  
 ```{r}
+## No "segment" in BB data - sequence = segment.
+#Copied from code chunk above for creating flowering sheets
+BB_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "BB_planting_locations_fall22.csv"), skip = 1) %>% 
+  select(-c(1,3))
+
+colnames(BB_plantings) <- c("Location", "Gen.L", "Recipient.L", "Gen.R", "Recipient.R", "Point_lat", "Point_lon")
+
+
+##Auto-fill Point numbers and point lat/lon
+BB_plantings_2 <- BB_plantings %>% 
+  fill(c(Location, Point_lat, Point_lon)) %>% 
+  replace(is.na(.), "NULL") %>% #replace NAs for following reshaping
+  mutate(Sequence = seq_along(1:n())) %>%  #Need Sequence number 
+  select(-c(Point_lat, Point_lon)) #de-select for reshaping
+  
+#Reshape to consolidate Gen and Recipient Variables, noting position
+BB_plantings_long <- BB_plantings_2 %>% 
+  gather(key, value, -Location, -Sequence) %>% 
+  separate(key, c("key", "position"), "\\.") %>% 
+  spread(key, value)
+
+BB_plantings_long2 <- BB_plantings_long %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Add leading 0s
+  mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
+  select(-Recipient_num)
+
+
+##UPDATE WITH LATEST FLOWERING DATA SHEET
+## Add fitness plant data from flowering sheet
+BB_flowering <- read_csv(here::here("data_sheets", "2023_year2_data", "flowering_checks", "BB_flowercheck_data_2023-02-15 - BB_flowercheck_data_v1.csv"))
+
+BB_Fitps <- BB_flowering %>% 
+  filter(!is.na(Fit_plant)) %>% 
+  select(1:5, 7) %>% 
+  rename(position = side)
+
+#Fitness plant sheet
+BB_Fitness1 <- BB_flowering %>% 
+  distinct(pick(c(Sequence:Recipient))) %>% 
+  #filter(!is.na(Fit_plant)) %>% 
+  rename(position = side)
+
+BB_Fitness2 <- merge(BB_Fitness1, BB_Fitps, all.x = TRUE, by = c("Sequence", "Location", "position", "Gen", "Recipient"))
+
+
+#save csv Fitness plants
+write_csv(BB_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_plants", "BB_fitnessplants_23.csv"), na = "")
+
+
+##Fruit & Seed Count Data  
+
+
+BB_template <- BB_plantings_long2 %>% 
+  mutate(GenSym = case_when(Gen == "G1" ~ "-",
+                            Gen == "G2" ~ "X")) %>% 
+  mutate(Date_1 = NA, N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
+         Date_2 = NA, N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
+         Date_3 = NA, N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
+         Date_4 = NA, N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
+         Date_5 = NA, N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
+
+
+#Merge in Fitness plant data
+BB_template2 <- left_join(BB_template, BB_Fitness2, by = c("Sequence", "Location", "position", "Gen", "Recipient")) %>% 
+  mutate(GT_closed_fruit = NA, GT_open_fruit = NA, GT_filled_seeds = NA, notes = NA) %>% #columns for grand totals
+  select(Location:Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything())
+
+
+#Save csv - Fruit & seed counts
+#write_csv(BB_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "BB_fruit_seed_counts_blank_20230502.csv"), na = "")
+
+
+
 
 ```
 
@@ -339,6 +418,72 @@ write_csv(AC_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed
 
 **BO**  
 ```{r}
+#BO
+BO_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "BO_planting_locations_fall22.csv"), skip = 1) %>% 
+  select(-c(4,5))
+
+colnames(BO_plantings) <- c("Transect", "Segment", "Sequence", "Gen.L", "Recipient.L", "Gen.R", "Recipient.R", "Seg_lat", "Seg_lon")
+
+## Remove lat and lon
+BO_plantings_2 <- BO_plantings %>% 
+  select(-c(Seg_lat, Seg_lon)) #de-select for reshaping
+
+#Reshape to consolidate Gen and Recipient Variables, noting position
+BO_plantings_long <- BO_plantings_2 %>% 
+  gather(key, value, -Transect, -Segment, -Sequence) %>% 
+  separate(key, c("key", "position"), "\\.") %>% 
+  spread(key, value)
+
+BO_plantings_long2 <- BO_plantings_long %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Add leading 0s
+  mutate(Recipient = as.character(str_c("BO_", Recipient_num))) %>% 
+  select(-Recipient_num)
+
+
+##UPDATE WITH LATEST FLOWERING DATA SHEET
+## Add fitness plant data from flowering sheet
+BO_flowering <- read_csv(here::here("data_sheets", "2023_year2_data", "flowering_checks", "BO_flowercheck_data_2023-02-24 - BO_flowercheck_data_v1.csv")) %>% 
+  slice(-c(3101, 3102))
+
+BO_Fitps <- BO_flowering %>% 
+  filter(!is.na(Fit_plant)) %>% 
+  select(1:6, 8) %>% 
+  rename(position = side)
+
+#Fitness plant sheet
+BO_Fitness1 <- BO_flowering %>% 
+  distinct(pick(c(Sequence:Recipient))) %>% 
+  #filter(!is.na(Fit_plant)) %>% 
+  rename(position = side)
+
+BO_Fitness2 <- merge(BO_Fitness1, BO_Fitps, all.x = TRUE, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient"))
+
+#save csv Fitness plants
+write_csv(BO_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_plants", "BO_fitnessplants_23.csv"), na = "")
+
+
+
+#Fruit & Seed Count Sheets
+
+BO_template <- BO_plantings_long2 %>% 
+  mutate(GenSym = case_when(Gen == "G1" ~ "-",
+                            Gen == "G2" ~ "X")) %>% 
+  mutate(Date_1 = NA, N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
+         Date_2 = NA, N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
+         Date_3 = NA, N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
+         Date_4 = NA, N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
+         Date_5 = NA, N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
+
+
+#Merge in Fitness plant data
+BO_template2 <- left_join(BO_template, BO_Fitness2, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient")) %>% 
+  mutate(GT_closed_fruit = NA, GT_open_fruit = NA, GT_filled_seeds = NA, notes = NA) %>% #columns for grand totals
+  select(Transect:Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything())
+
+
+#Save csv - Fruit & seed counts
+#write_csv(BO_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "BO_fruit_seed_counts_blank_20230502.csv"), na = "")
+
 
 ```
 
@@ -346,6 +491,149 @@ write_csv(AC_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed
 
 **HR**  
 ```{r}
+#BO
+HR_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "HR_planting_locations_fall22.csv"), skip = 1) %>% 
+  select(-c(4,5))
+
+colnames(HR_plantings) <- c("Transect", "Segment", "Sequence", "Gen.L", "Recipient.L", "Gen.R", "Recipient.R", "Seg_lat", "Seg_lon")
+
+## Remove lat and lon
+HR_plantings_2 <- HR_plantings %>% 
+  select(-c(Seg_lat, Seg_lon)) #de-select for reshaping
+
+#Reshape to consolidate Gen and Recipient Variables, noting position
+HR_plantings_long <- HR_plantings_2 %>% 
+  gather(key, value, -Transect, -Segment, -Sequence) %>% 
+  separate(key, c("key", "position"), "\\.") %>% 
+  spread(key, value)
+
+HR_plantings_long2 <- HR_plantings_long %>% 
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Add leading 0s
+  mutate(Recipient = as.character(str_c("HR_", Recipient_num))) %>% 
+  select(-Recipient_num)
+
+
+##UPDATE WITH LATEST FLOWERING DATA SHEET
+## Add fitness plant data from flowering sheet
+HR_flowering <- read_csv(here::here("data_sheets", "2023_year2_data", "flowering_checks", "HR_flowercheck_data_2023-02-23 - HR_flowercheck_data_v1.csv")) 
+
+HR_Fitps <- HR_flowering %>% 
+  filter(!is.na(Fit_plant)) %>% 
+  select(1:6, 8) %>% 
+  rename(position = side)
+
+#Fitness plant sheet
+HR_Fitness1 <- HR_flowering %>% 
+  distinct(pick(c(Sequence:Recipient))) %>% 
+  #filter(!is.na(Fit_plant)) %>% 
+  rename(position = side)
+
+HR_Fitness2 <- merge(HR_Fitness1, HR_Fitps, all.x = TRUE, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient"))
+
+#save csv Fitness plants
+write_csv(HR_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_plants", "HR_fitnessplants_23.csv"), na = "")
+
+
+
+#Fruit & Seed Count Sheets
+
+HR_template <- HR_plantings_long2 %>% 
+  mutate(GenSym = case_when(Gen == "G1" ~ "-",
+                            Gen == "G2" ~ "X")) %>% 
+  mutate(Date_1 = NA, N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
+         Date_2 = NA, N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
+         Date_3 = NA, N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
+         Date_4 = NA, N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
+         Date_5 = NA, N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
+
+
+#Merge in Fitness plant data
+HR_template2 <- left_join(HR_template, HR_Fitness2, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient")) %>% 
+  mutate(GT_closed_fruit = NA, GT_open_fruit = NA, GT_filled_seeds = NA, notes = NA) %>% #columns for grand totals
+  select(Transect:Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything())
+
+
+#Save csv - Fruit & seed counts
+#write_csv(HR_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "HR_fruit_seed_counts_blank_20230502.csv"), na = "")
+
+
+
+
+
+```
+
+
+##### Skeleton Weight sheets  
+
+Should include Transect/Location, Segment + position, Generation, Recipient, Fitness Plant ID, Skeleton weight (mg), Notes (complete/incomplete), selected for pulverization. Non-fitness skeletons may be used instead of fitness plant skeletons?  
+
+(Already Made)
+
+#### Pulverization Data sheets
+
+**AC**  
+
+```{r}
+
+#Load fitness plant data
+AC_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "AC_fitness_23.csv")) 
+
+AC_skel_weights_23 <- AC_fitness_23 %>% 
+  mutate(skel_weight_mg = NA,
+         Units = "mg",
+         Notes = NA,
+         selected = NA) %>% 
+  mutate(seg = paste(Segment, position)) %>% 
+  select(Transect, seg, Gen, Recipient, Fit_plant, everything(), -Segment, -position, - Sequence)
+
+
+
+```
+
+
+
+
+**HR**  
+
+
+```{r}
+#fitness data
+HR_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "HR_fitnessplants_23.csv"))
+
+#skel weight data
+HR_skel_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "skeleton_data", "Skeleton Data 2023 - HR Skeletons.csv")) %>% rename(position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10)
+
+
+HR_pulvsheet1 <- merge(HR_skel_23, HR_fitness_23, all.x = TRUE, by = c("Transect", "Segment", "position", "Gen", "Recipient"))
+
+#Inspect df and correct any erroneously categorized NF plants
+
+
+#Filter to chosen skeletons
+HR_pulvsheet2 <- HR_pulvsheet1 %>% 
+  filter(complete_incomplete == "c") %>% 
+  select(-c(7:12)) %>% 
+  mutate(rowN = seq(1:nrow(.))) #create row number variable
+
+
+#Create Sample IDs
+#Population_MatFam_Gen_Transect_SegNo+side_plantNo
+#EG.
+#HR_156_2_001_21R_5
+HR_pulvsheet3 <- HR_pulvsheet2 %>% 
+  mutate(Transect_00 = sprintf("%03d", Transect), SegNoPos = paste(Segment, position, sep = ""), Plant_ID_0 = sprintf("%01d", Plant_ID)) %>% 
+  unite(`Sample_ID`, c(Recipient, Gen, Transect_00, SegNoPos, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(-c(Transect_00, Plant_ID_0))
+
+#Add Columns
+HR_pulvsheet4 <- HR_pulvsheet3 %>% 
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Total_weight(capsule+sample)(mg)` = NA, `sample weight (mg)` = NA, capsule_size = "8x5mm", capsule_weight_mg = "31.48", `Tray Name` = NA, Well_ID = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+         select(rowN, Transect, Segment, position, Recipient, Gen, Plant_ID, Sample_ID, `Total_weight(capsule+sample)(mg)`, `Tube ID`, `Tube ID`, capsule_size, capsule_weight_mg,  `sample weight (mg)`, everything()) #organize columns
+         
+
+##Add in for tray number reps
+#`Tray Name` = c(rep(c("Nemo_2023_HR_1", "Nemo_2023_HR_2", "Nemo_2023_HR_3", "Nemo_2023_HR_4", "Nemo_2023_HR_5", "Nemo_2023_HR_6", "Nemo_2023_HR_7", "Nemo_2023_HR_8"), each=96), rep("Nemo_2023_HR_9", 14)) #782 rows
 
 ```
 
@@ -365,6 +653,8 @@ write_csv(AC_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed
 
 
 
+
+#### Leaf Area & Weight sheets  
 
 
 
