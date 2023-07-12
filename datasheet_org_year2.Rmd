@@ -316,21 +316,24 @@ write_csv(AC_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_pla
 AC_template <- AC_plantings_long2 %>% 
   mutate(GenSym = case_when(Gen == "G1" ~ "-",
                             Gen == "G2" ~ "X")) %>% 
-  mutate(Date_1 = NA, N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
-         Date_2 = NA, N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
-         Date_3 = NA, N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
-         Date_4 = NA, N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
-         Date_5 = NA, N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
+  mutate(SegNoPos = paste(Segment, position, sep = "")) %>% 
+  mutate(N_CLOSED_fruit_D1 =NA, N_OPEN_fruit_D1 = NA, N_FILLED_seeds_D1 = NA, N_total_seeds_D1 = NA,
+         N_CLOSED_fruit_D2 =NA, N_OPEN_fruit_D2 = NA, N_FILLED_seeds_D2 = NA, N_total_seeds_D2 = NA,
+         N_CLOSED_fruit_D3 =NA, N_OPEN_fruit_D3 = NA, N_FILLED_seeds_D3 = NA, N_total_seeds_D3 = NA,
+         N_CLOSED_fruit_D4 =NA, N_OPEN_fruit_D4 = NA, N_FILLED_seeds_D4 = NA, N_total_seeds_D4 = NA,
+         N_CLOSED_fruit_D5 =NA, N_OPEN_fruit_D5 = NA, N_FILLED_seeds_D5 = NA, N_total_seeds_D5 = NA)
 
 
 #Merge in Fitness plant data
 AC_template2 <- left_join(AC_template, AC_Fitness2, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient")) %>% 
   mutate(GT_closed_fruit = NA, GT_open_fruit = NA, GT_filled_seeds = NA, notes = NA) %>% #columns for grand totals
-  select(Transect:Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything())
+  select(Sequence, Transect, SegNoPos, Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything(), -c(Segment, position)) %>% 
+  filter(!is.na(Fit_plant)) %>%  #filter out where fitness plants never chosen
+  rename(Seg = SegNoPos)
 
 
 #Save csv - Fruit & seed counts
-write_csv(AC_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "AC_fruit_seed_counts_blank_20230502.csv"), na = "")
+write_csv(AC_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "AC_fruit_seed_counts_blank_20230712.csv"), na = "")
 
 
 ```
@@ -393,23 +396,23 @@ write_csv(BB_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_pla
 BB_template <- BB_plantings_long2 %>% 
   mutate(GenSym = case_when(Gen == "G1" ~ "-",
                             Gen == "G2" ~ "X")) %>% 
-  mutate(Date_1 = NA, N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
-         Date_2 = NA, N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
-         Date_3 = NA, N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
-         Date_4 = NA, N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
-         Date_5 = NA, N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
+  mutate(N_CLOSED_fruit_D1 =NA, N_OPEN_fruit_D1 = NA, N_FILLED_seeds_D1 = NA, N_total_seeds_D1 = NA,
+         N_CLOSED_fruit_D2 =NA, N_OPEN_fruit_D2 = NA, N_FILLED_seeds_D2 = NA, N_total_seeds_D2 = NA,
+         N_CLOSED_fruit_D3 =NA, N_OPEN_fruit_D3 = NA, N_FILLED_seeds_D3 = NA, N_total_seeds_D3 = NA,
+         N_CLOSED_fruit_D4 =NA, N_OPEN_fruit_D4 = NA, N_FILLED_seeds_D4 = NA, N_total_seeds_D4 = NA,
+         N_CLOSED_fruit_D5 =NA, N_OPEN_fruit_D5 = NA, N_FILLED_seeds_D5 = NA, N_total_seeds_D5 = NA)
 
 
 #Merge in Fitness plant data
-BB_template2 <- left_join(BB_template, BB_Fitness2, by = c("Sequence", "Location", "position", "Gen", "Recipient")) %>% 
-  mutate(GT_closed_fruit = NA, GT_open_fruit = NA, GT_filled_seeds = NA, notes = NA) %>% #columns for grand totals
-  select(Location:Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything())
-
+BB_template2 <- left_join(BB_template, BB_Fitness2, by = c("Location", "Sequence", "position", "Gen", "Recipient")) %>% 
+  mutate(ALL_closed_fruit = NA, ALL_open_fruit = NA, ALL_filled_seeds = NA, notes = NA) %>% #columns for grand totals
+  mutate(SegNoPos = paste(Sequence, position, sep = "")) %>% 
+  select(Location, SegNoPos, Gen, GenSym, Recipient, Fit_plant, ALL_closed_fruit, ALL_open_fruit, ALL_filled_seeds, everything(), -c(Sequence, position)) %>% 
+  filter(!is.na(Fit_plant)) %>%  #filter out where fitness plants never chosen
+  rename(Seg = SegNoPos)
 
 #Save csv - Fruit & seed counts
-#write_csv(BB_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "BB_fruit_seed_counts_blank_20230502.csv"), na = "")
-
-
+write_csv(BB_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "BB_fruit_seed_counts_blank_20230711.csv"), na = "")
 
 
 ```
@@ -465,25 +468,28 @@ write_csv(BO_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_pla
 
 #Fruit & Seed Count Sheets
 
+
 BO_template <- BO_plantings_long2 %>% 
   mutate(GenSym = case_when(Gen == "G1" ~ "-",
                             Gen == "G2" ~ "X")) %>% 
-  mutate(Date_1 = NA, N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
-         Date_2 = NA, N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
-         Date_3 = NA, N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
-         Date_4 = NA, N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
-         Date_5 = NA, N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
+  mutate(SegNoPos = paste(Segment, position, sep = "")) %>% 
+  mutate(N_CLOSED_fruit_D1 =NA, N_OPEN_fruit_D1 = NA, N_FILLED_seeds_D1 = NA, N_total_seeds_D1 = NA,
+         N_CLOSED_fruit_D2 =NA, N_OPEN_fruit_D2 = NA, N_FILLED_seeds_D2 = NA, N_total_seeds_D2 = NA,
+         N_CLOSED_fruit_D3 =NA, N_OPEN_fruit_D3 = NA, N_FILLED_seeds_D3 = NA, N_total_seeds_D3 = NA,
+         N_CLOSED_fruit_D4 =NA, N_OPEN_fruit_D4 = NA, N_FILLED_seeds_D4 = NA, N_total_seeds_D4 = NA,
+         N_CLOSED_fruit_D5 =NA, N_OPEN_fruit_D5 = NA, N_FILLED_seeds_D5 = NA, N_total_seeds_D5 = NA)
 
 
 #Merge in Fitness plant data
 BO_template2 <- left_join(BO_template, BO_Fitness2, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient")) %>% 
   mutate(GT_closed_fruit = NA, GT_open_fruit = NA, GT_filled_seeds = NA, notes = NA) %>% #columns for grand totals
-  select(Transect:Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything())
+  select(Sequence, Transect, SegNoPos, Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything(), -c(Segment, position)) %>% 
+  filter(!is.na(Fit_plant)) %>%  #filter out where fitness plants never chosen
+  rename(Seg = SegNoPos)
 
 
 #Save csv - Fruit & seed counts
-#write_csv(BO_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "BO_fruit_seed_counts_blank_20230502.csv"), na = "")
-
+write_csv(BO_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "BO_fruit_seed_counts_blank_20230712.csv"), na = "")
 
 ```
 
@@ -491,7 +497,7 @@ BO_template2 <- left_join(BO_template, BO_Fitness2, by = c("Sequence", "Transect
 
 **HR**  
 ```{r}
-#BO
+#HR
 HR_plantings <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "HR_planting_locations_fall22.csv"), skip = 1) %>% 
   select(-c(4,5))
 
@@ -534,27 +540,28 @@ HR_Fitness2 <- merge(HR_Fitness1, HR_Fitps, all.x = TRUE, by = c("Sequence", "Tr
 write_csv(HR_Fitness2, here::here("data_sheets", "2023_year2_data", "fitness_plants", "HR_fitnessplants_23.csv"), na = "")
 
 
-
 #Fruit & Seed Count Sheets
 
 HR_template <- HR_plantings_long2 %>% 
   mutate(GenSym = case_when(Gen == "G1" ~ "-",
                             Gen == "G2" ~ "X")) %>% 
-  mutate(Date_1 = NA, N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
-         Date_2 = NA, N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
-         Date_3 = NA, N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
-         Date_4 = NA, N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
-         Date_5 = NA, N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
+  mutate(N_closed_fruit_D1 =NA, N_open_fruit_D1 = NA, N_other_fruit_D1 = NA, N_total_seeds_D1 = NA, N_filled_seeds_D1 = NA,
+         N_closed_fruit_D2 = NA, N_open_fruit_D2 = NA, N_other_fruit_D2 = NA, N_total_seeds_D2 = NA, N_filled_seeds_D2 = NA,
+         N_closed_fruit_D3 =NA, N_open_fruit_D3 = NA, N_other_fruit_D2 = NA, N_total_seeds_D3 = NA, N_filled_seeds_D3 = NA,
+         N_closed_fruit_D4 =NA, N_open_fruit_D4 = NA, N_other_fruit_D3 = NA, N_total_seeds_D4 = NA, N_filled_seeds_D4 = NA,
+         N_closed_fruit_D5 =NA, N_open_fruit_D5 = NA, N_other_fruit_D4 = NA, N_total_seeds_D5 = NA, N_filled_seeds_D5 = NA)
 
 
 #Merge in Fitness plant data
 HR_template2 <- left_join(HR_template, HR_Fitness2, by = c("Sequence", "Transect", "Segment", "position", "Gen", "Recipient")) %>% 
-  mutate(GT_closed_fruit = NA, GT_open_fruit = NA, GT_filled_seeds = NA, notes = NA) %>% #columns for grand totals
-  select(Transect:Gen, GenSym, Recipient, Fit_plant, GT_closed_fruit, GT_open_fruit, GT_filled_seeds, everything())
+  mutate(ALL_closed_fruit = NA, ALL_open_fruit = NA, ALL_filled_seeds = NA, notes = NA) %>% #columns for grand totals
+  mutate(SegNoPos = paste(Segment, position, sep = "")) %>% 
+  select(Sequence, Transect, SegNoPos, Gen, GenSym, Recipient, Fit_plant, ALL_closed_fruit, ALL_open_fruit, ALL_filled_seeds, everything(), -c(Segment, position)) %>% 
+  filter(!is.na(Fit_plant)) #filter out where fitness plants never chosen
 
 
 #Save csv - Fruit & seed counts
-#write_csv(HR_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "HR_fruit_seed_counts_blank_20230502.csv"), na = "")
+write_csv(HR_template2, here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "HR_fruit_seed_counts_blank_20230710.csv"), na = "")
 
 
 
@@ -576,15 +583,160 @@ Should include Transect/Location, Segment + position, Generation, Recipient, Fit
 ```{r}
 
 #Load fitness plant data
-AC_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "AC_fitness_23.csv")) 
+AC_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "AC_fitness_23.csv")) %>% 
+  arrange(Transect, Segment, position) %>% filter(!is.na(Fit_plant))
 
-AC_skel_weights_23 <- AC_fitness_23 %>% 
-  mutate(skel_weight_mg = NA,
-         Units = "mg",
-         Notes = NA,
-         selected = NA) %>% 
-  mutate(seg = paste(Segment, position)) %>% 
-  select(Transect, seg, Gen, Recipient, Fit_plant, everything(), -Segment, -position, - Sequence)
+#skel weight data
+AC_skel_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "skeleton_data", "Skeleton Data 2023 - AC Skeletons.csv")) %>% rename(position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10) %>% 
+  arrange(Transect, Segment, position)
+
+
+AC_pulvsheet1 <- merge(AC_skel_23, AC_fitness_23, all.x = TRUE, by = c("Transect", "Segment", "position", "Gen", "Recipient")) %>% filter(Fitness != "missing") #exclude missing skeletons
+
+#Inspect df and correct any erroneously categorized NF plants
+
+
+#Filter to chosen skeletons
+AC_pulvsheet2 <- AC_pulvsheet1 %>% 
+  filter(selected == "y") %>% 
+  select(-c(7:12)) %>% 
+  arrange(Transect, Segment, position) %>% 
+  mutate(rowN = seq(1:nrow(.))) #Create rowN var
+
+
+#Create Sample IDs
+#Population_MatFam_Gen_Transect_SegNo+side_plantNo
+#EG.
+#AC_156_2_001_21R_5
+AC_pulvsheet3 <- AC_pulvsheet2 %>% 
+  mutate(Transect_00 = sprintf("%03d", Transect), SegNoPos = paste(Segment, position, sep = ""), Plant_ID_0 = sprintf("%01d", Plant_ID)) %>% 
+  unite(`Sample_ID`, c(Recipient, Gen, Transect_00, SegNoPos, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(-c(Transect_00, Plant_ID_0)) 
+
+#Add Columns
+AC_pulvsheet4 <- AC_pulvsheet3 %>% 
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Total_weight(capsule+sample)(mg)` = NA, `sample weight (mg)` = NA, capsule_size = "8x5mm", capsule_weight_mg = "31.48", `Tray Name` = c(rep(c("Nemo_2023_AC_1", "Nemo_2023_AC_2", "Nemo_2023_AC_3", "Nemo_2023_AC_4"), each=96), rep("Nemo_2023_AC_5", 92)), Well_ID = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+         select(rowN, Transect, SegNoPos, Recipient, Gen, Plant_ID, Sample_ID, `Tube ID`, `Total_weight(capsule+sample)(mg)`, `Tray Name`, Well_ID, capsule_size, capsule_weight_mg, `sample weight (mg)`, everything(), -c(Segment, position)) #organize columns
+         
+
+#check for dupes
+AC_pulvsheet4a <- AC_pulvsheet4 %>% 
+  select(Transect:Gen) %>% 
+  group_by_all() %>% 
+  filter(n()>1)
+
+
+##Add in for tray number reps
+#476 rows
+
+write_csv(AC_pulvsheet4, here::here("data_sheets", "2023_year2_data", "skeleton_data", "AC_pulv_blank_2023.csv"), na = "")
+
+```
+
+**BB**  
+
+```{r message = FALSE, warning = FALSE}
+#fitness data
+BB_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "BB_fitnessplants_23.csv")) %>% 
+  rename(Segment = Sequence)
+
+#skel weight data
+BB_skel_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "skeleton_data", "Skeleton Data 2023 - BB Skeletons.csv")) %>% rename(Segment = 2, position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10) 
+
+
+BB_pulvsheet1 <- merge(BB_skel_23, BB_fitness_23, all.x = TRUE, by = c("Location", "Segment", "position", "Gen", "Recipient")) %>% filter(Fitness != "missing?") #exclude missing skeletons
+
+#Inspect df and correct any erroneously categorized NF plants
+
+
+#Filter to chosen skeletons
+BB_pulvsheet2 <- BB_pulvsheet1 %>% 
+  filter(selected == "y") %>% 
+  select(-c(7:11)) %>% 
+  arrange(Location, Segment, position) %>% 
+  mutate(rowN = seq(1:nrow(.))) #Create rowN var
+
+#Create Sample IDs
+#Population_MatFam_Gen_Location_SegNo+side_plantNo
+#EG.
+#BB_156_2_001_21R_5
+BB_pulvsheet3 <- BB_pulvsheet2 %>% 
+  mutate(Location_00 = sprintf("%03d", Location), SegNoPos = paste(Segment, position, sep = ""), Plant_ID_0 = sprintf("%01d", Plant_ID)) %>% 
+  unite(`Sample_ID`, c(Recipient, Gen, Location_00, SegNoPos, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(-c(Location_00, Plant_ID_0)) 
+
+#Add Columns
+BB_pulvsheet4 <- BB_pulvsheet3 %>% 
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Total_weight(capsule+sample)(mg)` = NA, `sample weight (mg)` = NA, capsule_size = "8x5mm", capsule_weight_mg = "31.48", `Tray Name` = c(rep(c("Nemo_2023_BB_1", "Nemo_2023_BB_2", "Nemo_2023_BB_3", "Nemo_2023_BB_4"), each=96), rep("Nemo_2023_BB_5", 46)), Well_ID = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+         select(rowN, Location, SegNoPos, Recipient, Gen, Plant_ID, Sample_ID, `Tube ID`, `Total_weight(capsule+sample)(mg)`, `Tray Name`, Well_ID, capsule_size, capsule_weight_mg, `sample weight (mg)`, everything(), -c(Segment, position)) #organize columns
+         
+
+##Add in for tray number reps
+ #430 rows
+#BB_pulvsheet4a <- BB_pulvsheet4 %>% 
+#  select(Location:Gen) %>% 
+#  group_by_all() %>% 
+#  filter(n()>1)
+
+write_csv(BB_pulvsheet4, here::here("data_sheets", "2023_year2_data", "skeleton_data", "BB_pulv_blank_2023.csv"), na = "")
+
+
+
+```
+
+**BO**  
+
+```{r message = FALSE, warning = FALSE}
+
+#fitness data
+BO_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "BO_fitnessplants_23.csv")) %>% 
+  arrange(Transect, Segment, position) %>% filter(!is.na(Fit_plant))
+
+#skel weight data
+BO_skel_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "skeleton_data", "Skeleton Data 2023 - BO Skeletons.csv")) %>% rename(position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10) %>% 
+  arrange(Transect, Segment, position)
+
+
+BO_pulvsheet1 <- merge(BO_skel_23, BO_fitness_23, all.x = TRUE, by = c("Transect", "Segment", "position", "Gen", "Recipient")) %>% filter(Fitness != "missing?") #exclude missing skeletons
+
+#Inspect df and correct any erroneously categorized NF plants
+
+
+#Filter to chosen skeletons
+BO_pulvsheet2 <- BO_pulvsheet1 %>% 
+  filter(selected == "y") %>% 
+  select(-c(7:12)) %>% 
+  arrange(Transect, Segment, position) %>% 
+  mutate(rowN = seq(1:nrow(.))) #Create rowN var
+
+
+#Create Sample IDs
+#Population_MatFam_Gen_Transect_SegNo+side_plantNo
+#EG.
+#BO_156_2_001_21R_5
+BO_pulvsheet3 <- BO_pulvsheet2 %>% 
+  mutate(Transect_00 = sprintf("%03d", Transect), SegNoPos = paste(Segment, position, sep = ""), Plant_ID_0 = sprintf("%01d", Plant_ID)) %>% 
+  unite(`Sample_ID`, c(Recipient, Gen, Transect_00, SegNoPos, Plant_ID_0), sep = "-", remove = FALSE) %>% 
+  select(-c(Transect_00, Plant_ID_0)) 
+
+#Add Columns
+BO_pulvsheet4 <- BO_pulvsheet3 %>% 
+  mutate(`Tube ID` = seq_along(1:n()),
+         `Total_weight(capsule+sample)(mg)` = NA, `sample weight (mg)` = NA, capsule_size = "8x5mm", capsule_weight_mg = "31.48", `Tray Name` = c(rep(c("Nemo_2023_BO_1", "Nemo_2023_BO_2"), each=96), rep("Nemo_2023_BO_3", 24)), Well_ID = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+         select(rowN, Transect, SegNoPos, Recipient, Gen, Plant_ID, Sample_ID, `Tube ID`, `Total_weight(capsule+sample)(mg)`, `Tray Name`, Well_ID, capsule_size, capsule_weight_mg, `sample weight (mg)`, everything(), -c(Segment, position)) #organize columns
+         
+
+##Add in for tray number reps
+#216 rows
+BO_pulvsheet4a <- BO_pulvsheet4 %>% 
+  select(Transect:Gen) %>% 
+  group_by_all() %>% 
+  filter(n()>1)
+
+
+write_csv(BO_pulvsheet4, here::here("data_sheets", "2023_year2_data", "skeleton_data", "BO_pulv_blank_2023.csv"), na = "")
 
 
 
@@ -592,28 +744,29 @@ AC_skel_weights_23 <- AC_fitness_23 %>%
 
 
 
-
 **HR**  
 
 
-```{r}
+```{r message = FALSE, warning = FALSE}
 #fitness data
 HR_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "HR_fitnessplants_23.csv"))
 
 #skel weight data
-HR_skel_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "skeleton_data", "Skeleton Data 2023 - HR Skeletons.csv")) %>% rename(position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10)
+HR_skel_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "skeleton_data", "Skeleton Data 2023 - HR Skeletons.csv")) %>% rename(position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10) 
 
 
-HR_pulvsheet1 <- merge(HR_skel_23, HR_fitness_23, all.x = TRUE, by = c("Transect", "Segment", "position", "Gen", "Recipient"))
+HR_pulvsheet1 <- merge(HR_skel_23, HR_fitness_23, all.x = TRUE, by = c("Transect", "Segment", "position", "Gen", "Recipient")) %>% filter(Fitness != "missing", Fitness != "missing?") %>%  #exclude missing skeletons
+  arrange(Transect, Segment, position)
 
 #Inspect df and correct any erroneously categorized NF plants
 
 
 #Filter to chosen skeletons
 HR_pulvsheet2 <- HR_pulvsheet1 %>% 
-  filter(complete_incomplete == "c") %>% 
+  filter(selected == "y") %>% 
   select(-c(7:12)) %>% 
-  mutate(rowN = seq(1:nrow(.))) #create row number variable
+  mutate(rowN = seq(1:nrow(.))) %>%  #create row number variable
+  arrange(Transect, Segment, position)
 
 
 #Create Sample IDs
@@ -625,15 +778,26 @@ HR_pulvsheet3 <- HR_pulvsheet2 %>%
   unite(`Sample_ID`, c(Recipient, Gen, Transect_00, SegNoPos, Plant_ID_0), sep = "-", remove = FALSE) %>% 
   select(-c(Transect_00, Plant_ID_0))
 
+
 #Add Columns
 HR_pulvsheet4 <- HR_pulvsheet3 %>% 
   mutate(`Tube ID` = seq_along(1:n()),
-         `Total_weight(capsule+sample)(mg)` = NA, `sample weight (mg)` = NA, capsule_size = "8x5mm", capsule_weight_mg = "31.48", `Tray Name` = NA, Well_ID = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
-         select(rowN, Transect, Segment, position, Recipient, Gen, Plant_ID, Sample_ID, `Total_weight(capsule+sample)(mg)`, `Tube ID`, `Tube ID`, capsule_size, capsule_weight_mg,  `sample weight (mg)`, everything()) #organize columns
+         `Total_weight(capsule+sample)(mg)` = NA, `sample weight (mg)` = NA, capsule_size = "8x5mm", capsule_weight_mg = "31.48", `Tray Name` = c(rep(c("Nemo_2023_HR_1", "Nemo_2023_HR_2", "Nemo_2023_HR_3", "Nemo_2023_HR_4", "Nemo_2023_HR_5", "Nemo_2023_HR_6", "Nemo_2023_HR_7"), each=96), rep("Nemo_2023_HR_7", 56)), Well_ID = NA, `Type of Material` = "plant stem tissue", Analysis = "13C, 15N", Enriched = "No") %>% 
+         select(rowN, Transect, SegNoPos, Recipient, Gen, Plant_ID, Sample_ID, `Tube ID`, `Total_weight(capsule+sample)(mg)`, `Tray Name`, Well_ID, capsule_size, capsule_weight_mg, `sample weight (mg)`, everything(), -c(Segment, position)) #organize columns
          
 
 ##Add in for tray number reps
-#`Tray Name` = c(rep(c("Nemo_2023_HR_1", "Nemo_2023_HR_2", "Nemo_2023_HR_3", "Nemo_2023_HR_4", "Nemo_2023_HR_5", "Nemo_2023_HR_6", "Nemo_2023_HR_7", "Nemo_2023_HR_8"), each=96), rep("Nemo_2023_HR_9", 14)) #782 rows
+#`Tray Name` = c(rep(c("Nemo_2023_HR_1", "Nemo_2023_HR_2", "Nemo_2023_HR_3", "Nemo_2023_HR_4", "Nemo_2023_HR_5", "Nemo_2023_HR_6", "Nemo_2023_HR_7"), each=96), rep("Nemo_2023_HR_7", 57)) #727 rows
+
+#check for dupes
+HR_pulvsheet4a <- HR_pulvsheet4 %>% 
+  select(Transect:Gen) %>% 
+  group_by_all() %>% 
+  filter(n()>1)
+
+write_csv(HR_pulvsheet4, here::here("data_sheets", "2023_year2_data", "skeleton_data", "HR_pulv_blank_2023.csv"), na = "")
+
+
 
 ```
 
