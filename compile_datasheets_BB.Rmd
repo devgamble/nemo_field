@@ -162,7 +162,7 @@ BB_germ_W5 <- BB_germ_W4 %>%
 BB_germ_full <- rbind(BB_germ_df5, BB_germ_W5) %>% 
     mutate(Plant_ID = as.numeric(Plant_ID))
 
-write_csv(BB_germ_full, here::here("data_sheets", "compiled_sheets", "BB_germination_full_2021-2022.csv"))
+#write_csv(BB_germ_full, here::here("data_sheets", "compiled_sheets", "BB_germination_full_2021-2022.csv"))
 
 ```
 
@@ -496,7 +496,7 @@ BB_merged_df6 <- merge(BB_merged_df5, corollas_BB2, by = c("Block", "Location", 
 
 **Leaf Area & Weight**  
 ```{r}
-leaves_BB <- read_csv(here::here("data_sheets", "leaf_data", "BB_SLA_data_20230508.csv")) %>% 
+leaves_BB <- read_csv(here::here("data_sheets", "leaf_data", "BB_SLA_data_20230522.csv")) %>% 
   rename(leaf_area_mm2 = 5, leafarea_notes = 6, leaf_dryweight_mg = 7, leafweight_notes = 8) %>% 
   filter(!grepl("EXCLUDE", leafarea_notes)) %>% ## Filter out notes with "EXCLUDE"
   filter(!is.na(leaf_area_mm2)) #exlcude NA leaf areas?
@@ -518,7 +518,9 @@ leaves_BB_duped <- leaves_BB %>%
 leaves_BB_unique <- leaves_BB_duped %>% 
   group_by(Block, Location, Recipient) %>% 
   slice_sample(n = 1) %>%  #select a random row for each  combo of block, transect, recipient
-  select(-c(duped, Plant_ID)) #Don't need plant ID...these were all non-fitness plants
+  select(-c(duped, Plant_ID)) %>% #Don't need plant ID...these were all non-fitness plants
+  mutate(SLA = leaf_area_mm2 / leaf_dryweight_mg,
+         LMA = 1/SLA)
 
 
 #Merge in to main data 
@@ -619,7 +621,7 @@ BB_mastersheet_v1 <- BB_merged_df_fl2 %>%
                                Donor == "BB_188" & Location %in% c("48", "96", "126") ~ "BB_205_B",
                                TRUE ~ Recipient))
 
-write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_full_2023-03-11.csv"))
+write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_full_2023-07-19.csv"))
 
 #Create meta data sheet
 
@@ -639,9 +641,9 @@ BB_mastersheet_F_all <- BB_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treat these as 0 fitness or as NAs to remove???
 
 
-write_csv(BB_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-05-08.csv"))
+write_csv(BB_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-07-19.csv"))
 
-write_csv(BB_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-all_2023-05-08.csv"))
+write_csv(BB_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-all_2023-07-19.csv"))
 
 ```
 

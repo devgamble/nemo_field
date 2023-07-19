@@ -468,7 +468,7 @@ BO_merged_df6 <- merge(BO_merged_df5, corollas_BO2, by = c("Transect", "Recipien
 ```
 **Leaf Area & Weight**  
 ```{r}
-leaves_BO <- read_csv(here::here("data_sheets", "leaf_data", "BO_SLA_data_20230508.csv")) %>% 
+leaves_BO <- read_csv(here::here("data_sheets", "leaf_data", "BO_SLA_data_20230522.csv")) %>% 
   rename(leaf_area_mm2 = 5, leafarea_notes = 6, leaf_dryweight_mg = 7, leafweight_notes = 8) %>% 
   filter(!grepl("EXCLUDE", leafarea_notes)) %>% ## Filter out notes with "EXCLUDE"
   filter(!is.na(leaf_area_mm2)) #exlcude NA leaf areas?
@@ -487,7 +487,9 @@ leaves_BO_duped <- leaves_BO %>%
 leaves_BO_unique <- leaves_BO_duped %>% 
   group_by(Block, Transect, Recipient) %>% 
   slice_sample(n = 1) %>%  #select a random row for each  combo of block, transect, recipient
-  select(-c(duped, Plant_ID)) #Don't need plant ID...these were all non-fitness plants
+  select(-c(duped, Plant_ID)) %>% #Don't need plant ID...these were all non-fitness plants
+  mutate(SLA = leaf_area_mm2 / leaf_dryweight_mg,
+         LMA = 1 / SLA)
 
 
 #Merge in to main data 
@@ -581,7 +583,7 @@ BO_mastersheet_v1 <- BO_merged_df_fl2 %>%
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_full_2023-03-01.csv"))
+write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_full_2023-07-19.csv"))
 
 #Create meta data sheet
 
@@ -601,9 +603,9 @@ BO_mastersheet_F_all <- BO_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(BO_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-mains_2023-05-08.csv"))
+write_csv(BO_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-mains_2023-07-19.csv"))
 
-write_csv(BO_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-all_2023-05-08.csv"))
+write_csv(BO_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-all_2023-07-19.csv"))
 
 ```
 

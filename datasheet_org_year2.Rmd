@@ -818,6 +818,21 @@ write_csv(HR_pulvsheet4, here::here("data_sheets", "2023_year2_data", "skeleton_
 
 
 
+**HR**  
+
+
+```{r}
+#Load Fitness plant data
+
+
+
+
+```
+
+
+
+
+
 #### Leaf Area & Weight sheets  
 
 
