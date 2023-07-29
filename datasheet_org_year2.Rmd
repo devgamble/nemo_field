@@ -812,9 +812,56 @@ write_csv(HR_pulvsheet4, here::here("data_sheets", "2023_year2_data", "skeleton_
 ##Adapt above code used to create fruit/seed count data sheets to create corolla measurement data sheets
 # Refer to code used to make SLA sheets; corolla photos named following standardized format
 
+AC_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "AC_fitness_23.csv"))
+
+#Design data sheet
+#Sequence, segment, transect, seg, gen, Sym, Donor, Recipient, Fit plant, corolla diameter
+
+AC_corolla_d <- AC_fitness_23 %>% 
+  mutate(corolla_diam_mm = NA, SegNoPos = paste(Segment, position, sep = ""), Notes = NA) %>% 
+  filter(!is.na(Fit_plant)) %>% 
+  select(Transect, Recipient, Gen, Fit_plant, SegNoPos, everything(), -c(Segment, position, Sequence))
+
+
+write_csv(AC_corolla_d,here::here("data_sheets", "2023_year2_data", "corolla_leaf_data", "AC_corolla_blank_23.csv"), na = "")
 
 ```
 
+**BB**  
+```{r}
+#Load Fitness plant data
+BB_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "BB_fitnessplants_23.csv"))
+
+#Design data sheet
+#Sequence, segment, Location, seg, gen, Sym, Donor, Recipient, Fit plant, corolla diameter
+
+BB_corolla_d <- BB_fitness_23 %>% 
+  mutate(corolla_diam_mm = NA, SegNoPos = paste(Sequence, position, sep = ""), Notes = NA) %>% 
+  filter(!is.na(Fit_plant)) %>% 
+  select(Location, Recipient, Gen, Fit_plant, SegNoPos, everything(), -c(Sequence, position))
+
+
+write_csv(BB_corolla_d,here::here("data_sheets", "2023_year2_data", "corolla_leaf_data", "BB_corolla_blank_23.csv"), na = "")
+
+```
+
+**BO**  
+```{r}
+#Load Fitness plant data
+BO_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "BO_fitnessplants_23.csv"))
+
+#Design data sheet
+#Sequence, segment, transect, seg, gen, Sym, Donor, Recipient, Fit plant, corolla diameter
+
+BO_corolla_d <- BO_fitness_23 %>% 
+  mutate(corolla_diam_mm = NA, SegNoPos = paste(Segment, position, sep = ""), Notes = NA) %>% 
+  filter(!is.na(Fit_plant)) %>% 
+  select(Transect, Recipient, Gen, Fit_plant, SegNoPos, everything(), -c(Segment, position, Sequence))
+
+
+write_csv(BO_corolla_d,here::here("data_sheets", "2023_year2_data", "corolla_leaf_data", "BO_corolla_blank_23.csv"), na = "")
+
+```
 
 
 
@@ -823,9 +870,18 @@ write_csv(HR_pulvsheet4, here::here("data_sheets", "2023_year2_data", "skeleton_
 
 ```{r}
 #Load Fitness plant data
+HR_fitness_23 <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "HR_fitnessplants_23.csv"))
+
+#Design data sheet
+#Sequence, segment, transect, seg, gen, Sym, Donor, Recipient, Fit plant, corolla diameter
+
+HR_corolla_d <- HR_fitness_23 %>% 
+  mutate(corolla_diam_mm = NA, SegNoPos = paste(Segment, position, sep = ""), Notes = NA) %>% 
+  filter(!is.na(Fit_plant)) %>% 
+  select(Transect, Recipient, Gen, Fit_plant, SegNoPos, everything(), -c(Segment, position, Sequence))
 
 
-
+write_csv(HR_corolla_d,here::here("data_sheets", "2023_year2_data", "corolla_leaf_data", "HR_corolla_blank_23.csv"), na = "")
 
 ```
 
