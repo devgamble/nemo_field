@@ -561,10 +561,10 @@ BO_merged_df_fl2 <- BO_merged_df_fl %>%
          surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
                                        total_fruits_F == 0 ~ 0),
          surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
-                                       TRUE ~ 0)) %>% #else = 0 (applies to seed_ct = NA)
-  filter(!duplicated(BO_merged_df_fl2)) #DUPLICATES REMOVED - Discovered 2023-08-07 when adding d13C data
+                                       TRUE ~ 0)) #else = 0 (applies to seed_ct = NA)
 
-         
+BO_merged_df_fl2 <- BO_merged_df_fl2 %>% 
+  filter(!duplicated(BO_merged_df_fl2)) #DUPLICATES REMOVED - Discovered 2023-08-07 when adding d13C data  
 
 
 ## Note: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
@@ -614,7 +614,8 @@ testdf <- BO_merged_df_fl3 %>%
 
 
 BO_mastersheet_v1 <- BO_merged_df_fl3 %>% 
-  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  mutate(Year = 2022, Gen = "G1") %>% 
+  select(Year, Gen, Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
 write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_full_2023-08-07.csv"))

@@ -635,7 +635,8 @@ testdf <- HR_merged_df_fl3 %>%
 
 
   HR_mastersheet_v1 <- HR_merged_df_fl3 %>% 
-  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
+  mutate(Year = 2022, Gen = "G1") %>% 
+  select(Year, Gen, Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
 write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_full_2023-08-07.csv"))
