@@ -561,7 +561,8 @@ BO_merged_df_fl2 <- BO_merged_df_fl %>%
          surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
                                        total_fruits_F == 0 ~ 0),
          surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
-                                       TRUE ~ 0)) #else = 0 (applies to seed_ct = NA)
+                                       TRUE ~ 0)) %>% #else = 0 (applies to seed_ct = NA)
+  filter(!duplicated(BO_merged_df_fl2)) #DUPLICATES REMOVED - Discovered 2023-08-07 when adding d13C data
 
          
 
@@ -571,6 +572,39 @@ BO_merged_df_fl2 <- BO_merged_df_fl %>%
 
 <br>  
 
+### d13C data  
+
+```{r}
+Nemo_d13C <- read_csv(here::here("data_sheets", "isotope_data", "Nemophila_d13C_230511.csv")) %>% 
+  select(1,2,3,5,6,9) %>% 
+  rename(sample_ID = 1, d13C = 2, totalC_ug = 3, sample_weight_mg = 6)
+#Save as UTF-8 file from excel to avoid import error
+
+#filter to BO samples
+Nemo_d13C_BO <- Nemo_d13C %>% 
+  slice(-54) %>% 
+  filter(grepl('BO', sample_ID))
+
+#unravel sample ID
+Nemo_d13_BO2 <- Nemo_d13C_BO %>% 
+  mutate(Recipient = gsub('-', '_', substr(sample_ID, 1, 6)), 
+         Transect = as.numeric(str_remove(substr(sample_ID, 8, 10), "^0+")),
+         Plant_ID = as.numeric(substr(sample_ID, 12,13))) %>% 
+  select(Transect, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
+
+#Merge
+
+BO_merged_df_fl3 <- merge(BO_merged_df_fl2, Nemo_d13_BO2, by = c("Recipient", "Transect"), all.x = TRUE)
+
+#check that all data made it (196 obs)
+testdf <- BO_merged_df_fl3 %>% 
+  filter(!is.na(d13C))
+
+#One sample missing from main data - Tr 5, BO_118 plant 8 -- no such recipient in Tr 5, leave out of data
+
+```
+
+
 ## Master sheets (v1)  
 
 
@@ -579,11 +613,11 @@ BO_merged_df_fl2 <- BO_merged_df_fl %>%
 #Sort by transect and ID variables, then by Fitness plants and those that flowered...
 
 
-BO_mastersheet_v1 <- BO_merged_df_fl2 %>% 
+BO_mastersheet_v1 <- BO_merged_df_fl3 %>% 
   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_full_2023-07-19.csv"))
+write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_full_2023-08-07.csv"))
 
 #Create meta data sheet
 
@@ -603,9 +637,9 @@ BO_mastersheet_F_all <- BO_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(BO_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-mains_2023-07-19.csv"))
+write_csv(BO_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-mains_2023-08-07.csv"))
 
-write_csv(BO_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-all_2023-07-19.csv"))
+write_csv(BO_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-all_2023-08-07.csv"))
 
 ```
 

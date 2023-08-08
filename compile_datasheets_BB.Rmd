@@ -606,6 +606,51 @@ BB_merged_df_fl2 <- BB_merged_df_fl %>%
 
 <br>  
 
+### d13C data  
+
+```{r}
+Nemo_d13C <- read_csv(here::here("data_sheets", "isotope_data", "Nemophila_d13C_230511.csv")) %>% 
+  select(1,2,3,5,6,9) %>% 
+  rename(sample_ID = 1, d13C = 2, totalC_ug = 3, sample_weight_mg = 6)
+#Save as UTF-8 file from excel to avoid import error
+
+#filter to BB samples
+Nemo_d13C_BB <- Nemo_d13C %>% 
+  filter(grepl('BB', sample_ID))
+
+#Note! Two 205A samples from points 99 and 154 (rows 132, 199)
+
+#unravel sample ID
+Nemo_d13_BB2 <- Nemo_d13C_BB %>% 
+  slice(-c(132, 199)) %>% 
+  mutate(Recipient = gsub('-', '_', substr(sample_ID, 1, 6)), 
+         Location = as.numeric(str_remove(substr(sample_ID, 8, 10), "^0+")),
+         Plant_ID = as.numeric(substr(sample_ID, 12,13))) %>% 
+  select(Location, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
+
+#special cases - 205As
+Nemo_205As <- Nemo_d13C_BB %>% 
+  slice(132, 199) %>% 
+  mutate(Recipient = gsub('-', '_', substr(sample_ID, 1, 7)), 
+         Location = as.numeric(str_remove(substr(sample_ID, 9, 11), "^0+")),
+         Plant_ID = as.numeric(substr(sample_ID, 13,14))) %>% 
+  select(Location, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
+
+Nemo_d13_BB2.5 <- rbind(Nemo_d13_BB2, Nemo_205As) %>% 
+  mutate(Recipient = gsub('205A', '205', Recipient)) #Remove 'A' - is specified later...
+
+
+#Merge
+BB_merged_df_fl3 <- merge(BB_merged_df_fl2, Nemo_d13_BB2.5, by = c("Recipient", "Location"), all.x = TRUE)
+
+#check that all data made it (203 obs)
+testdf <- BB_merged_df_fl3 %>% 
+  filter(!is.na(d13C))
+```
+
+
+
+
 ## Master sheets (v1)  
 
 
@@ -614,14 +659,14 @@ BB_merged_df_fl2 <- BB_merged_df_fl %>%
 #Sort by transect and ID variables, then by Fitness plants and those that flowered...
 
 
-BB_mastersheet_v1 <- BB_merged_df_fl2 %>% 
+BB_mastersheet_v1 <- BB_merged_df_fl3 %>% 
   select(Block, Location, Sequence, Co., Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Location, Sequence, Co., Recipient, Plant_ID) %>% #Correct Recipient names - two mat fams with different donors
   mutate(Recipient = case_when(Donor == "BB_217" & Location %in% c("33", "99", "154") ~ "BB_205_A",
                                Donor == "BB_188" & Location %in% c("48", "96", "126") ~ "BB_205_B",
                                TRUE ~ Recipient))
 
-write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_full_2023-07-19.csv"))
+write_csv(BB_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_full_2023-08-07.csv"))
 
 #Create meta data sheet
 
@@ -641,9 +686,9 @@ BB_mastersheet_F_all <- BB_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treat these as 0 fitness or as NAs to remove???
 
 
-write_csv(BB_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-07-19.csv"))
+write_csv(BB_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-08-07.csv"))
 
-write_csv(BB_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-all_2023-07-19.csv"))
+write_csv(BB_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-all_2023-08-07.csv"))
 
 ```
 
