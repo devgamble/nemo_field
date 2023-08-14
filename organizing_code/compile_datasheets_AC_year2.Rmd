@@ -83,7 +83,7 @@ AC_flr_df <- read_csv(file = here::here( "data_sheets", "2023_year2_data", "flow
 AC_flr2 <- AC_flr_df %>% 
   mutate(SegPos = paste(Segment, side, sep = "")) %>% 
   select(Sequence, Transect, SegPos, everything(), -c(Segment, side, FD_06, FD_07)) %>% 
-  slice(-c(2111:2115, 3191:3195)) %>% #Remove rows not planted
+  slice(-c(1355, 1600, 2111:2115, 3191:3195)) %>% #Remove rows not planted
   arrange(Sequence, Transect, SegPos) %>% 
   mutate(Recipient = case_when(Recipient %in% c("AC_159", "AC_159A", "AC_159B") ~ "AC_159",
                                TRUE ~ Recipient)) #rename 159 - letters were added to mark position
@@ -101,8 +101,7 @@ AC_flr_test <- AC_flr2 %>%
 #Check obs first using unique(AC_flr3$FD_01) and make corrections
 
 AC_flr3 <- AC_flr2 %>%
-  #mutate(FD_01 = as_date(FD_01))
-  mutate_at(.vars = vars(FD_01:FLR_P), .funs = list(as_date)) %>% 
+  mutate_at(.vars = vars(FD_01:FD_05), ~as_date(.)) %>% 
   mutate(FD_05 = as_date(case_when(FD_05 == "2023-06-07" ~ "2023-06-08",
                            FD_05 == "2023-06-08" ~ "2023-06-08",
                            FD_05 == "2023-06-09" ~ "2023-06-09",

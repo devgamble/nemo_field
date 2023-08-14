@@ -26,7 +26,7 @@ library(stringr)
 ## Load and Clean Data   
 
 
-
+### TO DO - ADD IN LAT/LONG for EACH POINT!!  
 
 NOTE 3: Two iterations of a maternal family ID (names fixed before saving csv):
 **BB_205_A** occurs at locations xx, xx, and xxx and has Donor BB_217 (greenhouse cohort 5)
@@ -42,7 +42,10 @@ BB_Fitness <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_pla
                                TRUE ~ Recipient)) %>%  #reset 205 - A/B specified below based on donor
   mutate(Recipient = case_when(Recipient %in% c("BB_147", "BB_147a", "BB_147b") ~ "BB_147",
                                TRUE ~ Recipient)) %>% # 147 renamed based on positions. Reset here.
+  mutate(Recipient = case_when(Recipient %in% c("BB_070", "BB_070A", "BB_070B") ~ "BB_070",
+                               TRUE ~ Recipient)) %>% 
   slice(-c(415, 644)) #BB_157 in Pt 70 seg 208L was never planted - remove entirely. Last row NULL
+#BB_050 at 283L plant 5 removed (never planted) below in flowering sheet
 
 BB_donors <- read_csv(here::here("data_sheets", "2023_year2_data", "planting_locations", "BB_donor_info.csv")) 
 
@@ -60,18 +63,22 @@ BB_donors2 <- BB_donors %>%
 BB_Fitness_2 <- merge(BB_Fitness, unique(BB_donors2[c("Sequence", "Gen", "Donor", "Recipient")]), by = c("Sequence", "Recipient", "Gen"), all.x = TRUE) %>% 
   mutate(SegPos = paste(Sequence, position, sep = "")) %>% 
   select(Sequence, Location, SegPos, Gen, Donor, Recipient, Fit_plant) %>% 
-  arrange(Location, SegPos) %>% 
-  mutate(Recipient = case_when(Donor == "BB_217" & Recipient == "BB_205" ~ "BB_205A",
-                               Donor == "BB_188" & Recipient == "BB_205" ~ "BB_205B",
-                               TRUE ~ Recipient)) #Fix 205 A/B labeling based on donor
+  arrange(Location, SegPos) 
 
 
 #Mismatched rows?
 #which(duplicated(BB_Fitness_2[,1:4]))
 
 
+#Use above Fitness df version for merging with flowering data. 
+#Use following version (including 205 As and Bs) to update Fitness csv
+BB_Fitness_2.5 <- BB_Fitness_2 %>% 
+  mutate(Recipient = case_when(Donor == "BB_217" & Recipient == "BB_205" ~ "BB_205A",
+                               Donor == "BB_188" & Recipient == "BB_205" ~ "BB_205B",
+                               TRUE ~ Recipient)) #Fix 205 A/B labeling based on donor
+
 #Save as V2 Fitness Plant Sheet
-write_csv(BB_Fitness_2, here::here("data_sheets", "2023_year2_data", "fitness_plants", "BB_fitnessplants_23_V2.csv"), na = "")
+write_csv(BB_Fitness_2.5, here::here("data_sheets", "2023_year2_data", "fitness_plants", "BB_fitnessplants_23_V2.csv"), na = "")
 
 
 ```
@@ -96,17 +103,23 @@ In the csv file, select all data with dates (visit dates, leaf sampling, and flo
 ```{r}
 ##BB##
 
-BB_flr_df <- read_csv(file = here::here( "data_sheets", "2023_year2_data", "flowering_checks", "BB_flowercheck_data_2023-03-15 - BB_flowercheck_data_v1.csv"), na = c("", "NA")) 
+BB_flr_df <- read_csv(file = here::here("data_sheets", "2023_year2_data", "flowering_checks", "BB_flowercheck_data_2023-02-15 - BB_flowercheck_data_v1.csv"), na = c("", "NA")) 
 
-##PICK UP HERE##############
+
 BB_flr2 <- BB_flr_df %>% 
   mutate(SegPos = paste(Sequence, side, sep = "")) %>% 
-  select(Sequence, Location, SegPos, everything(), -c(side, FD_06, FD_07)) %>% 
-  slice(-c(2111:2115, 3191:3195)) %>% #Remove rows not planted
+  select(Sequence, Location, SegPos, everything()) %>% 
+  slice(-c(2214:2218, 2882, 3216:3220)) %>% #Remove rows not planted
   arrange(Sequence, Location, SegPos) %>% 
-  mutate(Recipient = case_when(Recipient %in% c("BB_159", "BB_159A", "BB_159B") ~ "BB_159",
-                               TRUE ~ Recipient)) #rename 159 - letters were added to mark position
-  
+  mutate(Recipient = case_when(Recipient %in% c("BB_205", "BB_205A", "BB_205B") ~ "BB_205",
+                               TRUE ~ Recipient)) %>%  #reset 205 - A/B specifiedbased on donor
+  mutate(Recipient = case_when(Recipient %in% c("BB_147", "BB_147a", "BB_147b") ~ "BB_147",
+                               TRUE ~ Recipient)) %>%  # 147 renamed based on positions. Reset here.
+  mutate(Recipient = case_when(Recipient %in% c("BB_070", "BB_070A", "BB_070B") ~ "BB_070",
+                               TRUE ~ Recipient)) %>% 
+  mutate_at(.vars = vars(FD_01:FD_09), ~na_if(., "G")) #Remove Gopher notes
+
+
 
 #Check for mismatched fitness plants
 BB_flr_test <- BB_flr2 %>% 
@@ -117,15 +130,11 @@ BB_flr_test <- BB_flr2 %>%
 
 ## Fix Dates!
 
-#Check obs first using unique(BB_flr3$FD_01) and make corrections
+#Check obs first using unique(BB_flr2$FD_01) and make corrections
+#Remember to format dates first in the csv file!
 
 BB_flr3 <- BB_flr2 %>%
-  #mutate(FD_01 = as_date(FD_01))
-  mutate_at(.vars = vars(FD_01:FLR_P), .funs = list(as_date)) %>% 
-  mutate(FD_05 = as_date(case_when(FD_05 == "2023-06-07" ~ "2023-06-08",
-                           FD_05 == "2023-06-08" ~ "2023-06-08",
-                           FD_05 == "2023-06-09" ~ "2023-06-09",
-                           TRUE ~ as.character(NA)))) #Some date typos - one day early
+  mutate_at(.vars = vars(FD_01:FD_09), ~ as_date(.))
 
 ```
 
@@ -136,8 +145,8 @@ Add sowing/planting date
 #Plant Date - median date on which seed plugs were planted in the field
 
 BB_flr4 <- BB_flr3 %>% 
-  mutate(Sow_Date = as_date("2022-10-17"),
-         Plant_Date = as_date("2022-10-21"))
+  mutate(Sow_Date = as_date("2022-10-03"),
+         Plant_Date = as_date("2022-10-06"))
 
 ```
 
@@ -150,16 +159,20 @@ Merge in Fitness plant Data
 BB_flr5 <- merge(BB_flr4, BB_Fitness_2, by = c("Sequence", "Location", "SegPos", "Gen", "Recipient"), all.x = TRUE) %>%
   arrange(Sequence, Location, SegPos, Plant_ID) %>% 
   mutate(F_plant = case_when(!is.na(Fit_plant.x) ~ TRUE,
-                               is.na(Fit_plant.x) ~ FALSE)) %>% 
-  select(-c(Fit_plant.x, Fit_plant.y)) #Drop extra fitplant row after checking that they all match - retain multiple Donors per segment
+                               is.na(Fit_plant.x) ~ FALSE)) %>%
+  mutate(Recipient = case_when(Donor == "BB_217" & Recipient == "BB_205" ~ "BB_205A",
+                               Donor == "BB_188" & Recipient == "BB_205" ~ "BB_205B",
+                               TRUE ~ Recipient)) %>% #Fix 205 A/B labeling based on donor
+  select(-c(Fit_plant.x, Fit_plant.y, side)) #Drop extra fitplant row after checking that they all match - retain multiple Donors per segment
   
   
 #####  
 #Check to make sure fitness plants line up
-  #filter(!is.na(Fit_plant.x)) %>%
-  #mutate(FMatch = case_when(Fit_plant.x == Fit_plant.y ~ TRUE,
-  #                          Fit_plant.x != Fit_plant.y ~ FALSE))
-#
+# BB_flrt <- BB_flr5 %>% 
+#   filter(!is.na(Fit_plant.x)) %>%
+#   mutate(FMatch = case_when(Fit_plant.x == Fit_plant.y ~ TRUE,
+#                             Fit_plant.x != Fit_plant.y ~ FALSE))
+
 ```
 
 
