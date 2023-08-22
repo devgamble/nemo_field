@@ -141,6 +141,11 @@ HR_flr5 <- merge(HR_flr4, HR_Fitness_2, by = c("Sequence", "Transect", "SegPos",
 #### Phenology Calculations  
 <<Move these lower later??>>  
 
+**ADD IN SURVIVORSHIP MEASURES**  
+
+
+
+
 ```{r}
 #Same as last year
 
@@ -169,6 +174,31 @@ Due to the structure of excel data sheets, it seems easiest to upload fruit and 
 Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
 
 Date added: **Feb 06, 2023**  
+
+
+```{r}
+#Load Fruit & Seeds count data
+
+HR_fruit_seeds <- read_csv(here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "HR_fruits_seeds_2023 - HR_fruit_seed_counts.csv"), skip = 1) %>% 
+  rename(SegPos = Seg)
+
+
+#Remove rows where no fruits collected
+HR_fruit_seeds_2 <- HR_fruit_seeds %>% 
+  filter(total_fruits != 0)
+
+
+
+##Check Fitness plants
+HR_merge_test <- merge(HR_Fitness_2, HR_fruit_seeds_2, by = c("Transect", "SegPos", "Gen", "Recipient"), all.y = TRUE) 
+
+
+#Remove rows 
+
+```
+
+
+
 
 *NOTE*: Update with later versions of data sheet when more seed counts have been entered
 ```{r message = FALSE}
