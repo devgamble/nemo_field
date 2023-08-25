@@ -214,23 +214,33 @@ Data on fitness plants will be more accurate in the fruit-cound data sheet, whil
 
 Date added: **Feb 06, 2023** 
 
-*NOTE*: Update with later versions of data sheet when more seed counts have been entered
+*NOTE*: Update with later versions of data sheet when more seed counts have been entered  
+
 ```{r message = FALSE}
-#
-# Fruit count data
-# Data on *when* fruits were collected will be omitted here; only the total fruit counts (closed, open, non-fitness) are retained from the csv
+#Load Fruit & Seeds count data
 
-BB_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "BB-fruit-production_2023-02-05.csv"), skip = 1) %>% 
-  select(1:9, 11, 12) %>% #omit sow and flower date, seed count, and date-specific fruit counts by column index
-  filter_all(any_vars(!is.na(.))) #omit empty rows at end of df
-
-BB_fruitprod_2 <- BB_fruitprod_1 %>% 
-  select(-c(Recipient, Sequence)) %>% # Sequence in this data set is incorrect
-  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `Number of closed fruits used to estimate mean seeds per fruit (include multiple dates)`, open_fruits_F = `Total number of all Open fruits`, damaged_fruits_F = `Eaten or damaged fruits`, total_fruits_F = `Total number of all fruits produced by the plant (open + closed)`, nonfitness_fruits = `Total number of non-fitness fruits collected from segment`) 
-
-#Note: total fruits should not include eaten/damaged fruit
+BB_fruit_seeds <- read_csv(here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "BB_fruits_seeds_2023 - BB_fruit_seed_counts.csv"), skip = 1) %>% 
+  rename(SegPos = Seg)
 
 
+#Remove rows where no fruits collected
+# BB_fruit_seeds_2 <- BB_fruit_seeds %>% 
+#   filter(total_fruits != 0)
+
+
+
+##Check Fitness plants
+BB_merge_test <- merge(BB_Fitness_2.5, BB_fruit_seeds, by = c("Location", "SegPos", "Gen", "Recipient", "Fit_plant"), all.y = TRUE) 
+#Fit datasheets with updated labels used here
+
+
+
+BB_fruit_seeds_3 <- merge(BB_Fitness_2.5, BB_fruit_seeds, by = c("Location", "SegPos", "Gen", "Recipient", "Fit_plant"), all.x = TRUE)
+
+```
+
+
+```{r message = FALSE}
 #
 # Seed count data (viable seeds)
 # Similarly, only seed count data are retained from this spreadsheet to minimize errors

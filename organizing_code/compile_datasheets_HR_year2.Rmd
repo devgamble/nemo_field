@@ -183,18 +183,19 @@ HR_fruit_seeds <- read_csv(here::here("data_sheets", "2023_year2_data", "fruit_s
   rename(SegPos = Seg)
 
 
-#Remove rows where no fruits collected
-HR_fruit_seeds_2 <- HR_fruit_seeds %>% 
-  filter(total_fruits != 0)
+# #Remove rows where no fruits collected
+# HR_fruit_seeds_2 <- HR_fruit_seeds %>% 
+#   filter(total_fruits != 0)
 
 
 
 ##Check Fitness plants
-HR_merge_test <- merge(HR_Fitness_2, HR_fruit_seeds_2, by = c("Transect", "SegPos", "Gen", "Recipient"), all.y = TRUE) 
+HR_merge_test <- merge(HR_Fitness_2, HR_fruit_seeds, by = c("Transect", "SegPos", "Gen", "Recipient", "Fit_plant"), all.y = TRUE) 
 
 
-#Remove rows 
-
+HR_fruit_seeds_3 <- merge(HR_Fitness_2, HR_fruit_seeds, by = c("Transect", "SegPos", "Gen", "Recipient", "Fit_plant"), all.x = TRUE) %>% 
+  select(-Sequence.y) %>% 
+  rename(Sequence = Sequence.x)
 ```
 
 
