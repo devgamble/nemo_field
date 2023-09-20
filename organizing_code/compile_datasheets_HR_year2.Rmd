@@ -23,12 +23,15 @@ library(stringr)
 
 
 
-## Load and Clean Data   
+### Load and Clean Data   
 
-**Load Fitness Plant Data**  
+**Fitness Plant Data**  
+
+Recipient IDs to double-check:
+- HR_067 (HR_067B)
 
 - Add in Donor information
-```{r}
+```{r message = FALSE}
 HR_Fitness <- read_csv(here::here("data_sheets", "2023_year2_data", "fitness_plants", "HR_fitnessplants_23.csv")) %>% 
   mutate(Recipient = case_when(Recipient %in% c("HR_067", "HR_067B") ~ "HR_067",
                                TRUE ~ Recipient))  #rename - letters were added to mark position
@@ -57,26 +60,23 @@ write_csv(HR_Fitness_2, here::here("data_sheets", "2023_year2_data", "fitness_pl
 
 ```
 
+<br>  
+
+### Trait Data  
+
+Trait data gathered and processed from the 2022-2023 field season is loaded and organized below.  
 
 
-
-
-
-**Flower Check sheets**  
+#### Flower Check & Phenology  
 -- Organize flowering data
 -- Add in Sow & Plant dates
 
+#########
+Crucial Step!!  
+######### 
+In the csv file, select all data with dates (visit dates, leaf sampling, and flower photos). Right click --> format cells. Select the date category --> YYYY-MM-DD. Save the csv and close it. This will standardize all dates to the same format and make working with them in R (and lubridate) much easier!  
 
-##################
-**Crucial Step!!**  
-##################  
-In the csv file, select all data with dates (visit dates, leaf sampling, and flower photos). Right click --> format cells. Select the date category --> YYYY-MM-DD. Save the csv and close it. This will standardize all dates to the same format and make working with them in R much easier!  
-
-
-
-```{r}
-##HR##
-
+```{r message = FALSE}
 HR_flr_df <- read_csv(file = here::here( "data_sheets", "2023_year2_data", "flowering_checks", "HR_flowercheck_data_2023-02-23 - HR_flowercheck_data_v1.csv"), na = c("", "NA")) 
 
 
@@ -102,7 +102,6 @@ HR_flr3 <- HR_flr2 %>%
   mutate_at(.vars = vars(FD_01:FD_05), ~as_date(.))
 
 ```
-
 
 Add sowing/planting date  
 ```{r}
@@ -138,13 +137,9 @@ HR_flr5 <- merge(HR_flr4, HR_Fitness_2, by = c("Sequence", "Transect", "SegPos",
 ```
 
 
-#### Phenology Calculations  
-<<Move these lower later??>>  
+**Phenology Calculations**    
 
-**ADD IN SURVIVORSHIP MEASURES**  
-
-
-
+Survivorship calculated later
 
 ```{r}
 #Same as last year
@@ -158,25 +153,20 @@ HR_flowering <- HR_flr5 %>%
   select(Sequence, Transect, SegPos, Gen, Donor, Recipient, Plant_ID, F_plant, Sow_Date, Plant_Date, FFD, days_sow2flower, days_plant2flower, LFD, fl_duration, FD_01:FD_05, everything())
 
 
-
-#TEMP FILE - delete later
+#TEMP FILE
 write_csv(HR_flowering, here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "HR_phenology_2023.csv"), na = "")
 
 ```
 
+<br>  
 
 
 
-**Fruit and Seed counts**  
+#### Fruit and Seed counts    
 
-Due to the structure of excel data sheets, it seems easiest to upload fruit and seed count data separately since different spreadsheets were used to record each. Info on plants' Block, Transect, sequence, etc. will be pulled from the fruit count sheets (assumed to be up-to-date). For sheets intended to record fruit production only, counts of viable seeds, mean seed weight, etc. that are copied over are ignored and instead pulled straight from sheets where they were first entered later on. 
+Fruit & seed counts were recorded on the same spreadsheet, unlike last year. Loaded here and checked to make sure all ID info lines up with the Fitness data sheet.
 
-Data on fitness plants will be more accurate in the fruit-cound data sheet, while the seed-count sheet will have a handful of rows with non-fitness plants wihtout seed counts.
-
-Date added: **Feb 06, 2023**  
-
-
-```{r}
+```{r message = FALSE}
 #Load Fruit & Seeds count data
 
 HR_fruit_seeds <- read_csv(here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "HR_fruits_seeds_2023 - HR_fruit_seed_counts.csv"), skip = 1) %>% 
@@ -188,67 +178,67 @@ HR_fruit_seeds <- read_csv(here::here("data_sheets", "2023_year2_data", "fruit_s
 #   filter(total_fruits != 0)
 
 
-
 ##Check Fitness plants
 HR_merge_test <- merge(HR_Fitness_2, HR_fruit_seeds, by = c("Transect", "SegPos", "Gen", "Recipient", "Fit_plant"), all.y = TRUE) 
 
 
 HR_fruit_seeds_3 <- merge(HR_Fitness_2, HR_fruit_seeds, by = c("Transect", "SegPos", "Gen", "Recipient", "Fit_plant"), all.x = TRUE) %>% 
   select(-Sequence.y) %>% 
-  rename(Sequence = Sequence.x)
+  rename(Sequence = Sequence.x) %>% 
+  rename(Plant_ID = Fit_plant)
+
 ```
 
+<br>  
 
+#### Skeleton Weights  
 
-
-*NOTE*: Update with later versions of data sheet when more seed counts have been entered
+Load and merge-in these data sheets
 ```{r message = FALSE}
-#
-# Fruit count data
-# Data on *when* fruits were collected will be omitted here; only the total fruit counts (closed, open, non-fitness) are retained from the csv
 
-HR_fruitprod_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-fruit-production_2023-02-05.csv"), skip = 1) %>% 
-  select(1:10) #%>% #omit sow and flower date, seed count, and date-specific fruit counts by column index
-  #filter_all(any_vars(!is.na(.))) #omit empty rows at end of df
+skel_weights_HR <- read_csv(here::here("data_sheets", "2023_year2_data",  "skeleton_data", "Skeleton Data 2023 - HR Skeletons.csv")) %>% 
+  rename(position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10) %>% 
+  arrange(Transect, Segment, position) %>% 
+  mutate(SegPos = paste(Segment, position, sep = "")) %>% 
+  select(Transect, SegPos, Gen,  Recipient, Plant_ID, Fitness, skel_weight_mg) #complete/selected not included
 
-HR_fruitprod_2 <- HR_fruitprod_1 %>% 
-  select(-c(Recipient)) %>% # Sequence in this data set is incorrect
-  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `total_closed_fruits`, open_fruits_F = `total_open_fruits`, damaged_fruits_F = `eaten_damaged_fruits`, total_fruits_F = `total_fruits (open and closed)`, nonfitness_fruits = `nonfitness_fruits`) 
+skel_weights_HR_2 <- skel_weights_HR %>% 
+  mutate(Recipient = case_when(Recipient %in% c("HR_067", "HR_067B") ~ "HR_067",
+                               TRUE ~ Recipient)) #rename- letters were added to mark position
 
-#Note: total fruits should not include eaten/damaged fruit
-
-
-
-#
-# Seed count data (viable seeds)
-# Similarly, only seed count data are retained from this spreadsheet to minimize errors
-
-HR_seedct_1 <- read_csv(here::here("data_sheets", "fruit_seed_counts_final", "HR-seed-count_2023-02-05.csv"), skip = 1) %>% 
-  select(-c(3, 7:33)) %>% 
-  rename(Recipient = `Recipient for sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `viable_seeds`) %>% 
-  mutate(Plant_ID = as.numeric(Plant_ID)) 
-  
-
-#merge data
-HR_fruitseed_ct1 <- left_join(HR_fruitprod_2, HR_seedct_1, by = c("Transect", "Recipient", "Plant_ID"))
-#Sequence data may not be accurate - add in later
-#Rows without matches in fruit_prod data sheet are not included
+#Check that IDs line up
+skelcheck <- merge(HR_Fitness_2, skel_weights_HR_2, by = c("Transect", "SegPos", "Gen", "Recipient"), all.x = TRUE) %>% 
+  mutate(FTRUE = case_when(Fit_plant == Plant_ID ~ TRUE,
+                           TRUE ~ FALSE))
 
 
-# summary variables, tidying up
-HR_fruitseed_ct2 <- HR_fruitseed_ct1 %>% 
-  select(Transect, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %>% 
-  select(-c(Sequence.x, Sequence.y)) %>% 
-  arrange(Transect, Recipient)
+#Merge with full data set
+#HR_merged_df5 <- merge(HR_merged_df4, skel_weights_HR, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
 
-## NOTE: total number of non-fitness fruits per segment may be under-represented here since not all counts were matched to fitness plants and therefore merged in.
 
 ```
 
 
 
-**Seed Weights**  
+**TEMP MERGED DATA FRAME**  
+Merge trait data processed thus far
 
+```{r}
+
+HR_merged_1 <- merge(HR_flowering, skel_weights_HR, by = c("Transect", "SegPos", "Gen", "Recipient", "Plant_ID"), all.x = TRUE) %>% select(-c(Skeleton:Fitness)) %>% arrange(Transect, Sequence, SegPos)
+
+HR_merged_2 <- merge(HR_merged_1, HR_fruit_seeds_3, by = c("Sequence", "Transect", "SegPos", "Gen", "Recipient", "Donor", "Plant_ID"), all.x = TRUE) %>% select(-c(FD_01:FD_05, N_CLOSED_fruit_D1:notes)) %>% arrange(Transect, Sequence, SegPos) %>% 
+  select(Sequence, Transect, SegPos, Gen, Donor, Recipient, Plant_ID, F_plant, everything())
+
+```
+
+
+
+<br>  
+
+
+#### Seed Weights  
+[[OLD - UPDATE]]
 
 ```{r}
 # Read in only # seeds weighed and total weight
@@ -290,84 +280,14 @@ HR_fruitseed_ct3 <- merge(HR_fruitseed_ct2, HR_seedmass_3, by = c("Transect", "R
 
 ```
 
-
-Merge everything together:  
-```{r}
-HR_merged_df1 <- merge(HR_GermFlow_3, HR_fruitseed_ct3, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE) %>% 
-  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %>%
-  arrange(Block, Transect, Sequence, Recipient, Plant_ID) %>% 
-  mutate(closed_fruits_F = as.numeric(closed_fruits_F),
-         total_fruits_F = as.numeric(total_fruits_F)) #correct counts to numeric values
-
-
-#Correct FruitNAs to 0s in cases where no fruit data was entered (fitness and non-fitness plants):
-
-#
-HR_merged_df2 <- HR_merged_df1 %>% 
-  mutate(closed_fruits_F = replace_na(closed_fruits_F, 0),
-         total_fruits_F = replace_na(total_fruits_F, 0),
-         seed_ct = replace_na(seed_ct, 0))
-
-#Calculate mean seeds per fruit, total_est_seed prod
-HR_merged_df3 <- HR_merged_df2 %>% 
-  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
-         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) %>% 
-  mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE & closed_fruits_F == 0 ~ 0, 
-                                          TRUE ~ mean_seeds_per_fruit)) %>%  #else, original value
-  mutate(total_est_seed_production = case_when(any_FitP == TRUE & mean_seeds_per_fruit == 0 ~ 0,
-                                               TRUE ~ total_est_seed_production))
-
-
-#mean seeds per fruit and total est fruit production have NAs/NaNs for when there were no closed fruits/seeds (fitness plants only)
+<br>  
 
 
 
-#Correct formatting issues
 
-HR_merged_df4 <- HR_merged_df3 %>% 
-  mutate(Fl_3.16 = as_date(Fl_3.16),
-         Fl_3.24 = as_date(Fl_3.24),
-         Fl_3.31 = as_date(Fl_3.31),
-         Fl_4.7 = as_date(Fl_4.7),
-         Fl_4.14 = as_date(Fl_4.14),
-         Fl_4.20 = as_date(Fl_4.20),
-         Fl_4.26 = as_date(Fl_4.26),
-         Fl_5.20 = as_date(Fl_5.20))
+#### Corolla measurements  
+[[OLD - UPDATE]]
 
-
-```
-
-
-**Skeleton Weights & Corolla area and diameter**  
-
-Load and merge-in these data sheets
-```{r}
-
-skel_weights_HR <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeleton_weights_HR_2023_03_01.csv")) %>% select(-Units, -7, -8) %>% 
-  filter(!grepl("EXCLUDE.", Notes)) %>% ## Filter out notes with "Exclude"
-  rename(AG_biomass_mg = `Skeleton Weights (mg)`)
-
-#Watered points
-skel_weights_HR_W <- read_csv(here::here("data_sheets", "skeleton_and_stem_data", "skeletons_watered_HR_2023_02_08.csv")) %>% 
-  select(-`Units`) %>% 
-  filter(!grepl("EXCLUDE.", Notes)) %>% ## Filter out notes with "Exclude"
-  rename(Plant_ID = `Plant ID`, AG_biomass_mg = `Skeleton Weights`)
-
-#Combine
-skel_weights_all <- rbind(skel_weights_HR, skel_weights_HR_W) %>% 
-  select(-Notes) %>% 
-  filter(!is.na(AG_biomass_mg)) %>% 
-  mutate(AG_biomass_mg = as.numeric(AG_biomass_mg))
-
-
-#Merge with full data set
-HR_merged_df5 <- merge(HR_merged_df4, skel_weights_all, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
-
-
-```
-
-
-Corolla measurements
 ```{r}
 corollas_HR <- read_csv(here::here("data_sheets", "corolla_measures", "corollameasures_HR_2023-02-28.csv")) %>% select(1, 3, 4, 6, 13, 16, 18) %>% 
   rename(photo_date = 4, corolla_diam_mm = 5, corolla_area_mm2 = 6, notes_corolla = 7) %>% 
@@ -388,8 +308,12 @@ HR_merged_df6 <- merge(HR_merged_df5, corollas_HR2, by = c("Transect", "Recipien
   
 ```
 
+<br>  
 
-**Leaf Area & Weight**  
+
+#### Leaf Area & Weight (SLA)  
+[[OLD - UPDATE]]
+
 ```{r}
 leaves_HR <- read_csv(here::here("data_sheets", "leaf_data", "HR_SLA_data_20230522.csv")) %>% 
   rename(leaf_area_mm2 = 5, leafarea_notes = 6, leaf_dryweight_mg = 7, leafweight_notes = 8) %>% 
@@ -423,7 +347,47 @@ HR_merged_df7 <- merge(HR_merged_df6, leaves_HR_unique, by = c("Block", "Transec
 
 ```
 
-Error checks:
+<br>  
+
+
+
+#### d13C data (WUE)  
+[[OLD - UPDATE]]
+
+```{r}
+Nemo_d13C <- read_csv(here::here("data_sheets", "isotope_data", "Nemophila_d13C_230511.csv")) %>% 
+  select(1,2,3,5,6,9) %>% 
+  rename(sample_ID = 1, d13C = 2, totalC_ug = 3, sample_weight_mg = 6)
+#Save as UTF-8 file from excel to avoid import error
+
+#filter to HR samples
+Nemo_d13C_HR <- Nemo_d13C %>% 
+  filter(grepl('HR', sample_ID))
+
+#unravel sample ID
+Nemo_d13_HR2 <- Nemo_d13C_HR %>% 
+  mutate(Recipient = gsub('-', '_', substr(sample_ID, 1, 6)), 
+         Transect = as.numeric(str_remove(substr(sample_ID, 8, 10), "^0+")),
+         Plant_ID = as.numeric(substr(sample_ID, 12,13))) %>% 
+  select(Transect, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
+
+#Merge
+
+HR_merged_df_fl3 <- merge(HR_merged_df_fl2, Nemo_d13_HR2, by = c("Recipient", "Transect"), all.x = TRUE)
+#Merge by Recipient and Transect only: genotype-wide estimates of d13C since some plants were NF
+
+
+
+#check that all data made it (266 obs)
+testdf <- HR_merged_df_fl3 %>% 
+  filter(!is.na(d13C))
+```
+
+
+
+**Error checks**  
+
+Checking a variety of IDs and trait data to make sure everything lines up.  
 
 ```{r eval = FALSE}
 ##Check for mismatched (fitness) plants
@@ -458,82 +422,63 @@ HR_Echeck5 <- HR_merged_df6 %>%
 <br>  
 
 
-## Trait calculations 
+### Trait calculations 
 
 Some trait calculations performed in `Fitness_and_EDA.Rmd`  
 
+Phenology calculations performed above.
 
-#### Phenology  
 
 ```{r}
 
-HR_merged_df_fl <- HR_merged_df7 %>% 
-  mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
-         days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
-         days_sow2flower = as.numeric(FFD - Sow_Date), #days from sow to flowering
-         days_plant2flower = as.numeric(FFD - Plant_Date), #days from field planting to flowering
-         LFD = do.call(pmax, c(select(., starts_with('Fl_')), na.rm = TRUE)), #last flowering date
-         fl_duration = as.numeric(LFD - FFD)) #Flowering duration
-
-
 #Survival measures
-HR_merged_df_fl2 <- HR_merged_df_fl %>% 
-  mutate(surv_to_germ = case_when(!is.na(Germ_Date) ~ 1, #plants that germinated
-                                  is.na(Germ_Date) ~ 0),
-         surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
+HR_merged_df1 <- HR_merged_2 %>% 
+  mutate(surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
                                   is.na(FFD) ~ 0),
-         surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
-                                       total_fruits_F == 0 ~ 0),
-         surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
-                                       TRUE ~ 0)) #else = 0 (applies to seed_ct = NA)
+         surv_to_fruitprod = case_when(F_plant == TRUE & total_fruits > 0 ~ 1, #plants that survived to produce fruit
+                                       F_plant == TRUE & total_fruits == 0 ~ 0),
+         surv_to_seedprod = case_when(F_plant == TRUE & ALL_filled_seeds > 0 ~ 1, #plants produced filled seeds
+                                      F_plant == TRUE & ALL_filled_seeds == 0 ~ 0)) #else = 0 (applies to seed_ct = NA)
 
          
+HR_merged_df2 <- HR_merged_df1 %>% 
+  rename(total_est_seed_production = est_fecundity, mean_seeds_per_fruit = avg_seeds_per_fruit) %>% 
+  mutate(across(c(total_est_seed_production, mean_seeds_per_fruit), ~ as.numeric(na_if(., "#DIV/0!")))) %>% #Converts to NA when 0 closed fruit were collected
+  mutate(total_est_seed_production = case_when(F_plant == TRUE & is.na(total_est_seed_production) ~ 0,
+                                               F_plant == TRUE & !is.na(total_est_seed_production) ~  total_est_seed_production)) %>% 
+    mutate(mean_seeds_per_fruit = case_when(F_plant == TRUE & is.na(mean_seeds_per_fruit) ~ 0,
+                                            F_plant == TRUE & !is.na(mean_seeds_per_fruit) ~  mean_seeds_per_fruit))#Set seeds per fruit & est_fecundity to 0 when NA, regardless of # closed fruits collected
 
-
-## Note: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
 ```
 
 <br>  
 
 
-### d13C data  
 
-```{r}
-Nemo_d13C <- read_csv(here::here("data_sheets", "isotope_data", "Nemophila_d13C_230511.csv")) %>% 
-  select(1,2,3,5,6,9) %>% 
-  rename(sample_ID = 1, d13C = 2, totalC_ug = 3, sample_weight_mg = 6)
-#Save as UTF-8 file from excel to avoid import error
+### Master sheets (2023)  
 
-#filter to HR samples
-Nemo_d13C_HR <- Nemo_d13C %>% 
-  filter(grepl('HR', sample_ID))
-
-#unravel sample ID
-Nemo_d13_HR2 <- Nemo_d13C_HR %>% 
-  mutate(Recipient = gsub('-', '_', substr(sample_ID, 1, 6)), 
-         Transect = as.numeric(str_remove(substr(sample_ID, 8, 10), "^0+")),
-         Plant_ID = as.numeric(substr(sample_ID, 12,13))) %>% 
-  select(Transect, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
-
-#Merge
-
-HR_merged_df_fl3 <- merge(HR_merged_df_fl2, Nemo_d13_HR2, by = c("Recipient", "Transect"), all.x = TRUE)
-#Merge by Recipient and Transect only: genotype-wide estimates of d13C since some plants were NF
-
-
-
-#check that all data made it (266 obs)
-testdf <- HR_merged_df_fl3 %>% 
-  filter(!is.na(d13C))
-```
-
-
-## Master sheets (v1)  
-
+Full and summarized data sheets for all data collected in the 2022-2023 field season. 
+These are merged with the year 1 data sheets elsewhere.  
 
 ```{r}
 ## 'Long' version with all data - one row per plant ID
 #Sort by transect and ID variables, then by Fitness plants and those that flowered...
+
+
+######
+#TEMP VERSION
+######
+
+HR_merged_full_1 <- HR_merged_df2 %>% 
+  filter(F_plant == TRUE)
+##NOTES - there are still fitness plants that never flowered... keep as 0s
+
+
+write_csv(HR_merged_full_1, here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "HR_traits_Y2_incomplete_20230919.csv"), na = "")
+
+######
+######
+
 
 
   HR_mastersheet_v1 <- HR_merged_df_fl3 %>% 
