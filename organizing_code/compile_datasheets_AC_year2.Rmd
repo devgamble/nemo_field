@@ -433,23 +433,33 @@ UPDATE with latest merged df...
 ```{r}
 
 #Survival measures
+#Added var for closed fruit produced
+#renamed "survival" to seed production
+#
 AC_merged_df1 <- AC_merged_2 %>% 
   mutate(surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
                                   is.na(FFD) ~ 0),
          surv_to_fruitprod = case_when(F_plant == TRUE & total_fruits > 0 ~ 1, #plants that survived to produce fruit
                                        F_plant == TRUE & total_fruits == 0 ~ 0),
-         surv_to_seedprod = case_when(F_plant == TRUE & ALL_filled_seeds > 0 ~ 1, #plants produced filled seeds
-                                      F_plant == TRUE & ALL_filled_seeds == 0 ~ 0)) #else = 0 (applies to seed_ct = NA)
+         prod_closed_fruits = case_when(F_plant == TRUE & ALL_closed_fruit > 0 ~ 1,
+                                            F_plant == TRUE & ALL_closed_fruit == 0 ~ 0),
+         prod_filled_seeds = case_when(F_plant == TRUE & ALL_filled_seeds > 0 ~ 1, #plants produced filled seeds
+                                      F_plant == TRUE & ALL_filled_seeds == 0 ~ 0)) #else = 0
 
+#NOTE
+#Adjusting fecundity/fitness:
+#The issue of how to handle 0s vs missing data in order to accurately calculate fitness has led us to apply the following corrections:
+# Estimated fecundity (seeds per fruit x total fruits) should be set to *0* when closed fruits >= 1 & filled seeds == 0; when closed fruits == open fruits == 0
+#Set fecundity to NA when closed = 0 & open >= 1
+
+#Mean seeds per fruit left as-is (NA when no closed fruits collected)
          
 AC_merged_df2 <- AC_merged_df1 %>% 
-  rename(total_est_seed_production = est_fecundity, mean_seeds_per_fruit = avg_seeds_per_fruit) %>% 
-  mutate(across(c(total_est_seed_production, mean_seeds_per_fruit), ~ as.numeric(na_if(., "#DIV/0!")))) %>% #Converts to NA when 0 closed fruit were collected
-  mutate(total_est_seed_production = case_when(F_plant == TRUE & is.na(total_est_seed_production) ~ 0,
-                                               F_plant == TRUE & !is.na(total_est_seed_production) ~  total_est_seed_production)) %>% 
-    mutate(mean_seeds_per_fruit = case_when(F_plant == TRUE & is.na(mean_seeds_per_fruit) ~ 0,
-                                            F_plant == TRUE & !is.na(mean_seeds_per_fruit) ~  mean_seeds_per_fruit))#Set seeds per fruit & est_fecundity to 0 when NA, regardless of # closed fruits collected
-
+  rename(mean_seeds_per_fruit = avg_seeds_per_fruit) %>% 
+  mutate(across(c(est_fecundity, mean_seeds_per_fruit), ~ as.numeric(na_if(., "#DIV/0!")))) %>% #Converts to NA
+  mutate(est_fecundity = case_when(F_plant == TRUE & ALL_closed_fruit == 0 & ALL_open_fruit == 0 ~ 0,
+                                   F_plant == TRUE & ALL_closed_fruit == 0 & ALL_open_fruit >= 1 ~ NA,
+                                               F_plant == TRUE & !is.na(est_fecundity) ~  est_fecundity))
 
 ```
 
@@ -475,7 +485,7 @@ AC_merged_full_1 <- AC_merged_df2 %>%
 ##NOTES - there are still fitness plants that never flowered... keep as 0s
 
 
-write_csv(AC_merged_full_1, here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "AC_traits_Y2_incomplete_20230914.csv"), na = "")
+write_csv(AC_merged_full_1, here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "AC_traits_Y2_incomplete_20230922.csv"), na = "")
 
 
 ######
