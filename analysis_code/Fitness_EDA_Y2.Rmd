@@ -1,0 +1,198 @@
+---
+title: "Fitness Data Year 2"
+output: html_document
+date: "2023-09-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r message = FALSE, warning = FALSE}
+#Load Packages
+library(tidyverse)
+library(janitor)
+library(here)
+library(lubridate)
+library(reshape2)
+library(corrplot)
+
+```
+
+
+#### Description  
+This file was created to explore broad trends in our field data from the first year of the experiment (2021-2022). It was also used to explore and select different metrics of fitness (and fecundity) that would be used in later analyses.  
+
+
+### Year 2 Fitness Data Sumamry  
+
+Proportion of *Fitness Plants* that  
+- produced 0 closed fruits
+- produced 0 closed fruits & 0 open fruits
+- produced 1+ closed fruits & 0 filled seeds
+
+Also investigate correlations  
+- between seed production (total) and estimated fecundity
+
+**AC**
+```{r message = FALSE}
+#Load data (chosen fitness plants only)
+AC_FitP <- read_csv(here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "AC_traits_Y2_incomplete_20230922.csv"))
+
+#Proportion of Fitness plants with 0 closed fruits
+AC_prop1 <- AC_FitP %>% 
+  filter(ALL_closed_fruit == 0) %>% 
+  summarize(zero_closed = n()) #128
+
+#Proportion of Fitness plants with 0 total fruits
+AC_prop2 <- AC_FitP %>% 
+  filter(total_fruits == 0) %>% 
+  summarize(zero_closed = 128/546,
+            zero_total = n()/546) #54
+
+#Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
+AC_prop3 <- AC_FitP %>% 
+  filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
+  summarize(pop = "AC",
+            N_fitness_plants = 546,
+            zero_closed_fruits = 128/546,
+            zero_total_fruits = 54/546,
+            zero_seeds_from_nonzero_closed = n()/546) #58
+
+
+```
+
+
+**BB**
+```{r message = FALSE}
+#Load data (chosen fitness plants only)
+BB_FitP <- read_csv(here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "BB_traits_Y2_incomplete_20230922.csv"))
+
+#Proportion of Fitness plants with 0 closed fruits
+BB_prop1 <- BB_FitP %>% 
+  filter(ALL_closed_fruit == 0) %>% 
+  summarize(zero_closed = n()) #116/500
+
+#Proportion of Fitness plants with 0 total fruits
+BB_prop2 <- BB_FitP %>% 
+  filter(total_fruits == 0) %>% 
+  summarize(zero_closed = 116/500,
+            zero_total = n()) #101
+
+#Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
+BB_prop3 <- BB_FitP %>% 
+  filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
+  summarize(pop = "BB",
+            N_fitness_plants = 500,
+            zero_closed_fruits = 114/500,
+            zero_total_fruits = 101/500,
+            zero_seeds_from_nonzero_closed = n()/500) #33
+
+
+```
+
+
+**BO**
+```{r message = FALSE}
+#Load data (chosen fitness plants only)
+BO_FitP <- read_csv(here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "BO_traits_Y2_incomplete_20230922.csv"))
+
+#Proportion of Fitness plants with 0 closed fruits
+BO_prop1 <- BO_FitP %>% 
+  filter(ALL_closed_fruit == 0) %>% 
+  summarize(zero_closed = n()) #89/257
+
+#Proportion of Fitness plants with 0 total fruits
+BO_prop2 <- BO_FitP %>% 
+  filter(total_fruits == 0) %>% 
+  summarize(zero_closed = 89/257,
+            zero_total = n()) #44
+
+#Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
+BO_prop3 <- BO_FitP %>% 
+  filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
+  summarize(pop = "BO",
+            N_fitness_plants = 257,
+            zero_closed_fruits = 89/257,
+            zero_total_fruits = 44/257,
+            zero_seeds_from_nonzero_closed = n()/257) #23
+
+```
+
+
+**HR**
+```{r message = FALSE}
+#Load data (chosen fitness plants only)
+HR_FitP <- read_csv(here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "HR_traits_Y2_incomplete_20230922.csv"))
+
+#Proportion of Fitness plants with 0 closed fruits
+HR_prop1 <- HR_FitP %>% 
+  filter(ALL_closed_fruit == 0) %>% 
+  summarize(zero_closed = n()) #197/780
+
+#Proportion of Fitness plants with 0 total fruits
+HR_prop2 <- HR_FitP %>% 
+  filter(total_fruits == 0) %>% 
+  summarize(zero_closed = 197/780,
+            zero_total = n()) #105
+
+#Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
+#To be combined with others
+HR_prop3 <- HR_FitP %>% 
+  filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
+  summarize(pop = "HR",
+            N_fitness_plants = 780,
+            zero_closed_fruits = 197/780,
+            zero_total_fruits = 105/780,
+            zero_seeds_from_nonzero_closed = n()/780) #78
+
+```
+
+
+
+Combine summary from each pop
+```{r}
+
+zero_fruits_proportions <- rbind(AC_prop3, BB_prop3, BO_prop3, HR_prop3)
+
+
+```
+
+
+### Correlations  
+
+
+Correlations to investigate:
+- closed fruits
+- total fruits (open fruits)
+- filled seeds [fecundity]
+- seeds per fruit
+- estimated fecundity
+
+**AC**  
+```{r}
+
+#Correlation Matrix
+cormod1_AC
+
+corrplot(cor(AC_FitP %>% select(ALL_closed_fruit, total_fruits, ALL_open_fruit, ALL_filled_seeds, total_seeds, mean_seeds_per_fruit, est_fecundity), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red")
+
+
+#Excluding 0s
+
+
+```
+
+
+#OLD - RE-DO!
+**Saving Additional Corrplots**  
+```{r eval = FALSE}
+png(filename = "figs1/corrplot_clim_predictors.png", units = "in", width = 5, height = 5, res = 300)
+
+## "All" Seasonal & Annual Predictors:
+corrplot(cor(nemo_df2 %>% select(MAT_100Y, MAP_100Y, Tmin_wt_100Y, Tmin_sp_100Y, PPT_wt_100Y, PPT_sp_100Y, MAT_A, MAP_A, Tmin_wt_A, Tmin_sp_A, PPT_wt_A, PPT_sp_A)), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red")
+
+dev.off()
+```
+

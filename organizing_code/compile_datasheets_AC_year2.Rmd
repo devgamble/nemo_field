@@ -17,7 +17,7 @@ library(stringr)
 ```
 
 ###ISSUE####
-Genotype Segments that had 0 survivors and NO fitness plant selected are EXCLUDED as of now... These should probably be included but with an assignment of 0 fitness, right??????????????????????????
+Genotype Segments that had 0 survivors and NO fitness plant selected are EXCLUDED as of now... These should probably be included but with an assignment of 0 fitness
 
 
 ### Load and Clean Data   
@@ -228,6 +228,8 @@ skelcheck <- merge(AC_Fitness_2, skel_weights_AC, by = c("Transect", "SegPos", "
 **TEMP MERGED DATA FRAME**  
 
 Merge trait data processed thus far
+
+**NOTE** SHOULD THOSE COLUMNS BE PRESENT/ABSENT IN THE FINAL DATA SHEET??
 
 ```{r}
 

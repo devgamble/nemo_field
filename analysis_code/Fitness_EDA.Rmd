@@ -1106,6 +1106,3 @@ Genotype fitness = average of these 3 estimates
 
 
 
-
-
-

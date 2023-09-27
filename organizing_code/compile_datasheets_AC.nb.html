@@ -12,7 +12,7 @@
 <meta name="author" content="Devin Gamble" />
 
 
-<title>Compile FLower, Fruit, and Seed count data sheets - AC Fitness plants</title>
+<title>Compile FLower, Fruit, and Seed count data sheets - Fitness plants</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1748,7 +1748,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">Compile FLower, Fruit, and Seed count data
-sheets - AC Fitness plants</h1>
+sheets - Fitness plants</h1>
 <h4 class="author">Devin Gamble</h4>
 
 </div>
@@ -1769,259 +1769,397 @@ library(stringr)
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>###ISSUE#### Genotype Segments that had 0 survivors and NO fitness
-plant selected are EXCLUDED as of now… These should probably be included
-but with an assignment of 0 fitness</p>
-<div id="load-and-clean-data" class="section level3">
-<h3>Load and Clean Data</h3>
-<p>Recipient IDs to double-check: - AC_159 (AC_159A/B) - IDs not
-planted</p>
-<p><strong>Load Fitness Plant Data</strong></p>
+<div id="load-and-clean-data" class="section level2">
+<h2>Load and Clean Data</h2>
+<p>NOTE: All date data should be standardized prior to importing into R.
+In Excel, set format to YYYY-MM-DD for consistency. Unfortunately, this
+process in Excel will auto-populate the year (when not already present)
+based on system settings. For germination data, this means that the year
+should be corrected to 2021!!</p>
+<p>NOTE 2: All paths are relative thanks to the ‘here’ package.</p>
+<p><strong>Germination Data</strong><br />
+- Add ‘Date Sown’ column and data in as well.</p>
+<p>-NOTE: for AC, plant number must be FLIPPED (i.e., plants
+1,2,3,4,5,6,7,8,9,10 become plants 10,9,8,7,6,5,4,3,2,1,
+respectively)</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQUNfRml0bmVzcyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCIyMDIzX3llYXIyX2RhdGFcIiwgXCJmaXRuZXNzX3BsYW50c1wiLCBcIkFDX2ZpdG5lc3NfMjMuY3N2XCIpKSAlPiUgXG4gIHNsaWNlKC02MzkpICU+JSBcbiAgbXV0YXRlKFJlY2lwaWVudCA9IGNhc2Vfd2hlbihSZWNpcGllbnQgJWluJSBjKFwiQUNfMTU5XCIsIFwiQUNfMTU5QVwiLCBcIkFDXzE1OUJcIikgfiBcIkFDXzE1OVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBSZWNpcGllbnQpKSAlPiUgICNyZW5hbWUgMTU5IC0gbGV0dGVycyB3ZXJlIGFkZGVkIHRvIG1hcmsgcG9zaXRpb25cbiAgc2xpY2UoLTQyMykgI0FDXzIxMyBpbiBUciA2IHNlZyAzM0wgd2FzIG5ldmVyIHBsYW50ZWQgLSByZW1vdmUgZW50aXJlbHlcblxuQUNfZG9ub3JzIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcIjIwMjNfeWVhcjJfZGF0YVwiLCBcInBsYW50aW5nX2xvY2F0aW9uc1wiLCBcIkFDX2Rvbm9yX2luZm8uY3N2XCIpKSAlPiUgXG4gIHNlbGVjdCgtcG9zaXRpb24pIFxuXG4jRml4IFJlY2lwaWVudCBhbmQgRG9ub3IgbmFtZXNcbkFDX2Rvbm9yczIgPC0gQUNfZG9ub3JzICU+JSBcbiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKFwiJTAzZFwiLCAocGFyc2VfbnVtYmVyKFJlY2lwaWVudCkpKSkgJT4lIFxuICBtdXRhdGUoUmVjaXBpZW50ID0gYXMuY2hhcmFjdGVyKHN0cl9jKFwiQUNfXCIsIFJlY2lwaWVudF9udW0pKSkgJT4lIFxuICBtdXRhdGUoRG9ub3JfbnVtID0gc3ByaW50ZihcIiUwM2RcIiwgKHBhcnNlX251bWJlcihEb25vcikpKSkgJT4lIFxuICBtdXRhdGUoRG9ub3IgPSBhcy5jaGFyYWN0ZXIoc3RyX2MoXCJBQ19cIiwgRG9ub3JfbnVtKSkpICU+JSBcbiAgc2VsZWN0KC1SZWNpcGllbnRfbnVtLCAtRG9ub3JfbnVtKVxuXG5cblxuI011bHRpcGxlIG1hdGNoZXMsIG1lcmdlIG9ubHkgdW5pcXVlIHBhaXJzIGZvciBEb25vclxuQUNfRml0bmVzc18yIDwtIG1lcmdlKEFDX0ZpdG5lc3MsIHVuaXF1ZShBQ19kb25vcnMyW2MoXCJHZW5cIiwgXCJEb25vclwiLCBcIlJlY2lwaWVudFwiKV0pLCBieSA9IGMoXCJSZWNpcGllbnRcIiwgXCJHZW5cIiksIGFsbC54ID0gVFJVRSkgJT4lIFxuICBtdXRhdGUoU2VnUG9zID0gcGFzdGUoU2VnbWVudCwgcG9zaXRpb24sIHNlcCA9IFwiXCIpKSAlPiUgXG4gIHNlbGVjdChTZXF1ZW5jZSwgVHJhbnNlY3QsIFNlZ1BvcywgR2VuLCBEb25vciwgUmVjaXBpZW50LCBGaXRfcGxhbnQpICU+JSBcbiAgYXJyYW5nZShTZXF1ZW5jZSwgU2VnUG9zKVxuXG4jU2F2ZSBhcyBWMiBGaXRuZXNzIFBsYW50IFNoZWV0XG53cml0ZV9jc3YoQUNfRml0bmVzc18yLCBoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCIyMDIzX3llYXIyX2RhdGFcIiwgXCJmaXRuZXNzX3BsYW50c1wiLCBcIkFDX2ZpdG5lc3NwbGFudHNfMjNfVjIuY3N2XCIpLCBuYSA9IFwiXCIpXG5cblxuYGBgIn0= -->
-<pre class="r"><code>AC_Fitness &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;2023_year2_data&quot;, &quot;fitness_plants&quot;, &quot;AC_fitness_23.csv&quot;)) %&gt;% 
-  slice(-639) %&gt;% 
-  mutate(Recipient = case_when(Recipient %in% c(&quot;AC_159&quot;, &quot;AC_159A&quot;, &quot;AC_159B&quot;) ~ &quot;AC_159&quot;,
-                               TRUE ~ Recipient)) %&gt;%  #rename 159 - letters were added to mark position
-  slice(-423) #AC_213 in Tr 6 seg 33L was never planted - remove entirely
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0xvYWQgY3N2XG5cbiNTa2lwIGZpcnN0IG5vbnNlbnNlIHJvdyAodGhlIHNlY29uZCByb3cgaXMgdGhlIGhlYWRlcilcbkFDX2dlcm1fZGYxIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcImdlcm1pbmF0aW9uX2NoZWNrc18yMDIxLTIwMjJcIiwgXCJBQ19nZXJtX2RhdGEuY3N2XCIpLCBza2lwID0gMSkgJT4lXG4gIHJlbmFtZShCbG9jayA9ICdCbG9jayAoMS0zKScsIFRyYW5zZWN0ID0gJ1RyYW5zZWN0ICgxLTkpJywgU2VxdWVuY2UgPSAnU2VxdWVuY2UgKDEtMzIxKScsIERvbm9yID0gXCJQb2xsZW4gRG9ub3IgSURcIiwgUmVjaXBpZW50ID0gXCJNYXRlcm5hbCBTaWJzaGlwXCIsIFN0YWdlID0gJ21tL2RkJykgJT4lIFxuICBmaWx0ZXIoIVN0YWdlID09IFwiRmxvdyBEYXRlXCIpICAgI1JlbW92ZSBlbXB0eSBmbG93ZXJpbmcgZGF0ZSByb3dzXG5cblxuI1xuI1Jlc2hhcGUgZGF0YSBzaGVldCB0byAnbG9uZycgZm9ybWF0XG5BQ19nZXJtX2RmMiA8LSBBQ19nZXJtX2RmMSAlPiUgXG4gIHBpdm90X2xvbmdlcihjb2xzID0gYygnMSc6JzEwJyksXG4gICAgICAgICAgICAgICBuYW1lc190byA9ICdQbGFudF9JRCcsXG4gICAgICAgICAgICAgICB2YWx1ZXNfdG8gPSAnR2VybV9EYXRlJykgXG5cblxuI1xuIyNGaXggdHlwb3MgaW4gZGF0ZSB2YWx1ZXNcbiMjTUFKT1IgVFlQTzogRXhjZWwgYXV0by1wb3B1bGF0ZWQgeWVhciBhcyAyMDIyIHdoZW4gaW4gZmFjdCB0aGUgeWVhciBzaG91bGQgYmUgMjAyMSFcbnVuaXF1ZShBQ19nZXJtX2RmMiRHZXJtX0RhdGUpXG5gYGAifQ== -->
+<pre class="r"><code>#Load csv
 
-AC_donors &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;2023_year2_data&quot;, &quot;planting_locations&quot;, &quot;AC_donor_info.csv&quot;)) %&gt;% 
-  select(-position) 
+#Skip first nonsense row (the second row is the header)
+AC_germ_df1 &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;germination_checks_2021-2022&quot;, &quot;AC_germ_data.csv&quot;), skip = 1) %&gt;%
+  rename(Block = &#39;Block (1-3)&#39;, Transect = &#39;Transect (1-9)&#39;, Sequence = &#39;Sequence (1-321)&#39;, Donor = &quot;Pollen Donor ID&quot;, Recipient = &quot;Maternal Sibship&quot;, Stage = &#39;mm/dd&#39;) %&gt;% 
+  filter(!Stage == &quot;Flow Date&quot;)   #Remove empty flowering date rows
 
-#Fix Recipient and Donor names
-AC_donors2 &lt;- AC_donors %&gt;% 
+
+#
+#Reshape data sheet to &#39;long&#39; format
+AC_germ_df2 &lt;- AC_germ_df1 %&gt;% 
+  pivot_longer(cols = c(&#39;1&#39;:&#39;10&#39;),
+               names_to = &#39;Plant_ID&#39;,
+               values_to = &#39;Germ_Date&#39;) 
+
+
+#
+##Fix typos in date values
+##MAJOR TYPO: Excel auto-populated year as 2022 when in fact the year should be 2021!
+unique(AC_germ_df2$Germ_Date)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiIFsxXSBcIjIwMjItMTItMDVcIiAgICAgICAgICAgICAgICAgICAgICAgICAgICBOQSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcbiBbM10gXCIyMDIyLTExLTAzXCIgICAgICAgICAgICAgICAgICAgICAgICAgICAgXCJEZWFkIDEyLzUsIHBsdWcgbWlzc2luZ1wiICAgICAgICAgICAgICBcbiBbNV0gXCIxMS8zLzIwMjEsIGRpc3R1cmJlZCBieSBhbmltYWwgKGRlZXIpXCIgXCJkaXN0dXJiZWQgYnkgYW5pbWFsIChkZWVyKVwiICAgICAgICAgICBcbiBbN10gXCIxMS8zIChuPTIsIG49MSBvbiAxMi81KVwiICAgICAgICAgICAgICAgXCIxMi81LzIwMjEsIGRpc3R1cmJlZCBieSBhbmltYWwgKGRlZXIpXCJcbiBbOV0gXCIxMi81LCA/IHBsdWcgYnVyaWVkXCIgICAgICAgICAgICAgICAgICAgXCI/IGRpc3R1cmJlZCBieSBhbmltYWwgKGRlZXIpXCIgICAgICAgICBcblsxMV0gXCIxMi81LzIwMjEsID9cIiAgICAgICAgICAgICAgICAgICAgICAgICBcbiJ9 -->
+<pre><code> [1] &quot;2022-12-05&quot;                            NA                                     
+ [3] &quot;2022-11-03&quot;                            &quot;Dead 12/5, plug missing&quot;              
+ [5] &quot;11/3/2021, disturbed by animal (deer)&quot; &quot;disturbed by animal (deer)&quot;           
+ [7] &quot;11/3 (n=2, n=1 on 12/5)&quot;               &quot;12/5/2021, disturbed by animal (deer)&quot;
+ [9] &quot;12/5, ? plug buried&quot;                   &quot;? disturbed by animal (deer)&quot;         
+[11] &quot;12/5/2021, ?&quot;                         </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQUNfZ2VybV9kZjMgPC0gQUNfZ2VybV9kZjIgJT4lIFxuICBtdXRhdGUoR2VybV9EYXRlID0gcmVwbGFjZShHZXJtX0RhdGUsIEdlcm1fRGF0ZSAlaW4lIGMoXCJEZWFkIDEyLzUsIHBsdWcgbWlzc2luZ1wiLCBcImRpc3R1cmJlZCBieSBhbmltYWwgKGRlZXIpXCIsIFwiPyBkaXN0dXJiZWQgYnkgYW5pbWFsIChkZWVyKVwiKSwgTkEpKSAlPiUgI3NwZWNpZnkgdmFsdWVzIHRvIGFzc2lnbiAnTkEnIGZpcnN0IHRvIGF2b2lkIG1pc21hdGNoaW5nIHRleHQgKFwiZGlzdHVyYmVkXCIpIHByZXNlbnQgaW4gdmFsaWQgZGF0ZXNcbm11dGF0ZShcbiAgR2VybV9EYXRlID0gY2FzZV93aGVuKFxuICAgIEdlcm1fRGF0ZSAlaW4lIGMoXCIyMDIyLTEyLTA1XCIsIFwiMTIvNSwgPyBwbHVnIGJ1cmllZFwiLCBcIjEyLzUvMjAyMSwgP1wiLCBcIjEyLzUvMjAyMSwgZGlzdHVyYmVkIGJ5IGFuaW1hbCAoZGVlcilcIikgfiBcIjIwMjEtMTItMDVcIixcbiAgICBHZXJtX0RhdGUgJWluJSBjKFwiMjAyMi0xMS0wM1wiLCBcIjExLzMvMjAyMSwgZGlzdHVyYmVkIGJ5IGFuaW1hbCAoZGVlcilcIiwgXCIxMS8zIChuPTIsIG49MSBvbiAxMi81KVwiKSB+IFwiMjAyMS0xMS0wM1wiKSkgXG5cbiNjaGVjayBhZ2FpblxudW5pcXVlKEFDX2dlcm1fZGYzJEdlcm1fRGF0ZSlcbmBgYCJ9 -->
+<pre class="r"><code>AC_germ_df3 &lt;- AC_germ_df2 %&gt;% 
+  mutate(Germ_Date = replace(Germ_Date, Germ_Date %in% c(&quot;Dead 12/5, plug missing&quot;, &quot;disturbed by animal (deer)&quot;, &quot;? disturbed by animal (deer)&quot;), NA)) %&gt;% #specify values to assign &#39;NA&#39; first to avoid mismatching text (&quot;disturbed&quot;) present in valid dates
+mutate(
+  Germ_Date = case_when(
+    Germ_Date %in% c(&quot;2022-12-05&quot;, &quot;12/5, ? plug buried&quot;, &quot;12/5/2021, ?&quot;, &quot;12/5/2021, disturbed by animal (deer)&quot;) ~ &quot;2021-12-05&quot;,
+    Germ_Date %in% c(&quot;2022-11-03&quot;, &quot;11/3/2021, disturbed by animal (deer)&quot;, &quot;11/3 (n=2, n=1 on 12/5)&quot;) ~ &quot;2021-11-03&quot;)) 
+
+#check again
+unique(AC_germ_df3$Germ_Date)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiMjAyMS0xMi0wNVwiIE5BICAgICAgICAgICBcIjIwMjEtMTEtMDNcIlxuIn0= -->
+<pre><code>[1] &quot;2021-12-05&quot; NA           &quot;2021-11-03&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1VzZSBzdW0oaXMubmEoQUNfZ2VybV9kZjIkRGF0ZSkpIHRvIGNvbXBhcmUgY2hhbmdlIGluIG51bWJlciBvZiBOQSB2YWx1ZXNcblxuXG4jXG4jQWRqdXN0IERvbm9yIGFuZCBSZWNpcGllbnQgbmFtZXMgZm9yIGVhc3kgc29ydGluZyAtIHRocmVlIGRpZ2l0cyAobGVhZGluZyB6ZXJvcylcbiNTcGVjaWZ5IEdlcm1fRGF0ZSBhcyAnZGF0ZScgY2xhc3MgdmFyaWFibGVcbkFDX2dlcm1fZGY0IDwtIEFDX2dlcm1fZGYzICU+JSBcbiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKFwiJTAzZFwiLCAocGFyc2VfbnVtYmVyKFJlY2lwaWVudCkpKSkgJT4lIFxuICBtdXRhdGUoUmVjaXBpZW50ID0gYXMuY2hhcmFjdGVyKHN0cl9jKFwiQUNfXCIsIFJlY2lwaWVudF9udW0pKSkgJT4lIFxuICBtdXRhdGUoRG9ub3JfbnVtID0gc3ByaW50ZihcIiUwM2RcIiwgKHBhcnNlX251bWJlcihEb25vcikpKSkgJT4lIFxuICBtdXRhdGUoRG9ub3IgPSBhcy5jaGFyYWN0ZXIoc3RyX2MoXCJBQ19cIiwgRG9ub3JfbnVtKSkpICU+JVxuICBtdXRhdGUoR2VybV9EYXRlID0gYXNfZGF0ZShHZXJtX0RhdGUpKSAlPiUgI3NldCB2YXJpYWJsZSB0byBjbGFzcyA9IGRhdGVcbiAgc2VsZWN0KEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIERvbm9yLCBEb25vcl9udW0sIFJlY2lwaWVudCwgUmVjaXBpZW50X251bSwgUGxhbnRfSUQsIGV2ZXJ5dGhpbmcoKSkgJT4lIFxuICBzZWxlY3QoLWMoU3RhZ2UsIERvbm9yX251bSwgUmVjaXBpZW50X251bSkpXG5cblxuI1xuIyNBZGQgaW4gU293IERhdGUgKGxhYiBzb3duKSBhbmQgUGxhbnQgZGF0ZSAoaW4gZmllbGQpXG5BQ19nZXJtX2RmNSA8LSBBQ19nZXJtX2RmNCAlPiUgXG4gIG11dGF0ZShTb3dfRGF0ZSA9IGFzX2RhdGUoXCIyMDIxLTEwLTI3XCIpKSAlPiUgXG4gIG11dGF0ZShQbGFudF9EYXRlID0gYXNfZGF0ZShcIjIwMjEtMTEtMDRcIikpXG4jU29tZSBwbHVncyBtYXkgaGF2ZSBiZWVuIHNvd24gb24gTm92ZW1iZXIgNSwgMjAyMiAoaW5mb3JtYXRpb24gb24gd2hpY2ggdHJhbnNlY3RzIG5vdCByZWNvcmRlZClcblxuXG4jXG4jIyBGbGlwIFBsYW50IG51bWJlcnNcbiMjIChBQyBnZXJtaW5hdGlvbiBkYXRhIG9ubHkpIC0gdGhlIG9yaWVudGF0aW9uIGluIHdoaWNoIHBsYW50cyB3ZXJlIGlkZW50aWZpZWQgYW5kIGNoZWNrZWQgZm9yIGZsb3dlcmluZyB3YXMgcmV2ZXJzZWRcbkFDX2dlcm1fZGY2IDwtIEFDX2dlcm1fZGY1ICU+JSBcbiAgbXV0YXRlKFBsYW50X0lEID0gYXMubnVtZXJpYyhjYXNlX3doZW4oXG4gICAgUGxhbnRfSUQgPT0gXCIxXCIgfiBcIjEwXCIsXG4gICAgUGxhbnRfSUQgPT0gXCIyXCIgfiBcIjlcIixcbiAgICBQbGFudF9JRCA9PSBcIjNcIiB+IFwiOFwiLFxuICAgIFBsYW50X0lEID09IFwiNFwiIH4gXCI3XCIsXG4gICAgUGxhbnRfSUQgPT0gXCI1XCIgfiBcIjZcIixcbiAgICBQbGFudF9JRCA9PSBcIjZcIiB+IFwiNVwiLFxuICAgIFBsYW50X0lEID09IFwiN1wiIH4gXCI0XCIsXG4gICAgUGxhbnRfSUQgPT0gXCI4XCIgfiBcIjNcIixcbiAgICBQbGFudF9JRCA9PSBcIjlcIiB+IFwiMlwiLFxuICAgIFBsYW50X0lEID09IFwiMTBcIiB+IFwiMVwiKSkpICU+JSBcbiAgYXJyYW5nZShCbG9jaywgVHJhbnNlY3QsIFNlcXVlbmNlLCBSZWNpcGllbnQsIFBsYW50X0lEKSAjQXJyYW5nZSBieSBUcmFuc2VjdCwgUmVjaXBpZW50LCBQbGFudF9JRFxuXG5gYGAifQ== -->
+<pre class="r"><code>#Use sum(is.na(AC_germ_df2$Date)) to compare change in number of NA values
+
+
+#
+#Adjust Donor and Recipient names for easy sorting - three digits (leading zeros)
+#Specify Germ_Date as &#39;date&#39; class variable
+AC_germ_df4 &lt;- AC_germ_df3 %&gt;% 
   mutate(Recipient_num = sprintf(&quot;%03d&quot;, (parse_number(Recipient)))) %&gt;% 
   mutate(Recipient = as.character(str_c(&quot;AC_&quot;, Recipient_num))) %&gt;% 
   mutate(Donor_num = sprintf(&quot;%03d&quot;, (parse_number(Donor)))) %&gt;% 
-  mutate(Donor = as.character(str_c(&quot;AC_&quot;, Donor_num))) %&gt;% 
-  select(-Recipient_num, -Donor_num)
+  mutate(Donor = as.character(str_c(&quot;AC_&quot;, Donor_num))) %&gt;%
+  mutate(Germ_Date = as_date(Germ_Date)) %&gt;% #set variable to class = date
+  select(Block, Transect, Sequence, Donor, Donor_num, Recipient, Recipient_num, Plant_ID, everything()) %&gt;% 
+  select(-c(Stage, Donor_num, Recipient_num))
 
 
+#
+##Add in Sow Date (lab sown) and Plant date (in field)
+AC_germ_df5 &lt;- AC_germ_df4 %&gt;% 
+  mutate(Sow_Date = as_date(&quot;2021-10-27&quot;)) %&gt;% 
+  mutate(Plant_Date = as_date(&quot;2021-11-04&quot;))
+#Some plugs may have been sown on November 5, 2022 (information on which transects not recorded)
 
-#Multiple matches, merge only unique pairs for Donor
-AC_Fitness_2 &lt;- merge(AC_Fitness, unique(AC_donors2[c(&quot;Gen&quot;, &quot;Donor&quot;, &quot;Recipient&quot;)]), by = c(&quot;Recipient&quot;, &quot;Gen&quot;), all.x = TRUE) %&gt;% 
-  mutate(SegPos = paste(Segment, position, sep = &quot;&quot;)) %&gt;% 
-  select(Sequence, Transect, SegPos, Gen, Donor, Recipient, Fit_plant) %&gt;% 
-  arrange(Sequence, SegPos)
 
-#Save as V2 Fitness Plant Sheet
-write_csv(AC_Fitness_2, here::here(&quot;data_sheets&quot;, &quot;2023_year2_data&quot;, &quot;fitness_plants&quot;, &quot;AC_fitnessplants_23_V2.csv&quot;), na = &quot;&quot;)
+#
+## Flip Plant numbers
+## (AC germination data only) - the orientation in which plants were identified and checked for flowering was reversed
+AC_germ_df6 &lt;- AC_germ_df5 %&gt;% 
+  mutate(Plant_ID = as.numeric(case_when(
+    Plant_ID == &quot;1&quot; ~ &quot;10&quot;,
+    Plant_ID == &quot;2&quot; ~ &quot;9&quot;,
+    Plant_ID == &quot;3&quot; ~ &quot;8&quot;,
+    Plant_ID == &quot;4&quot; ~ &quot;7&quot;,
+    Plant_ID == &quot;5&quot; ~ &quot;6&quot;,
+    Plant_ID == &quot;6&quot; ~ &quot;5&quot;,
+    Plant_ID == &quot;7&quot; ~ &quot;4&quot;,
+    Plant_ID == &quot;8&quot; ~ &quot;3&quot;,
+    Plant_ID == &quot;9&quot; ~ &quot;2&quot;,
+    Plant_ID == &quot;10&quot; ~ &quot;1&quot;))) %&gt;% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-</div>
-<div id="trait-data" class="section level3">
-<h3>Trait Data</h3>
-<p>Trait data gathered and processed from the 2022-2023 field season is
-loaded and organized below.</p>
-<div id="flower-check-phenology" class="section level4">
-<h4>Flower Check &amp; Phenology</h4>
-<p>– Organize flowering data – Add in Sow &amp; Plant dates</p>
-<div id="section" class="section level9">
-<p class="heading"></p>
-<p>Crucial Step!!<br />
-######### In the csv file, select all data with dates (visit dates, leaf
-sampling, and flower photos). Right click –&gt; format cells. Select the
-date category –&gt; YYYY-MM-DD. Save the csv and close it. This will
-standardize all dates to the same format and make working with them in R
-(and lubridate) much easier!</p>
+<p>Add in watered transect germination data</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5BQ19mbHJfZGYgPC0gcmVhZF9jc3YoZmlsZSA9IGhlcmU6OmhlcmUoIFwiZGF0YV9zaGVldHNcIiwgXCIyMDIzX3llYXIyX2RhdGFcIiwgXCJmbG93ZXJpbmdfY2hlY2tzXCIsIFwiQUNfZmxvd2VyY2hlY2tfZGF0YV8yMDIzLTAzLTE1IC0gQUNfZmxvd2VyY2hlY2tfZGF0YV92MS5jc3ZcIiksIG5hID0gYyhcIlwiLCBcIk5BXCIpKSBcbmBgYCJ9 -->
-<pre class="r"><code>
-AC_flr_df &lt;- read_csv(file = here::here( &quot;data_sheets&quot;, &quot;2023_year2_data&quot;, &quot;flowering_checks&quot;, &quot;AC_flowercheck_data_2023-03-15 - AC_flowercheck_data_v1.csv&quot;), na = c(&quot;&quot;, &quot;NA&quot;)) </code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0FDXG4jIyBBZGQgaW4gd2F0ZXJlZCB0cmFuc2VjdHNcbiMjICpOb3RlKjogT25seSA4IHNlZWRzIHNvd24gaW4gdGhlc2Ugc2VnbWVudHMgaW5zdGVhZCBvZiAxMCFcbkFDX2dlcm1fVzEgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZShcImRhdGFfc2hlZXRzXCIsIFwiZ2VybWluYXRpb25fY2hlY2tzXzIwMjEtMjAyMlwiLCBcIndhdGVyZWRfQUNfZ2VybS5jc3ZcIiksIHNraXAgPSAxKSAlPiVcbiAgcmVuYW1lKFNlcXVlbmNlID0gJ1NlcSAoMS00MiknLCBEb25vciA9IFwiRG9ub3JfSURcIiwgUmVjaXBpZW50ID0gXCJSZWNpcGllbnRfSURcIiwgU3RhZ2UgPSAnRGF0ZSAobW0vZGQpJykgJT4lIFxuICBmaWx0ZXIoIVN0YWdlID09IFwiRmxvd1wiKSAlPiUgICAgI1JlbW92ZSBlbXB0eSBmbG93ZXJpbmcgZGF0ZSByb3dzXG4gIG11dGF0ZShgMmAgPSBhc19kYXRlKGAyYCksIGA1YCA9IGFzX2RhdGUoYDVgKSwgYDhgID0gYXNfZGF0ZShgOGApKSAjdGhlc2UgY29sdW1ucyBub3QgcmVjb2duaXplZCBhcyBkYXRlcyBkdXJpbmcgcmVhZC1pbi4gVGhlc2UgbXVzdCBhbGwgYmUgdGhlIHNhbWUgY2xhc3Mgc2luY2UgdGhleSdsbCBiZSByZXNoYXBlZCBiZWxvdy5cbiAgXG4jXG4jUmVzaGFwZSBkYXRhIHNoZWV0IHRvICdsb25nJyBmb3JtYXRcbkFDX2dlcm1fVzIgPC0gQUNfZ2VybV9XMSAlPiUgXG4gIHBpdm90X2xvbmdlcihjb2xzID0gYygnMSc6JzgnKSxcbiAgICAgICAgICAgICAgIG5hbWVzX3RvID0gJ1BsYW50X0lEJyxcbiAgICAgICAgICAgICAgIHZhbHVlc190byA9ICdHZXJtX0RhdGUnKSBcblxuI1xuIyNGaXggdHlwb3MgaW4gZGF0ZSB2YWx1ZXNcbiMjTUFKT1IgVFlQTzogRXhjZWwgYXV0by1wb3B1bGF0ZWQgeWVhciBhcyAyMDIyIHdoZW4gaW4gZmFjdCB0aGUgeWVhciBzaG91bGQgYmUgMjAyMSFcbnVuaXF1ZShBQ19nZXJtX1cyJEdlcm1fRGF0ZSkgI25vIHR5cG9zIGhlcmVcbmBgYCJ9 -->
+<pre class="r"><code>#AC
+## Add in watered transects
+## *Note*: Only 8 seeds sown in these segments instead of 10!
+AC_germ_W1 &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;germination_checks_2021-2022&quot;, &quot;watered_AC_germ.csv&quot;), skip = 1) %&gt;%
+  rename(Sequence = &#39;Seq (1-42)&#39;, Donor = &quot;Donor_ID&quot;, Recipient = &quot;Recipient_ID&quot;, Stage = &#39;Date (mm/dd)&#39;) %&gt;% 
+  filter(!Stage == &quot;Flow&quot;) %&gt;%    #Remove empty flowering date rows
+  mutate(`2` = as_date(`2`), `5` = as_date(`5`), `8` = as_date(`8`)) #these columns not recognized as dates during read-in. These must all be the same class since they&#39;ll be reshaped below.
+  
+#
+#Reshape data sheet to &#39;long&#39; format
+AC_germ_W2 &lt;- AC_germ_W1 %&gt;% 
+  pivot_longer(cols = c(&#39;1&#39;:&#39;8&#39;),
+               names_to = &#39;Plant_ID&#39;,
+               values_to = &#39;Germ_Date&#39;) 
+
+#
+##Fix typos in date values
+##MAJOR TYPO: Excel auto-populated year as 2022 when in fact the year should be 2021!
+unique(AC_germ_W2$Germ_Date) #no typos here</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiV2FybmluZzogT25lIG9yIG1vcmUgcGFyc2luZyBpc3N1ZXMsIGNhbGwgYHByb2JsZW1zKClgIG9uIHlvdXIgZGF0YSBmcmFtZSBmb3IgZGV0YWlscywgZS5nLjpcbiAgZGF0IDwtIHZyb29tKC4uLilcbiAgcHJvYmxlbXMoZGF0KVxuIn0= -->
-<pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
-  dat &lt;- vroom(...)
-  problems(dat)</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiMjAyMi0xMi0wNVwiIFwiMjAyMi0xMS0wM1wiIE5BICAgICAgICAgIFxuIn0= -->
+<pre><code>[1] &quot;2022-12-05&quot; &quot;2022-11-03&quot; NA          </code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQUNfZmxyMiA8LSBBQ19mbHJfZGYgJT4lIFxuICBtdXRhdGUoU2VnUG9zID0gcGFzdGUoU2VnbWVudCwgc2lkZSwgc2VwID0gXCJcIikpICU+JSBcbiAgc2VsZWN0KFNlcXVlbmNlLCBUcmFuc2VjdCwgU2VnUG9zLCBldmVyeXRoaW5nKCksIC1jKFNlZ21lbnQsIHNpZGUsIEZEXzA2LCBGRF8wNykpICU+JSBcbiAgc2xpY2UoLWMoMTM1NSwgMTYwMCwgMjExMToyMTE1LCAzMTkxOjMxOTUpKSAlPiUgI1JlbW92ZSByb3dzIG5vdCBwbGFudGVkXG4gIGFycmFuZ2UoU2VxdWVuY2UsIFRyYW5zZWN0LCBTZWdQb3MpICU+JSBcbiAgbXV0YXRlKFJlY2lwaWVudCA9IGNhc2Vfd2hlbihSZWNpcGllbnQgJWluJSBjKFwiQUNfMTU5XCIsIFwiQUNfMTU5QVwiLCBcIkFDXzE1OUJcIikgfiBcIkFDXzE1OVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBSZWNpcGllbnQpKSAjcmVuYW1lIDE1OSAtIGxldHRlcnMgd2VyZSBhZGRlZCB0byBtYXJrIHBvc2l0aW9uXG4gIFxuXG4jQ2hlY2sgZm9yIG1pc21hdGNoZWQgZml0bmVzcyBwbGFudHNcbkFDX2Zscl90ZXN0IDwtIEFDX2ZscjIgJT4lIFxuICBmaWx0ZXIoIWlzLm5hKEZpdF9wbGFudCkpICU+JSBcbiAgbXV0YXRlKEZpdE1hdGNoID0gY2FzZV93aGVuKEZpdF9wbGFudCA9PSBQbGFudF9JRCB+IFRSVUUsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGaXRfcGxhbnQgIT0gUGxhbnRfSUQgfiBGQUxTRSkpXG5cbiMjIEZpeCBEYXRlcyFcblxuI0NoZWNrIG9icyBmaXJzdCB1c2luZyB1bmlxdWUoQUNfZmxyMyRGRF8wMSkgYW5kIG1ha2UgY29ycmVjdGlvbnNcblxuQUNfZmxyMyA8LSBBQ19mbHIyICU+JVxuICBtdXRhdGVfYXQoLnZhcnMgPSB2YXJzKEZEXzAxOkZEXzA1KSwgfmFzX2RhdGUoLikpICU+JSBcbiAgbXV0YXRlKEZEXzA1ID0gYXNfZGF0ZShjYXNlX3doZW4oRkRfMDUgPT0gXCIyMDIzLTA2LTA3XCIgfiBcIjIwMjMtMDYtMDhcIixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgIEZEXzA1ID09IFwiMjAyMy0wNi0wOFwiIH4gXCIyMDIzLTA2LTA4XCIsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICBGRF8wNSA9PSBcIjIwMjMtMDYtMDlcIiB+IFwiMjAyMy0wNi0wOVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgVFJVRSB+IGFzLmNoYXJhY3RlcihOQSkpKSkgI1NvbWUgZGF0ZSB0eXBvcyAtIG9uZSBkYXkgZWFybHlcblxuYGBgIn0= -->
-<pre class="r"><code>AC_flr2 &lt;- AC_flr_df %&gt;% 
-  mutate(SegPos = paste(Segment, side, sep = &quot;&quot;)) %&gt;% 
-  select(Sequence, Transect, SegPos, everything(), -c(Segment, side, FD_06, FD_07)) %&gt;% 
-  slice(-c(1355, 1600, 2111:2115, 3191:3195)) %&gt;% #Remove rows not planted
-  arrange(Sequence, Transect, SegPos) %&gt;% 
-  mutate(Recipient = case_when(Recipient %in% c(&quot;AC_159&quot;, &quot;AC_159A&quot;, &quot;AC_159B&quot;) ~ &quot;AC_159&quot;,
-                               TRUE ~ Recipient)) #rename 159 - letters were added to mark position
-  
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQUNfZ2VybV9XMyA8LSBBQ19nZXJtX1cyICU+JSBcbiAgbXV0YXRlKEdlcm1fRGF0ZSA9IGNhc2Vfd2hlbihcbiAgICBHZXJtX0RhdGUgPT0gXCIyMDIyLTEyLTA1XCIgfiBcIjIwMjEtMTItMDVcIixcbiAgICBHZXJtX0RhdGUgPT0gXCIyMDIyLTExLTAzXCIgfiBcIjIwMjEtMTEtMDNcIikpXG5cblxuI1xuI0FkanVzdCBEb25vciBhbmQgUmVjaXBpZW50IG5hbWVzIGZvciBlYXN5IHNvcnRpbmcgLSB0aHJlZSBkaWdpdHMgKGxlYWRpbmcgemVyb3MpXG4jU3BlY2lmeSBHZXJtX0RhdGUgYXMgJ2RhdGUnIGNsYXNzIHZhcmlhYmxlXG5BQ19nZXJtX1c0IDwtIEFDX2dlcm1fVzMgJT4lIFxuICBtdXRhdGUoUmVjaXBpZW50X251bSA9IHNwcmludGYoXCIlMDNkXCIsIChwYXJzZV9udW1iZXIoUmVjaXBpZW50KSkpKSAlPiUgXG4gIG11dGF0ZShSZWNpcGllbnQgPSBhcy5jaGFyYWN0ZXIoc3RyX2MoXCJBQ19cIiwgUmVjaXBpZW50X251bSkpKSAlPiUgXG4gIG11dGF0ZShEb25vcl9udW0gPSBzcHJpbnRmKFwiJTAzZFwiLCAocGFyc2VfbnVtYmVyKERvbm9yKSkpKSAlPiUgXG4gIG11dGF0ZShEb25vciA9IGFzLmNoYXJhY3RlcihzdHJfYyhcIkFDX1wiLCBEb25vcl9udW0pKSkgJT4lXG4gIG11dGF0ZShHZXJtX0RhdGUgPSBhc19kYXRlKEdlcm1fRGF0ZSkpICU+JSAjc2V0IHZhcmlhYmxlIHRvIGNsYXNzID0gZGF0ZVxuICBtdXRhdGUoUGxhbnRfSUQgPSBhcy5udW1lcmljKFBsYW50X0lEKSkgJT4lICNzZXQgUGxhbnQgSUQgdG8gbnVtZXJpYyBmb3Igc29ydGluZyBwdXJwb3Nlc1xuICBzZWxlY3QoLWMoU3RhZ2UsIENvLiwgRG9ub3JfbnVtLCBSZWNpcGllbnRfbnVtKSlcblxuXG4jXG4jI0FkZCBpbiBTb3cgRGF0ZSAmIFVwZGF0ZSBTZXF1ZW5jZSBudW1iZXIgJiBhZGQgYmxvY2sgKCdXJylcbkFDX2dlcm1fVzUgPC0gQUNfZ2VybV9XNCAlPiUgXG4gIG11dGF0ZShTb3dfRGF0ZSA9IGFzX2RhdGUoXCIyMDIxLTEwLTI3XCIpKSAlPiUgXG4gIG11dGF0ZShQbGFudF9EYXRlID0gYXNfZGF0ZShcIjIwMjEtMTEtMDRcIikpICU+JSBcbiAgbXV0YXRlKFNlcXVlbmNlID0gKFNlcXVlbmNlICsgMzIxKSkgJT4lIFxuICBtdXRhdGUoQmxvY2sgPSBcIldcIikgJT4lIFxuICBzZWxlY3QoQmxvY2ssIFRyYW5zZWN0LCBTZXF1ZW5jZSwgRG9ub3IsIFJlY2lwaWVudCwgUGxhbnRfSUQsIGV2ZXJ5dGhpbmcoKSkgJT4lIFxuICBhcnJhbmdlKFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50LCBQbGFudF9JRCkgI0FycmFuZ2UgYnkgVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSURcblxuXG4jXG4jIyBGbGlwcGluZyBQbGFudCBudW1iZXJzIG5vdCByZXF1aXJlZCBmb3Igd2F0ZXJpbmcgdHJhbnNlY3RzIC0gcGx1Z3MgcGxhbnRlZCB0b3AtdG8tYm90dG9tIGZvciBJRCAxIHRocm91Z2ggOFxuXG5cbiNcbiMjIENvbWJpbmUgd2F0ZXJlZCBhbmQgbWFpbiBleHBlcmltZW50IGdlcm1pbmF0aW9uIGRhdGFcblxuQUNfZ2VybV9mdWxsIDwtIHJiaW5kKEFDX2dlcm1fZGY2LCBBQ19nZXJtX1c1KVxuXG53cml0ZV9jc3YoQUNfZ2VybV9mdWxsLCBoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCJjb21waWxlZF9zaGVldHNcIiwgXCJBQ19nZXJtaW5hdGlvbl9mdWxsXzIwMjEtMjAyMi5jc3ZcIikpXG5cbmBgYCJ9 -->
+<pre class="r"><code>AC_germ_W3 &lt;- AC_germ_W2 %&gt;% 
+  mutate(Germ_Date = case_when(
+    Germ_Date == &quot;2022-12-05&quot; ~ &quot;2021-12-05&quot;,
+    Germ_Date == &quot;2022-11-03&quot; ~ &quot;2021-11-03&quot;))
 
-#Check for mismatched fitness plants
-AC_flr_test &lt;- AC_flr2 %&gt;% 
-  filter(!is.na(Fit_plant)) %&gt;% 
-  mutate(FitMatch = case_when(Fit_plant == Plant_ID ~ TRUE,
-                              Fit_plant != Plant_ID ~ FALSE))
 
-## Fix Dates!
+#
+#Adjust Donor and Recipient names for easy sorting - three digits (leading zeros)
+#Specify Germ_Date as &#39;date&#39; class variable
+AC_germ_W4 &lt;- AC_germ_W3 %&gt;% 
+  mutate(Recipient_num = sprintf(&quot;%03d&quot;, (parse_number(Recipient)))) %&gt;% 
+  mutate(Recipient = as.character(str_c(&quot;AC_&quot;, Recipient_num))) %&gt;% 
+  mutate(Donor_num = sprintf(&quot;%03d&quot;, (parse_number(Donor)))) %&gt;% 
+  mutate(Donor = as.character(str_c(&quot;AC_&quot;, Donor_num))) %&gt;%
+  mutate(Germ_Date = as_date(Germ_Date)) %&gt;% #set variable to class = date
+  mutate(Plant_ID = as.numeric(Plant_ID)) %&gt;% #set Plant ID to numeric for sorting purposes
+  select(-c(Stage, Co., Donor_num, Recipient_num))
 
-#Check obs first using unique(AC_flr3$FD_01) and make corrections
 
-AC_flr3 &lt;- AC_flr2 %&gt;%
-  mutate_at(.vars = vars(FD_01:FD_05), ~as_date(.)) %&gt;% 
-  mutate(FD_05 = as_date(case_when(FD_05 == &quot;2023-06-07&quot; ~ &quot;2023-06-08&quot;,
-                           FD_05 == &quot;2023-06-08&quot; ~ &quot;2023-06-08&quot;,
-                           FD_05 == &quot;2023-06-09&quot; ~ &quot;2023-06-09&quot;,
-                           TRUE ~ as.character(NA)))) #Some date typos - one day early
+#
+##Add in Sow Date &amp; Update Sequence number &amp; add block (&#39;W&#39;)
+AC_germ_W5 &lt;- AC_germ_W4 %&gt;% 
+  mutate(Sow_Date = as_date(&quot;2021-10-27&quot;)) %&gt;% 
+  mutate(Plant_Date = as_date(&quot;2021-11-04&quot;)) %&gt;% 
+  mutate(Sequence = (Sequence + 321)) %&gt;% 
+  mutate(Block = &quot;W&quot;) %&gt;% 
+  select(Block, Transect, Sequence, Donor, Recipient, Plant_ID, everything()) %&gt;% 
+  arrange(Transect, Sequence, Recipient, Plant_ID) #Arrange by Transect, Recipient, Plant_ID
+
+
+#
+## Flipping Plant numbers not required for watering transects - plugs planted top-to-bottom for ID 1 through 8
+
+
+#
+## Combine watered and main experiment germination data
+
+AC_germ_full &lt;- rbind(AC_germ_df6, AC_germ_W5)
+
+write_csv(AC_germ_full, here::here(&quot;data_sheets&quot;, &quot;compiled_sheets&quot;, &quot;AC_germination_full_2021-2022.csv&quot;))
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Add sowing/planting date</p>
+<p><strong>Flower Check sheets</strong><br />
+– Organize flowering data – Do not trust the fitness plant data in the
+flowering check data sheets (add in later).</p>
+<p><em>Important Step!!</em><br />
+In the csv file, select all data with dates (visit dates, leaf sampling,
+and flower photos). Right click –&gt; format cells. Select the date
+category –&gt; YYYY-MM-DD. Save the csv and close it. This will
+standardize all dates to the same format and make working with them in R
+much easier!</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1NvdyBEYXRlIC0gZmlyc3QgZGF0ZSAob2YgdHdvIG9yIG9uZSkgb24gd2hpY2ggc2VlZHMgd2VyZSBzb3duIGluIHRoZSBsYWJcbiNQbGFudCBEYXRlIC0gbWVkaWFuIGRhdGUgb24gd2hpY2ggc2VlZCBwbHVncyB3ZXJlIHBsYW50ZWQgaW4gdGhlIGZpZWxkXG5cbkFDX2ZscjQgPC0gQUNfZmxyMyAlPiUgXG4gIG11dGF0ZShTb3dfRGF0ZSA9IGFzX2RhdGUoXCIyMDIyLTEwLTE3XCIpLFxuICAgICAgICAgUGxhbnRfRGF0ZSA9IGFzX2RhdGUoXCIyMDIyLTEwLTIxXCIpKVxuXG5gYGAifQ== -->
-<pre class="r"><code>#Sow Date - first date (of two or one) on which seeds were sown in the lab
-#Plant Date - median date on which seed plugs were planted in the field
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyNBQyMjXG5cbkFDZmxyX2RmIDwtIHJlYWRfY3N2KGZpbGUgPSBoZXJlOjpoZXJlKCBcImRhdGFfc2hlZXRzXCIsIFwic2Vhc29uX2VuZF9mbG93ZXJjaGVja3NfMjAyMlwiLCAgXCJBQ19mbG93ZXJjaGVja18yMDIyXzA2XzI4LmNzdlwiKSwgbmEgPSBjKFwiXCIsIFwiTkFcIikpXG5gYGAifQ== -->
+<pre class="r"><code>##AC##
 
-AC_flr4 &lt;- AC_flr3 %&gt;% 
-  mutate(Sow_Date = as_date(&quot;2022-10-17&quot;),
-         Plant_Date = as_date(&quot;2022-10-21&quot;))
+ACflr_df &lt;- read_csv(file = here::here( &quot;data_sheets&quot;, &quot;season_end_flowerchecks_2022&quot;,  &quot;AC_flowercheck_2022_06_28.csv&quot;), na = c(&quot;&quot;, &quot;NA&quot;))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTmV3IG5hbWVzOldhcm5pbmc6IE9uZSBvciBtb3JlIHBhcnNpbmcgaXNzdWVzLCBjYWxsIGBwcm9ibGVtcygpYCBvbiB5b3VyIGRhdGEgZnJhbWUgZm9yIGRldGFpbHMsIGUuZy46XG4gIGRhdCA8LSB2cm9vbSguLi4pXG4gIHByb2JsZW1zKGRhdClSb3dzOiAxNzc2IENvbHVtbnM6IDI54pSA4pSAIENvbHVtbiBzcGVjaWZpY2F0aW9uIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgFxuRGVsaW1pdGVyOiBcIixcIlxuY2hyICAgKDYpOiBUcmFuc2VjdCwgUmVjaXBpZW50Li4uMiwgUmVjaXBpZW50Li4uMTYsIEY/Li4uMTgsIDIwMjItMDYtMDguLi4yNCwgZmxyX1AuLi4yOVxuZGJsICAgKDIpOiBQbGFudF9JRC4uLjMsIFBsYW50X0lELi4uMTdcbmxnbCAgICg2KTogRj8uLi40LCAuLi4xMSwgLi4uMTIsIC4uLjEzLCAuLi4yNiwgLi4uMjdcbmRhdGUgKDE1KTogMjAyMi0wNC0wOS4uLjUsIDIwMjItMDQtMjEuLi42LCAyMDIyLTA1LTAzLi4uNywgMjAyMi0wNS0xMy4uLjgsIDIwMjItMDUtMjUuLi45LCAyMDIyLTA2LTA4Li4uMTAsIExFQUYuLi4uLlxu4oS5IFVzZSBgc3BlYygpYCB0byByZXRyaWV2ZSB0aGUgZnVsbCBjb2x1bW4gc3BlY2lmaWNhdGlvbiBmb3IgdGhpcyBkYXRhLlxu4oS5IFNwZWNpZnkgdGhlIGNvbHVtbiB0eXBlcyBvciBzZXQgYHNob3dfY29sX3R5cGVzID0gRkFMU0VgIHRvIHF1aWV0IHRoaXMgbWVzc2FnZS5cbiJ9 -->
+<pre><code>New names:Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
+  dat &lt;- vroom(...)
+  problems(dat)Rows: 1776 Columns: 29── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: &quot;,&quot;
+chr   (6): Transect, Recipient...2, Recipient...16, F?...18, 2022-06-08...24, flr_P...29
+dbl   (2): Plant_ID...3, Plant_ID...17
+lgl   (6): F?...4, ...11, ...12, ...13, ...26, ...27
+date (15): 2022-04-09...5, 2022-04-21...6, 2022-05-03...7, 2022-05-13...8, 2022-05-25...9, 2022-06-08...10, LEAF.....
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyNJZ25vcmUgJ0YnIHBsYW50cyAtIG1vcmUgdXAtdG8tZGF0ZSBmaXRuZXNzIHBsYW50IGRhdGEgaXMgbWF0Y2hlZCBpbiBiZWxvdyBcblxuI3NwbGl0IGdyb3Vwc1xuZjFfQUNsb25nIDwtIEFDZmxyX2RmW2MoMToxNSldICMgR3JvdXAgMTogcGxhbnRzIDEtNVxuZjJfQUNsb25nIDwtIEFDZmxyX2RmW2MoMSwgMTY6MjkpXSAjIEdyb3VwIDI6IHBsYW50cyA2LTEwXG5cbiNSZXZpc2UgbmFtZXNcbmNvbG5hbWVzKGYxX0FDbG9uZykgPC0gYyhcIlRyYW5zZWN0XCIsIFwiUmVjaXBpZW50XCIsIFwiUGxhbnRfSURcIiwgXCJGLlwiLCBcIkZsXzQuOVwiLCBcIkZsXzQuMjFcIiwgXCJGbF81LjNcIiwgXCJGbF81LjEzXCIsIFwiRmxfNS4yNVwiLCBcIkZsXzYuOFwiLCBcIkZsXzYuMjJcIiwgXCJEXCIsIFwiRDFcIiwgXCJMRUFGXCIsIFwiZmxyX1BcIilcbmNvbG5hbWVzKGYyX0FDbG9uZykgPC0gYyhcIlRyYW5zZWN0XCIsIFwiUmVjaXBpZW50XCIsIFwiUGxhbnRfSURcIiwgXCJGLlwiLCBcIkZsXzQuOVwiLCBcIkZsXzQuMjFcIiwgXCJGbF81LjNcIiwgXCJGbF81LjEzXCIsIFwiRmxfNS4yNVwiLCBcIkZsXzYuOFwiLCBcIkZsXzYuMjJcIiwgXCJEXCIsIFwiRDFcIiwgXCJMRUFGXCIsIFwiZmxyX1BcIilcblxuI3JiaW5kLCB0aWR5IHVwIGFuZCByZW1vdmUgdW5uZWNlc3NhcnkgY29sdW1uc1xuZl9BQ2xvbmcgPC0gcmJpbmQoZjFfQUNsb25nLCBmMl9BQ2xvbmcpICU+JSBhcnJhbmdlKFRyYW5zZWN0LCBSZWNpcGllbnQsIFBsYW50X0lEKSAlPiUgc2VsZWN0KC1jKEYuLCBELCBEMSkpICU+JSByZW1vdmVfZW1wdHkoXCJyb3dzXCIpICNzb3J0IGJ5IHRyYW5zZWN0LCB0aGVuIFJlY2lwaWVudCwgdGhlbiBQbGFudCBJRFxuXG5cbiNGb3JtYXQgcmVjaXBpZW50IElEcyBmb3IgZWFzaWVyIHNvcnRpbmcgLSB0aHJlZSBkaWdpdHMgKGluY2x1ZGVzIGxlYWRpbmcgemVyb3MpXG5mX0FDbG9uZ18yIDwtIGZfQUNsb25nICU+JSBcbiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKFwiJTAzZFwiLCAocGFyc2VfbnVtYmVyKFJlY2lwaWVudCkpKSkgJT4lIFxuICBtdXRhdGUoUmVjaXBpZW50ID0gYXMuY2hhcmFjdGVyKHN0cl9jKFwiQUNfXCIsIFJlY2lwaWVudF9udW0pKSkgJT4lIFxuICBzZWxlY3QoVHJhbnNlY3QsIFJlY2lwaWVudCwgUmVjaXBpZW50X251bSwgUGxhbnRfSUQsIGV2ZXJ5dGhpbmcoKSkgJT4lIFxuICBzZWxlY3QoLVJlY2lwaWVudF9udW0pXG5cblxuXG4jI0ZpeCBEYXRlcyFcblxuZl9BQ2xvbmdfMyA8LSBmX0FDbG9uZ18yICU+JSBcbiAgbXV0YXRlKEZsXzQuMjEgPSBjYXNlX3doZW4oRmxfNC45ID09IFwiMjAyMi0wNC0yMlwiIH4gXCIyMDIyLTA0LTIyXCIsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIEZsXzQuMjEgPT0gXCIyMDIyLTA0LTIyXCIgfiBcIjIwMjItMDQtMjJcIixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRmxfNC4yMSA9PSBcIjIwMjItMDQtMjFcIiB+IFwiMjAyMi0wNC0yMVwiKSkgJT4lIFxuICBtdXRhdGUoRmxfNC45ID0gY2FzZV93aGVuKEZsXzQuOSA9PSBcIjIwMjItMDQtMDlcIiB+IFwiMjAyMi0wNC0wOVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBhcy5jaGFyYWN0ZXIoTkEpKSkgJT4lIFxuICBtdXRhdGUoRmxfNi4yMiA9IGNhc2Vfd2hlbihGbF82LjIyID09IDE5MTY1IH4gXCIyMDIyLTA2LTIyXCIsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBhcy5jaGFyYWN0ZXIoTkEpKSlcblxuXG5cbiNPbGQgLSBMS1xuIyMjI2ZfQUNsb25nVEVTVCA8LSBmX0FDbG9uZ1tjb21wbGV0ZS5jYXNlcyhmX0FDbG9uZ1sgLCA1XSksIF0gI1RoaXMgcmVtb3ZlcyBwbGFudHMgdGhhdCBkaWRuJ3QgZmxvd2VyIG9uIDQvOSwgYnV0IGFsc28gcGxhbnRzIHRoYXQgbWF5IGhhdmUgZmxvd2VyZWQgbGF0ZXJcblxuIyNmX0FDbG9uZyRmZl9kYXRlIDwtIHdpdGgoZl9BQ2xvbmcsIGNvYWxlc2NlKFg0LjksIFgwNC4yMSwgWDUuMywgWDUuMTMsIFg1LjI1LCBYNi44LCB4Ni4yMikpXG4jI3dyaXRlLmNzdihmX0FDbG9uZywgXCJjQUNfMDcxNDIwMjIuY3N2XCIgKVxuXG5gYGAifQ== -->
+<pre class="r"><code>##Ignore &#39;F&#39; plants - more up-to-date fitness plant data is matched in below 
+
+#split groups
+f1_AClong &lt;- ACflr_df[c(1:15)] # Group 1: plants 1-5
+f2_AClong &lt;- ACflr_df[c(1, 16:29)] # Group 2: plants 6-10
+
+#Revise names
+colnames(f1_AClong) &lt;- c(&quot;Transect&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;, &quot;F.&quot;, &quot;Fl_4.9&quot;, &quot;Fl_4.21&quot;, &quot;Fl_5.3&quot;, &quot;Fl_5.13&quot;, &quot;Fl_5.25&quot;, &quot;Fl_6.8&quot;, &quot;Fl_6.22&quot;, &quot;D&quot;, &quot;D1&quot;, &quot;LEAF&quot;, &quot;flr_P&quot;)
+colnames(f2_AClong) &lt;- c(&quot;Transect&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;, &quot;F.&quot;, &quot;Fl_4.9&quot;, &quot;Fl_4.21&quot;, &quot;Fl_5.3&quot;, &quot;Fl_5.13&quot;, &quot;Fl_5.25&quot;, &quot;Fl_6.8&quot;, &quot;Fl_6.22&quot;, &quot;D&quot;, &quot;D1&quot;, &quot;LEAF&quot;, &quot;flr_P&quot;)
+
+#rbind, tidy up and remove unnecessary columns
+f_AClong &lt;- rbind(f1_AClong, f2_AClong) %&gt;% arrange(Transect, Recipient, Plant_ID) %&gt;% select(-c(F., D, D1)) %&gt;% remove_empty(&quot;rows&quot;) #sort by transect, then Recipient, then Plant ID
+
+
+#Format recipient IDs for easier sorting - three digits (includes leading zeros)
+f_AClong_2 &lt;- f_AClong %&gt;% 
+  mutate(Recipient_num = sprintf(&quot;%03d&quot;, (parse_number(Recipient)))) %&gt;% 
+  mutate(Recipient = as.character(str_c(&quot;AC_&quot;, Recipient_num))) %&gt;% 
+  select(Transect, Recipient, Recipient_num, Plant_ID, everything()) %&gt;% 
+  select(-Recipient_num)
+
+
+
+##Fix Dates!
+
+f_AClong_3 &lt;- f_AClong_2 %&gt;% 
+  mutate(Fl_4.21 = case_when(Fl_4.9 == &quot;2022-04-22&quot; ~ &quot;2022-04-22&quot;,
+                             Fl_4.21 == &quot;2022-04-22&quot; ~ &quot;2022-04-22&quot;,
+                             Fl_4.21 == &quot;2022-04-21&quot; ~ &quot;2022-04-21&quot;)) %&gt;% 
+  mutate(Fl_4.9 = case_when(Fl_4.9 == &quot;2022-04-09&quot; ~ &quot;2022-04-09&quot;,
+                            TRUE ~ as.character(NA))) %&gt;% 
+  mutate(Fl_6.22 = case_when(Fl_6.22 == 19165 ~ &quot;2022-06-22&quot;,
+                             TRUE ~ as.character(NA)))
+
+
+
+#Old - LK
+####f_AClongTEST &lt;- f_AClong[complete.cases(f_AClong[ , 5]), ] #This removes plants that didn&#39;t flower on 4/9, but also plants that may have flowered later
+
+##f_AClong$ff_date &lt;- with(f_AClong, coalesce(X4.9, X04.21, X5.3, X5.13, X5.25, X6.8, x6.22))
+##write.csv(f_AClong, &quot;cAC_07142022.csv&quot; )
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Merge in Fitness plant Data<br />
-- Donor</p>
+<p>Combine Germination and Flowering data frames</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0NoZWNrIHRvIG1ha2Ugc3VyZSBmaXRuZXNzIHBsYW50cyBsaW5lIHVwXG5BQ19mbHI1IDwtIG1lcmdlKEFDX2ZscjQsIEFDX0ZpdG5lc3NfMiwgYnkgPSBjKFwiU2VxdWVuY2VcIiwgXCJUcmFuc2VjdFwiLCBcIlNlZ1Bvc1wiLCBcIkdlblwiLCBcIlJlY2lwaWVudFwiKSwgYWxsLnggPSBUUlVFKSAlPiVcbiAgYXJyYW5nZShTZXF1ZW5jZSwgVHJhbnNlY3QsIFNlZ1BvcywgUGxhbnRfSUQpICU+JSBcbiAgbXV0YXRlKEZfcGxhbnQgPSBjYXNlX3doZW4oIWlzLm5hKEZpdF9wbGFudC54KSB+IFRSVUUsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaXMubmEoRml0X3BsYW50LngpIH4gRkFMU0UpKSAlPiUgXG4gIHNlbGVjdCgtYyhGaXRfcGxhbnQueCwgRml0X3BsYW50LnkpKSAjRHJvcCBleHRyYSBmaXRwbGFudCByb3cgYWZ0ZXIgY2hlY2tpbmcgdGhhdCB0aGV5IGFsbCBtYXRjaCAtIHJldGFpbiBtdWx0aXBsZSBEb25vcnMgcGVyIHNlZ21lbnRcbiAgXG4gIFxuIyMjIyMgIFxuI0NoZWNrIHRvIG1ha2Ugc3VyZSBmaXRuZXNzIHBsYW50cyBsaW5lIHVwXG4gICNmaWx0ZXIoIWlzLm5hKEZpdF9wbGFudC54KSkgJT4lXG4gICNtdXRhdGUoRk1hdGNoID0gY2FzZV93aGVuKEZpdF9wbGFudC54ID09IEZpdF9wbGFudC55IH4gVFJVRSxcbiAgIyAgICAgICAgICAgICAgICAgICAgICAgICAgRml0X3BsYW50LnggIT0gRml0X3BsYW50LnkgfiBGQUxTRSkpXG4jXG5gYGAifQ== -->
-<pre class="r"><code>#Check to make sure fitness plants line up
-AC_flr5 &lt;- merge(AC_flr4, AC_Fitness_2, by = c(&quot;Sequence&quot;, &quot;Transect&quot;, &quot;SegPos&quot;, &quot;Gen&quot;, &quot;Recipient&quot;), all.x = TRUE) %&gt;%
-  arrange(Sequence, Transect, SegPos, Plant_ID) %&gt;% 
-  mutate(F_plant = case_when(!is.na(Fit_plant.x) ~ TRUE,
-                               is.na(Fit_plant.x) ~ FALSE)) %&gt;% 
-  select(-c(Fit_plant.x, Fit_plant.y)) #Drop extra fitplant row after checking that they all match - retain multiple Donors per segment
-  
-  
-#####  
-#Check to make sure fitness plants line up
-  #filter(!is.na(Fit_plant.x)) %&gt;%
-  #mutate(FMatch = case_when(Fit_plant.x == Fit_plant.y ~ TRUE,
-  #                          Fit_plant.x != Fit_plant.y ~ FALSE))
-#</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p><strong>Phenology Calculations</strong></p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1NhbWUgYXMgbGFzdCB5ZWFyXG5cbkFDX2Zsb3dlcmluZyA8LSBBQ19mbHI1ICU+JSBcbiAgbXV0YXRlKEZGRCA9IGRvLmNhbGwocG1pbiwgYyhzZWxlY3QoLiwgc3RhcnRzX3dpdGgoJ0ZEXycpKSwgbmEucm0gPSBUUlVFKSksICNGaXJzdCBmbG93ZXJpbmcgZGF0ZVxuICAgICAgICAgZGF5c19zb3cyZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBTb3dfRGF0ZSksICNkYXlzIGZyb20gbGFiIHNvd2luZyB0byBmbG93ZXJpbmdcbiAgICAgICAgIGRheXNfcGxhbnQyZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBQbGFudF9EYXRlKSwgI2RheXMgZnJvbSBmaWVsZCBwbGFudGluZyB0byBmbG93ZXJpbmdcbiAgICAgICAgIExGRCA9IGRvLmNhbGwocG1heCwgYyhzZWxlY3QoLiwgc3RhcnRzX3dpdGgoJ0ZEXycpKSwgbmEucm0gPSBUUlVFKSksICNsYXN0IGZsb3dlcmluZyBkYXRlXG4gICAgICAgICBmbF9kdXJhdGlvbiA9IGFzLm51bWVyaWMoTEZEIC0gRkZEKSkgJT4lICAjRmxvd2VyaW5nIGR1cmF0aW9uXG4gIHNlbGVjdChTZXF1ZW5jZSwgVHJhbnNlY3QsIFNlZ1BvcywgR2VuLCBEb25vciwgUmVjaXBpZW50LCBQbGFudF9JRCwgRl9wbGFudCwgU293X0RhdGUsIFBsYW50X0RhdGUsIEZGRCwgZGF5c19zb3cyZmxvd2VyLCBkYXlzX3BsYW50MmZsb3dlciwgTEZELCBmbF9kdXJhdGlvbiwgRkRfMDE6RkRfMDUsIGV2ZXJ5dGhpbmcoKSlcblxuXG5cbiNURU1QIEZJTEUgLSBkZWxldGUgbGF0ZXJcbndyaXRlX2NzdihBQ19mbG93ZXJpbmcsIGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcIjIwMjNfeWVhcjJfZGF0YVwiLCBcImNvbXBpbGVkX3NoZWV0c18yMDIzXCIsIFwiQUNfcGhlbm9sb2d5XzIwMjMuY3N2XCIpLCBuYSA9IFwiXCIpXG5cbmBgYCJ9 -->
-<pre class="r"><code>#Same as last year
-
-AC_flowering &lt;- AC_flr5 %&gt;% 
-  mutate(FFD = do.call(pmin, c(select(., starts_with(&#39;FD_&#39;)), na.rm = TRUE)), #First flowering date
-         days_sow2flower = as.numeric(FFD - Sow_Date), #days from lab sowing to flowering
-         days_plant2flower = as.numeric(FFD - Plant_Date), #days from field planting to flowering
-         LFD = do.call(pmax, c(select(., starts_with(&#39;FD_&#39;)), na.rm = TRUE)), #last flowering date
-         fl_duration = as.numeric(LFD - FFD)) %&gt;%  #Flowering duration
-  select(Sequence, Transect, SegPos, Gen, Donor, Recipient, Plant_ID, F_plant, Sow_Date, Plant_Date, FFD, days_sow2flower, days_plant2flower, LFD, fl_duration, FD_01:FD_05, everything())
-
-
-
-#TEMP FILE - delete later
-write_csv(AC_flowering, here::here(&quot;data_sheets&quot;, &quot;2023_year2_data&quot;, &quot;compiled_sheets_2023&quot;, &quot;AC_phenology_2023.csv&quot;), na = &quot;&quot;)
-</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p><br></p>
-</div>
-</div>
-<div id="fruit-and-seed-counts" class="section level4">
-<h4>Fruit and Seed counts</h4>
-<p>Fruit &amp; seed counts were recorded on the same spreadsheet, unlike
-last year. Loaded here and checked to make sure all ID info lines up
-with the Fitness data sheet.</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0xvYWQgRnJ1aXQgJiBTZWVkcyBjb3VudCBkYXRhXG5cbkFDX2ZydWl0X3NlZWRzIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcIjIwMjNfeWVhcjJfZGF0YVwiLCBcImZydWl0X3NlZWRfY291bnRzXCIsIFwiQUNfZnJ1aXRzX3NlZWRzXzIwMjMgLSBBQ19mcnVpdF9zZWVkX2NvdW50cy5jc3ZcIiksIHNraXAgPSAxKSAlPiUgXG4gIHJlbmFtZShTZWdQb3MgPSBTZWcpXG5cblxuIyAjUmVtb3ZlIHJvd3Mgd2hlcmUgbm8gZnJ1aXRzIGNvbGxlY3RlZCAob3B0aW9uYWwpXG4jIEFDX2ZydWl0X3NlZWRzXzIgPC0gQUNfZnJ1aXRfc2VlZHMgJT4lIFxuIyAgIGZpbHRlcih0b3RhbF9mcnVpdHMgIT0gMClcblxuXG4jI0NoZWNrIEZpdG5lc3MgcGxhbnRzXG5BQ19tZXJnZV90ZXN0IDwtIG1lcmdlKEFDX0ZpdG5lc3NfMiwgQUNfZnJ1aXRfc2VlZHMsIGJ5ID0gYyhcIlRyYW5zZWN0XCIsIFwiU2VnUG9zXCIsIFwiR2VuXCIsIFwiUmVjaXBpZW50XCIpLCBhbGwueSA9IFRSVUUpICU+JSBcbiAgbXV0YXRlKEZJVFRSVUUgPSBjYXNlX3doZW4oRml0X3BsYW50LnggPT0gRml0X3BsYW50LnkgfiBUUlVFLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGaXRfcGxhbnQueCAhPSBGaXRfcGxhbnQueSB+IEZBTFNFKSlcblxuXG5BQ19mcnVpdF9zZWVkc18zIDwtIG1lcmdlKEFDX0ZpdG5lc3NfMiwgQUNfZnJ1aXRfc2VlZHMsIGJ5ID0gYyhcIlRyYW5zZWN0XCIsIFwiU2VnUG9zXCIsIFwiR2VuXCIsIFwiUmVjaXBpZW50XCIsIFwiRml0X3BsYW50XCIpLCBhbGwueCA9IFRSVUUpICU+JSBcbiAgc2VsZWN0KC1TZXF1ZW5jZS55KSAlPiUgXG4gIHJlbmFtZShTZXF1ZW5jZSA9IFNlcXVlbmNlLngsXG4gICAgICAgICBQbGFudF9JRCA9IEZpdF9wbGFudCkgI1JlbmFtZSBQbGFudCBJRCBmb3IgbWVyZ2luZyBiZWxvdyBBRlRFUiBkb3VibGUtY2hlY2tpbmcgZml0bmVzcyBwbGFudHNcbmBgYCJ9 -->
-<pre class="r"><code>#Load Fruit &amp; Seeds count data
-
-AC_fruit_seeds &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;2023_year2_data&quot;, &quot;fruit_seed_counts&quot;, &quot;AC_fruits_seeds_2023 - AC_fruit_seed_counts.csv&quot;), skip = 1) %&gt;% 
-  rename(SegPos = Seg)
-
-
-# #Remove rows where no fruits collected (optional)
-# AC_fruit_seeds_2 &lt;- AC_fruit_seeds %&gt;% 
-#   filter(total_fruits != 0)
-
-
-##Check Fitness plants
-AC_merge_test &lt;- merge(AC_Fitness_2, AC_fruit_seeds, by = c(&quot;Transect&quot;, &quot;SegPos&quot;, &quot;Gen&quot;, &quot;Recipient&quot;), all.y = TRUE) %&gt;% 
-  mutate(FITTRUE = case_when(Fit_plant.x == Fit_plant.y ~ TRUE,
-                             Fit_plant.x != Fit_plant.y ~ FALSE))
-
-
-AC_fruit_seeds_3 &lt;- merge(AC_Fitness_2, AC_fruit_seeds, by = c(&quot;Transect&quot;, &quot;SegPos&quot;, &quot;Gen&quot;, &quot;Recipient&quot;, &quot;Fit_plant&quot;), all.x = TRUE) %&gt;% 
-  select(-Sequence.y) %&gt;% 
-  rename(Sequence = Sequence.x,
-         Plant_ID = Fit_plant) #Rename Plant ID for merging below AFTER double-checking fitness plants</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Note: Some Segments not represented by any Fitness plants (no plants
-survived) – Fecundity values are currently NA but will be adjusted to 0
-later.</p>
-<p><br></p>
-</div>
-<div id="skeleton-weights" class="section level4">
-<h4>Skeleton Weights</h4>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5za2VsX3dlaWdodHNfQUMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZShcImRhdGFfc2hlZXRzXCIsIFwiMjAyM195ZWFyMl9kYXRhXCIsICBcInNrZWxldG9uX2RhdGFcIiwgXCJTa2VsZXRvbiBEYXRhIDIwMjMgLSBBQyBTa2VsZXRvbnMuY3N2XCIpKSAlPiUgXG4gIHJlbmFtZShwb3NpdGlvbiA9IHNpZGUsIEdlbiA9IDQsIEZpdG5lc3MgPSA3LCBza2VsX3dlaWdodF9tZyA9IDgsIGNvbXBsZXRlX2luY29tcGxldGUgPSA5LCBzZWxlY3RlZCA9IDEwKSAlPiUgXG4gIGFycmFuZ2UoVHJhbnNlY3QsIFNlZ21lbnQsIHBvc2l0aW9uKSAlPiUgXG4gIG11dGF0ZShTZWdQb3MgPSBwYXN0ZShTZWdtZW50LCBwb3NpdGlvbiwgc2VwID0gXCJcIikpICU+JSBcbiAgc2VsZWN0KFRyYW5zZWN0LCBTZWdQb3MsIEdlbiwgIFJlY2lwaWVudCwgUGxhbnRfSUQsIEZpdG5lc3MsIHNrZWxfd2VpZ2h0X21nKSAjY29tcGxldGUvc2VsZWN0ZWQgbm90IGluY2x1ZGVkXG5cbnNrZWxfd2VpZ2h0c19BQ18yIDwtIHNrZWxfd2VpZ2h0c19BQyAlPiUgXG4gICAgbXV0YXRlKFJlY2lwaWVudCA9IGNhc2Vfd2hlbihSZWNpcGllbnQgJWluJSBjKFwiQUNfMTU5XCIsIFwiQUNfMTU5QVwiLCBcIkFDXzE1OUJcIikgfiBcIkFDXzE1OVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBSZWNpcGllbnQpKSAjcmVuYW1lIDE1OSAtIGxldHRlcnMgd2VyZSBhZGRlZCB0byBtYXJrIHBvc2l0aW9uXG5cbiNDaGVjayB0aGF0IElEcyBsaW5lIHVwXG5za2VsY2hlY2sgPC0gbWVyZ2UoQUNfRml0bmVzc18yLCBza2VsX3dlaWdodHNfQUMsIGJ5ID0gYyhcIlRyYW5zZWN0XCIsIFwiU2VnUG9zXCIsIFwiR2VuXCIsIFwiUmVjaXBpZW50XCIpLCBhbGwueCA9IFRSVUUpXG5cblxuI01lcmdlIHdpdGggZnVsbCBkYXRhIHNldFxuI0FDX21lcmdlZF9kZjUgPC0gbWVyZ2UoQUNfbWVyZ2VkX2RmNCwgc2tlbF93ZWlnaHRzX0FDLCBieSA9IGMoXCJUcmFuc2VjdFwiLCBcIlJlY2lwaWVudFwiLCBcIlBsYW50X0lEXCIpLCBhbGwueCA9IFRSVUUpXG5cblxuYGBgIn0= -->
-<pre class="r"><code>
-skel_weights_AC &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;2023_year2_data&quot;,  &quot;skeleton_data&quot;, &quot;Skeleton Data 2023 - AC Skeletons.csv&quot;)) %&gt;% 
-  rename(position = side, Gen = 4, Fitness = 7, skel_weight_mg = 8, complete_incomplete = 9, selected = 10) %&gt;% 
-  arrange(Transect, Segment, position) %&gt;% 
-  mutate(SegPos = paste(Segment, position, sep = &quot;&quot;)) %&gt;% 
-  select(Transect, SegPos, Gen,  Recipient, Plant_ID, Fitness, skel_weight_mg) #complete/selected not included
-
-skel_weights_AC_2 &lt;- skel_weights_AC %&gt;% 
-    mutate(Recipient = case_when(Recipient %in% c(&quot;AC_159&quot;, &quot;AC_159A&quot;, &quot;AC_159B&quot;) ~ &quot;AC_159&quot;,
-                               TRUE ~ Recipient)) #rename 159 - letters were added to mark position
-
-#Check that IDs line up
-skelcheck &lt;- merge(AC_Fitness_2, skel_weights_AC, by = c(&quot;Transect&quot;, &quot;SegPos&quot;, &quot;Gen&quot;, &quot;Recipient&quot;), all.x = TRUE)
-
-
-#Merge with full data set
-#AC_merged_df5 &lt;- merge(AC_merged_df4, skel_weights_AC, by = c(&quot;Transect&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;), all.x = TRUE)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI01lcmdlIGJ5IFJlY2lwaWVudCwgVHJhbnNlY3QsIGFuZCBQbGFudCBJRFxuQUNfR2VybUZsb3dfMSA8LSBsZWZ0X2pvaW4oQUNfZ2VybV9mdWxsLCBmX0FDbG9uZ18zLCBieSA9IGMoXCJSZWNpcGllbnRcIiwgXCJUcmFuc2VjdFwiLCBcIlBsYW50X0lEXCIpKSAlPiUgXG4gIG11dGF0ZShGbF82LjIyID0gYXNfZGF0ZShGbF82LjIyKSxcbiAgICAgICAgIEZsXzQuOSA9IGFzX2RhdGUoRmxfNC45KSxcbiAgICAgICAgIEZsXzQuMjEgPSBhc19kYXRlKEZsXzQuMjEpKSAjY29ycmVjdCB0aGlzIGNvbHVtbiB0byBiZSBjbGFzcyAnZGF0ZSdcblxuYGBgIn0= -->
+<pre class="r"><code>#Merge by Recipient, Transect, and Plant ID
+AC_GermFlow_1 &lt;- left_join(AC_germ_full, f_AClong_3, by = c(&quot;Recipient&quot;, &quot;Transect&quot;, &quot;Plant_ID&quot;)) %&gt;% 
+  mutate(Fl_6.22 = as_date(Fl_6.22),
+         Fl_4.9 = as_date(Fl_4.9),
+         Fl_4.21 = as_date(Fl_4.21)) #correct this column to be class &#39;date&#39;
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p><br></p>
-<p><strong>TEMP MERGED DATA FRAME</strong></p>
-<p>Merge trait data processed thus far</p>
-<p><strong>NOTE</strong> SHOULD THOSE COLUMNS BE PRESENT/ABSENT IN THE
-FINAL DATA SHEET??</p>
+<div id="fitness-plant-data" class="section level4">
+<h4>Fitness Plant data</h4>
+<ul>
+<li>Indicate which plants were fitness plants</li>
+<li>Replicated? Indicate which maternal families were present in the
+main and watering experiment</li>
+</ul>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5BQ19tZXJnZWRfMSA8LSBtZXJnZShBQ19mbG93ZXJpbmcsIHNrZWxfd2VpZ2h0c19BQ18yLCBieSA9IGMoXCJUcmFuc2VjdFwiLCBcIlNlZ1Bvc1wiLCBcIkdlblwiLCBcIlJlY2lwaWVudFwiLCBcIlBsYW50X0lEXCIpLCBhbGwueCA9IFRSVUUpICU+JSBzZWxlY3QoLWMoU2tlbGV0b246Rml0bmVzcykpICU+JSBhcnJhbmdlKFRyYW5zZWN0LCBTZXF1ZW5jZSwgU2VnUG9zKVxuXG5BQ19tZXJnZWRfMiA8LSBtZXJnZShBQ19tZXJnZWRfMSwgQUNfZnJ1aXRfc2VlZHNfMywgYnkgPSBjKFwiU2VxdWVuY2VcIiwgXCJUcmFuc2VjdFwiLCBcIlNlZ1Bvc1wiLCBcIkdlblwiLCBcIlJlY2lwaWVudFwiLCBcIkRvbm9yXCIsIFwiUGxhbnRfSURcIiksIGFsbC54ID0gVFJVRSkgJT4lIHNlbGVjdCgtYyhGRF8wMTpGRF8wNSwgTl9DTE9TRURfZnJ1aXRfRDE6bm90ZXMpKSAlPiUgYXJyYW5nZShUcmFuc2VjdCwgU2VxdWVuY2UsIFNlZ1BvcykgJT4lIFxuICBzZWxlY3QoU2VxdWVuY2UsIFRyYW5zZWN0LCBTZWdQb3MsIEdlbiwgRG9ub3IsIFJlY2lwaWVudCwgUGxhbnRfSUQsIEZfcGxhbnQsIGV2ZXJ5dGhpbmcoKSlcblxuYGBgIn0= -->
-<pre class="r"><code>
-AC_merged_1 &lt;- merge(AC_flowering, skel_weights_AC_2, by = c(&quot;Transect&quot;, &quot;SegPos&quot;, &quot;Gen&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;), all.x = TRUE) %&gt;% select(-c(Skeleton:Fitness)) %&gt;% arrange(Transect, Sequence, SegPos)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQUNfRnBsYW50cyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCJmaXRuZXNzX3BsYW50c183LTIxLTIwMjJcIiwgXCJBQ19GX3BsYW50cy5jc3ZcIiksIGNvbF90eXBlcyA9IGNvbHMoYEFMTCBGaXRuZXNzIFBsYW50c2AgPSBjb2xfY2hhcmFjdGVyKCkpKSAlPiUgI3JldGFpbiBjb21tYXMgZm9yIGNvbHVtbiB3aXRoIG11bHRpcGxlIGZpdG5lc3MgcGxhbnRzXG4gIHJlbmFtZShGX3BsYW50ID0gYFNJTkdMRSBGaXRuZXNzIFBsYW50YCwgRl9tdWx0aSA9IGBBTEwgRml0bmVzcyBQbGFudHNgLCBGX3BsYW50X25vdGVzID0gTk9URVMpICU+JSBcbiAgc2VsZWN0KFRyYW5zZWN0OkZfcGxhbnRfbm90ZXMpXG5cbiNBZGp1c3QgUmVjaXBpZW50IG5hbWVzIHRvIG1hdGNoIHRocmVlLWRpZ2l0IGZvcm1hdFxuQUNfRnBsYW50czIgPC0gQUNfRnBsYW50cyAlPiUgXG4gIG11dGF0ZShSZWNpcGllbnRfbnVtID0gc3ByaW50ZihcIiUwM2RcIiwgKHBhcnNlX251bWJlcihSZWNpcGllbnQpKSkpICU+JSBcbiAgbXV0YXRlKFJlY2lwaWVudCA9IGFzLmNoYXJhY3RlcihzdHJfYyhcIkFDX1wiLCBSZWNpcGllbnRfbnVtKSkpICU+JSBcbiAgc2VsZWN0KC1SZWNpcGllbnRfbnVtKSAlPiUgXG4gIG11dGF0ZShSZXBsaWNhdGVkID0gY2FzZV93aGVuKFJlcGxpY2F0ZWQgPT0gXCJSXCIgfiBcIlJcIixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaXMubmEoUmVwbGljYXRlZCkgfiBcIm5cIikpICNjaGFuZ2UgTkFzIHRvICduJyAobm8pIGZvciBub24tcmVwJ2QgUmVjaXBpZW50IElEc1xuXG5gYGAifQ== -->
+<pre class="r"><code>AC_Fplants &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;fitness_plants_7-21-2022&quot;, &quot;AC_F_plants.csv&quot;), col_types = cols(`ALL Fitness Plants` = col_character())) %&gt;% #retain commas for column with multiple fitness plants
+  rename(F_plant = `SINGLE Fitness Plant`, F_multi = `ALL Fitness Plants`, F_plant_notes = NOTES) %&gt;% 
+  select(Transect:F_plant_notes)
 
-AC_merged_2 &lt;- merge(AC_merged_1, AC_fruit_seeds_3, by = c(&quot;Sequence&quot;, &quot;Transect&quot;, &quot;SegPos&quot;, &quot;Gen&quot;, &quot;Recipient&quot;, &quot;Donor&quot;, &quot;Plant_ID&quot;), all.x = TRUE) %&gt;% select(-c(FD_01:FD_05, N_CLOSED_fruit_D1:notes)) %&gt;% arrange(Transect, Sequence, SegPos) %&gt;% 
-  select(Sequence, Transect, SegPos, Gen, Donor, Recipient, Plant_ID, F_plant, everything())
+#Adjust Recipient names to match three-digit format
+AC_Fplants2 &lt;- AC_Fplants %&gt;% 
+  mutate(Recipient_num = sprintf(&quot;%03d&quot;, (parse_number(Recipient)))) %&gt;% 
+  mutate(Recipient = as.character(str_c(&quot;AC_&quot;, Recipient_num))) %&gt;% 
+  select(-Recipient_num) %&gt;% 
+  mutate(Replicated = case_when(Replicated == &quot;R&quot; ~ &quot;R&quot;,
+                                is.na(Replicated) ~ &quot;n&quot;)) #change NAs to &#39;n&#39; (no) for non-rep&#39;d Recipient IDs
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-</div>
-<div id="seed-weights" class="section level4">
-<h4>Seed Weights</h4>
-<p>[[OLD - UPDATE]]</p>
+<p>Index fitness plants &amp; Replicated (y/n) in germination and
+flowering data</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjpbIiMgUmVhZCBpbiBvbmx5ICMgc2VlZHMgd2VpZ2hlZCBhbmQgdG90YWwgd2VpZ2h0IiwiIyBDYWxjdWxhdGUgbWVhbiB3ZWlnaHQgcGVyIHNlZWQiLCIiLCJBQ19zZWVkbWFzc18xIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcInNlZWRfbWFzc1wiLCBcIkFDX1NlZWRfTWFzc18yMDIzLTAyLTA1LmNzdlwiKSwgc2tpcCA9IDIpIiwiIiwiY29sbmFtZXMoQUNfc2VlZG1hc3NfMSkgPC0gYyhcIlNlcXVlbmNlXCIsIFwiVHJhbnNlY3RcIiwgXCJSZWNpcGllbnRfb2xkXCIsIFwiUmVjaXBpZW50XCIsIFwiUGxhbnRfSURcIiwgXCJjbG9zZWRfZnJ1aXRzX2QxXCIsIFwidmlhYmxlX3NlZWRzX2QxXCIsIFwic2VlZHNfd2VpZ2hlZF9kMVwiLCBcInNlZWRfbWFzc19tZ19kMVwiLCBcImNsb3NlZF9mcnVpdHNfZDJcIiwgXCJ2aWFibGVfc2VlZHNfZDJcIiwgXCJzZWVkc193ZWlnaGVkX2QyXCIsIFwic2VlZF9tYXNzX21nX2QyXCIsIFwiY2xvc2VkX2ZydWl0c19kM1wiLCBcInZpYWJsZV9zZWVkc19kM1wiLCBcInNlZWRzX3dlaWdoZWRfZDNcIiwgXCJzZWVkX21hc3NfbWdfZDNcIiwgXCJjbG9zZWRfZnJ1aXRzX2Q0XCIsIFwidmlhYmxlX3NlZWRzX2Q0XCIsIFwic2VlZHNfd2VpZ2hlZF9kNFwiLCBcInNlZWRfbWFzc19tZ19kNFwiLCBcImNsb3NlZF9mcnVpdHNfZDVcIiwgXCJ2aWFibGVfc2VlZHNfZDVcIiwgXCJzZWVkc193ZWlnaGVkX2Q1XCIsIFwic2VlZF9tYXNzX21nX2Q1XCIpIiwiIiwiIiwiI1Vuc3VyZSBob3cgdG8gYWNjb3VudCBmb3IgbnVtYmVyIG9mIHNlZWRzIHdlaWdoZWQgLSBlYWNoIHN0YXRpc3RpY2FsICd1bml0JyBpcyB0aGUgbWVhbiBzZWVkIHdlaWdodCBjYWxjdWxhdGVkIG9uIGEgZ2l2ZW4gZGF0ZSIsIiIsIkFDX3NlZWRtYXNzXzIgPC0gQUNfc2VlZG1hc3NfMSAlPiUgIiwiICBzZWxlY3QoLXN0YXJ0c193aXRoKGMoXCJjbG9zZWRfZnJ1aXRzX1wiLCBcInZpYWJsZV9zZWVkc19cIikpLCAtUmVjaXBpZW50X29sZCkgJT4lICIsIiAgbXV0YXRlKG1zbV9kMSA9IHNlZWRfbWFzc19tZ19kMS9zZWVkc193ZWlnaGVkX2QxLCIsIiAgICAgICAgIG1zbV9kMiA9IHNlZWRfbWFzc19tZ19kMi9zZWVkc193ZWlnaGVkX2QyLCIsIiAgICAgICAgIG1zbV9kMyA9IHNlZWRfbWFzc19tZ19kMy9zZWVkc193ZWlnaGVkX2QzLCIsIiAgICAgICAgIG1zbV9kNCA9IHNlZWRfbWFzc19tZ19kNC9zZWVkc193ZWlnaGVkX2Q0LCIsIiAgICAgICAgIG1zbV9kNSA9IHNlZWRfbWFzc19tZ19kNS9zZWVkc193ZWlnaGVkX2Q1KSIsIiAgICAgICAgICIsIiIsIkFDX3NlZWRtYXNzXzMgPC0gQUNfc2VlZG1hc3NfMiAlPiUiLCIgIG11dGF0ZShtc21fYWxsID0gcm93TWVhbnMoc2VsZWN0KEFDX3NlZWRtYXNzXzIsIHN0YXJ0c193aXRoKFwibXNtX1wiKSksIG5hLnJtID0gVFJVRSkpICU+JSAiLCIgIHJvd3dpc2UoKSAlPiUgIiwiICBtdXRhdGUoc2RfbXNtX2FsbCA9IHNkKGNfYWNyb3NzKGMobXNtX2QxOm1zbV9kNSkpLCBuYS5ybSA9IFRSVUUpKSIsIiAgICAgICAgICIsIiAgIiwiIyNNZXJnZSB3aXRoIGZydWl0L3NlZWQgY291bnQgZGF0YSBmcmFtZSIsIiIsIkFDX2ZydWl0c2VlZF9jdDMgPC0gbWVyZ2UoQUNfZnJ1aXRzZWVkX2N0MiwgQUNfc2VlZG1hc3NfMywgYnkgPSBjKFwiVHJhbnNlY3RcIiwgXCJTZXF1ZW5jZVwiLCBcIlJlY2lwaWVudFwiLCBcIlBsYW50X0lEXCIpLCBhbGwueCA9IFRSVUUpIiwiI2FsbC54IG1lYW5zIHRoYXQgYW55IGZpdG5lc3MgcGxhbnQgeCBJRCBjb21ib3MgdGhhdCBkb24ndCBtYXRjaCB1cCB3b24ndCBiZSBpbmNsdWRlZC4iXX0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBNZXJnZSB0aGUgdHdvIGRhdGFmcmFtZXMgLSBGIHBsYW50IGRhdGEgd2lsbCBiZSByZXBlYXRlZCB4MTAgXG4jIENyZWF0ZSBuZXcgcm93IChQbGFudCBJRCkgc3BlY2lmaWMgdmFyaWFibGVzIGZvciBtYWluIGFuZCByZXBsaWNhdGVkIGZpdG5lc3MgcGxhbnRzXG5BQ19HZXJtRmxvd18yIDwtIG1lcmdlKEFDX0dlcm1GbG93XzEsIEFDX0ZwbGFudHMyKSAlPiUgXG4gIG11dGF0ZShGaXRQID0gY2FzZV93aGVuKEZfcGxhbnQgPT0gUGxhbnRfSUQgfiBUUlVFLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgRl9wbGFudCAhPSBQbGFudF9JRCB+IEZBTFNFKSkgJT4lIFxuICBtdXRhdGUoUmVwX0ZpdFAgPSBjYXNlX3doZW4oUmVwbGljYXRlZCA9PSBcIlJcIiAmIFBsYW50X0lEICE9IDEgJiBQbGFudF9JRCA9PSBhcy5udW1lcmljKHN0cl9tYXRjaChGX211bHRpLCBhcy5jaGFyYWN0ZXIoUGxhbnRfSUQpKSkgfiBUUlVFLCAjcHJldmVudCBzdHJfbWF0Y2ggZnJvbSBtYXRjaGluZyAnMScgdG8gdGhlIDEgaW4gJzEwJ1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgUmVwbGljYXRlZCA9PSBcIlJcIiAmIFBsYW50X0lEID09IDEgJiBQbGFudF9JRCA9PSBhcy5udW1lcmljKHN0cl9tYXRjaChGX211bHRpLCBcIjEoPyEwKVwiKSkgfiBUUlVFLCAjY2FzZXMgd2hlcmUgUmVwX0ZpdFAgc2hvdWxkID09IDFcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBGQUxTRSkpICU+JSAgI2lmIGVsc2UsIHNldCB2YWx1ZSB0byBGQUxTRVxuICBtdXRhdGUoYW55X0ZpdFAgPSBjYXNlX3doZW4oRml0UCA9PSBUUlVFIHwgUmVwX0ZpdFAgPT0gVFJVRSB+IFRSVUUsICNwbGFudCBpcyBhbnkgZm9ybSBvZiBmaXRuZXNzIHBsYW50XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gRkFMU0UpKVxuXG4jTm90ZSAtIGFkZGVkIGFzLm51bWVyaWMoKSBhcm91bmQgdGhlIHN0cl9tYXRjaCBjYWxscyBhYm92ZSBzaW5jZSBhbiBSIHVwZGF0ZSBjYXVzZWQgdGhlIHByZXZpb3VzIHZlcnNpb24gb2YgdGhpcyBjb2RlIHRvIG5vdCB3b3JrLlxuXG4jVGlkeSB1cFxuQUNfR2VybUZsb3dfMyA8LSBBQ19HZXJtRmxvd18yICU+JSBcbiAgc2VsZWN0KEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIERvbm9yLCBSZWNpcGllbnQsIFJlcGxpY2F0ZWQsIFBsYW50X0lELCBGaXRQLCBSZXBfRml0UCwgYW55X0ZpdFAsIGV2ZXJ5dGhpbmcoKSkgJT4lIFxuICBhcnJhbmdlKFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50LCBQbGFudF9JRClcblxuXG5gYGAifQ== -->
+<pre class="r"><code># Merge the two dataframes - F plant data will be repeated x10 
+# Create new row (Plant ID) specific variables for main and replicated fitness plants
+AC_GermFlow_2 &lt;- merge(AC_GermFlow_1, AC_Fplants2) %&gt;% 
+  mutate(FitP = case_when(F_plant == Plant_ID ~ TRUE,
+                           F_plant != Plant_ID ~ FALSE)) %&gt;% 
+  mutate(Rep_FitP = case_when(Replicated == &quot;R&quot; &amp; Plant_ID != 1 &amp; Plant_ID == as.numeric(str_match(F_multi, as.character(Plant_ID))) ~ TRUE, #prevent str_match from matching &#39;1&#39; to the 1 in &#39;10&#39;
+                              Replicated == &quot;R&quot; &amp; Plant_ID == 1 &amp; Plant_ID == as.numeric(str_match(F_multi, &quot;1(?!0)&quot;)) ~ TRUE, #cases where Rep_FitP should == 1
+                              TRUE ~ FALSE)) %&gt;%  #if else, set value to FALSE
+  mutate(any_FitP = case_when(FitP == TRUE | Rep_FitP == TRUE ~ TRUE, #plant is any form of fitness plant
+                              TRUE ~ FALSE))
+
+#Note - added as.numeric() around the str_match calls above since an R update caused the previous version of this code to not work.
+
+#Tidy up
+AC_GermFlow_3 &lt;- AC_GermFlow_2 %&gt;% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %&gt;% 
+  arrange(Transect, Sequence, Recipient, Plant_ID)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><strong>Fruit and Seed counts</strong></p>
+<p>Due to the structure of excel data sheets, it seems easiest to upload
+fruit and seed count data separately since different spreadsheets were
+used to record each. Info on plants’ Block, Transect, sequence, etc.
+will be pulled from the fruit count sheets (should be up-to-date). For
+sheets intended to record fruit production only, counts of viable seeds,
+mean seed weight, etc. that are copied over are ignored and instead
+pulled straight from sheets where they were first entered later
+double-checked.</p>
+<p>Date added: <strong>Feb 05, 2023</strong></p>
+<p><em>NOTE</em>: All typos believed to have been removed. Individual
+rows of fruit/seed data cross-checked against listed fitness plant and
+look good.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1xuIyBGcnVpdCBjb3VudCBkYXRhXG4jIERhdGEgb24gKndoZW4qIGZydWl0cyB3ZXJlIGNvbGxlY3RlZCB3aWxsIGJlIG9taXR0ZWQgaGVyZTsgb25seSB0aGUgdG90YWwgZnJ1aXQgY291bnRzIChjbG9zZWQsIG9wZW4sIG5vbi1maXRuZXNzKSBhcmUgcmV0YWluZWQgZnJvbSB0aGUgY3N2XG5cbkFDX2ZydWl0cHJvZF8xIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcImZydWl0X3NlZWRfY291bnRzX2ZpbmFsXCIsIFwiQUMtZnJ1aXQtcHJvZHVjdGlvbl8yMDIzLTAyLTA1LmNzdlwiKSwgc2tpcCA9IDIpICU+JSBcbiAgc2VsZWN0KDE6MTEpICNvbWl0IHNvdyBhbmQgZmxvd2VyIGRhdGUsIHNlZWQgY291bnQsIGFuZCBkYXRlLXNwZWNpZmljIGZydWl0IGNvdW50cyBieSBjb2x1bW4gaW5kZXhcblxuQUNfZnJ1aXRwcm9kXzIgPC0gQUNfZnJ1aXRwcm9kXzEgJT4lIFxuICBzZWxlY3QoLWMoUmVjaXBpZW50LCA5KSkgJT4lIFxuICByZW5hbWUoUmVjaXBpZW50ID0gYFJlY2lwaWVudCBmb3IgU29ydGluZ2AsIFBsYW50X0lEID0gYFBsYW50IG51bWJlciBvZiBmaXRuZXNzIHBsYW50ICh3aGVuIGNob3NlbilgLCBjbG9zZWRfZnJ1aXRzX0YgPSBgTnVtYmVyIG9mIGNsb3NlZCBmcnVpdHMgdXNlZCB0byBlc3RpbWF0ZSBtZWFuIHNlZWRzIHBlciBmcnVpdCAoaW5jbHVkZSBtdWx0aXBsZSBkYXRlcylgLCBvcGVuX2ZydWl0c19GID0gYE9wZW4gRnJ1aXRzYCwgZGFtYWdlZF9mcnVpdHNfRiA9IGBFYXRlbiBvciBkYW1hZ2VkIGZydWl0c2AsIHRvdGFsX2ZydWl0c19GID0gYFRvdGFsIG51bWJlciBvZiBhbGwgZnJ1aXRzIHByb2R1Y2VkIGJ5IHRoZSBwbGFudCAob3BlbiArIGNsb3NlZClgLCBub25maXRuZXNzX2ZydWl0cyA9IGBUb3RhbCBudW1iZXIgb2Ygbm9uLWZpdG5lc3MgZnJ1aXRzIGNvbGxlY3RlZCBmcm9tIHNlZ21lbnRgKSBcblxuI05vdGU6IHRvdGFsIGZydWl0cyBzaG91bGQgbm90IGluY2x1ZGUgZWF0ZW4vZGFtYWdlZCBmcnVpdFxuXG5cbiNcbiMgU2VlZCBjb3VudCBkYXRhICh2aWFibGUgc2VlZHMpXG4jIFNpbWlsYXJseSwgb25seSBzZWVkIGNvdW50IGRhdGEgYXJlIHJldGFpbmVkIGZyb20gdGhpcyBzcHJlYWRzaGVldCB0byBtaW5pbWl6ZSBlcnJvcnNcblxuQUNfc2VlZGN0XzEgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZShcImRhdGFfc2hlZXRzXCIsIFwiZnJ1aXRfc2VlZF9jb3VudHNfZmluYWxcIiwgXCJBQy1zZWVkLWNvdW50XzIwMjMtMDItMDUuY3N2XCIpLCBza2lwID0gMikgJT4lIFxuICBzZWxlY3QoLWMoMywgNiwgNywgOToyOSkpICU+JSBcbiAgcmVuYW1lKFJlY2lwaWVudCA9IGBSZWNpcGllbnQgZm9yIFNvcnRpbmdgLCBQbGFudF9JRCA9IGBQbGFudCBudW1iZXIgb2YgZml0bmVzcyBwbGFudCAod2hlbiBjaG9zZW4pYCwgc2VlZF9jdCA9IGBUb3RhbCBudW1iZXIgb2YgdmlhYmxlIHNlZWRzIGNvdW50ZWQgYWNyb3NzIG11bHRpcGxlIGRhdGVzYClcblxuXG5cbiNtZXJnZSBkYXRhXG5BQ19mcnVpdHNlZWRfY3QxIDwtIGxlZnRfam9pbihBQ19mcnVpdHByb2RfMiwgQUNfc2VlZGN0XzEsIGJ5ID0gYyhcIlNlcXVlbmNlXCIsIFwiVHJhbnNlY3RcIiwgXCJSZWNpcGllbnRcIiwgXCJQbGFudF9JRFwiKSlcbiNTZXF1ZW5jZSBkYXRhIGluIGZydWl0IGNvdW50IHNoZWV0cyBtYXkgYmUgdW5yZWxpYWJsZSBmb3Igc29tZSBzaXRlcyAoZS5nLiwgQk8pXG5cblxuIyBzdW1tYXJ5IHZhcmlhYmxlcywgdGlkeWluZyB1cFxuQUNfZnJ1aXRzZWVkX2N0MiA8LSBBQ19mcnVpdHNlZWRfY3QxICU+JSBcbiAgc2VsZWN0KFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50LCBQbGFudF9JRCwgY2xvc2VkX2ZydWl0c19GLCBvcGVuX2ZydWl0c19GLCBkYW1hZ2VkX2ZydWl0c19GLCB0b3RhbF9mcnVpdHNfRiwgbm9uZml0bmVzc19mcnVpdHMsIGV2ZXJ5dGhpbmcoKSkgJT4lIFxuICBhcnJhbmdlKFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50KVxuXG4jIyBOT1RFOiB0b3RhbCBudW1iZXIgb2Ygbm9uLWZpdG5lc3MgZnJ1aXRzIHBlciBzZWdtZW50IG1heSBiZSB1bmRlci1yZXByZXNlbnRlZCBoZXJlIHNpbmNlIG5vdCBhbGwgY291bnRzIHdlcmUgbWF0Y2hlZCB0byBmaXRuZXNzIHBsYW50cyBhbmQgdGhlcmVmb3JlIG1lcmdlZCBpbi5cblxuYGBgIn0= -->
+<pre class="r"><code>#
+# Fruit count data
+# Data on *when* fruits were collected will be omitted here; only the total fruit counts (closed, open, non-fitness) are retained from the csv
+
+AC_fruitprod_1 &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;fruit_seed_counts_final&quot;, &quot;AC-fruit-production_2023-02-05.csv&quot;), skip = 2) %&gt;% 
+  select(1:11) #omit sow and flower date, seed count, and date-specific fruit counts by column index
+
+AC_fruitprod_2 &lt;- AC_fruitprod_1 %&gt;% 
+  select(-c(Recipient, 9)) %&gt;% 
+  rename(Recipient = `Recipient for Sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, closed_fruits_F = `Number of closed fruits used to estimate mean seeds per fruit (include multiple dates)`, open_fruits_F = `Open Fruits`, damaged_fruits_F = `Eaten or damaged fruits`, total_fruits_F = `Total number of all fruits produced by the plant (open + closed)`, nonfitness_fruits = `Total number of non-fitness fruits collected from segment`) 
+
+#Note: total fruits should not include eaten/damaged fruit
+
+
+#
+# Seed count data (viable seeds)
+# Similarly, only seed count data are retained from this spreadsheet to minimize errors
+
+AC_seedct_1 &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;fruit_seed_counts_final&quot;, &quot;AC-seed-count_2023-02-05.csv&quot;), skip = 2) %&gt;% 
+  select(-c(3, 6, 7, 9:29)) %&gt;% 
+  rename(Recipient = `Recipient for Sorting`, Plant_ID = `Plant number of fitness plant (when chosen)`, seed_ct = `Total number of viable seeds counted across multiple dates`)
+
+
+
+#merge data
+AC_fruitseed_ct1 &lt;- left_join(AC_fruitprod_2, AC_seedct_1, by = c(&quot;Sequence&quot;, &quot;Transect&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;))
+#Sequence data in fruit count sheets may be unreliable for some sites (e.g., BO)
+
+
+# summary variables, tidying up
+AC_fruitseed_ct2 &lt;- AC_fruitseed_ct1 %&gt;% 
+  select(Transect, Sequence, Recipient, Plant_ID, closed_fruits_F, open_fruits_F, damaged_fruits_F, total_fruits_F, nonfitness_fruits, everything()) %&gt;% 
+  arrange(Transect, Sequence, Recipient)
+
+## NOTE: total number of non-fitness fruits per segment may be under-represented here since not all counts were matched to fitness plants and therefore merged in.
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><strong>Seed Weights</strong></p>
+<p><em>Note</em>: Prior to csv reading: - header row for seed weights
+was moved down to line up with other headers</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBSZWFkIGluIG9ubHkgIyBzZWVkcyB3ZWlnaGVkIGFuZCB0b3RhbCB3ZWlnaHRcbiMgQ2FsY3VsYXRlIG1lYW4gd2VpZ2h0IHBlciBzZWVkXG5cbkFDX3NlZWRtYXNzXzEgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZShcImRhdGFfc2hlZXRzXCIsIFwic2VlZF9tYXNzXCIsIFwiQUNfU2VlZF9NYXNzXzIwMjMtMDItMDUuY3N2XCIpLCBza2lwID0gMilcbmBgYCJ9 -->
 <pre class="r"><code># Read in only # seeds weighed and total weight
 # Calculate mean weight per seed
 
-AC_seedmass_1 &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;seed_mass&quot;, &quot;AC_Seed_Mass_2023-02-05.csv&quot;), skip = 2)
-
-colnames(AC_seedmass_1) &lt;- c(&quot;Sequence&quot;, &quot;Transect&quot;, &quot;Recipient_old&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;, &quot;closed_fruits_d1&quot;, &quot;viable_seeds_d1&quot;, &quot;seeds_weighed_d1&quot;, &quot;seed_mass_mg_d1&quot;, &quot;closed_fruits_d2&quot;, &quot;viable_seeds_d2&quot;, &quot;seeds_weighed_d2&quot;, &quot;seed_mass_mg_d2&quot;, &quot;closed_fruits_d3&quot;, &quot;viable_seeds_d3&quot;, &quot;seeds_weighed_d3&quot;, &quot;seed_mass_mg_d3&quot;, &quot;closed_fruits_d4&quot;, &quot;viable_seeds_d4&quot;, &quot;seeds_weighed_d4&quot;, &quot;seed_mass_mg_d4&quot;, &quot;closed_fruits_d5&quot;, &quot;viable_seeds_d5&quot;, &quot;seeds_weighed_d5&quot;, &quot;seed_mass_mg_d5&quot;)
+AC_seedmass_1 &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;seed_mass&quot;, &quot;AC_Seed_Mass_2023-02-05.csv&quot;), skip = 2)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTmV3IG5hbWVzOlJvd3M6IDU0NiBDb2x1bW5zOiAyNeKUgOKUgCBDb2x1bW4gc3BlY2lmaWNhdGlvbiDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIBcbkRlbGltaXRlcjogXCIsXCJcbmNociAgKDQpOiBUcmFuc2VjdCwgUmVjaXBpZW50LCBSZWNpcGllbnQgZm9yIFNvcnRpbmcsIC4uLjE0XG5kYmwgKDIxKTogU2VxdWVuY2UsIFBsYW50IG51bWJlciBvZiBmaXRuZXNzIHBsYW50ICh3aGVuIGNob3NlbiksIC4uLjYsIC4uLjcsIC4uLjgsIC4uLjksIC4uLjEwLCAuLi4xMSwgLi4uMTIsIC4uLjEuLi5cbuKEuSBVc2UgYHNwZWMoKWAgdG8gcmV0cmlldmUgdGhlIGZ1bGwgY29sdW1uIHNwZWNpZmljYXRpb24gZm9yIHRoaXMgZGF0YS5cbuKEuSBTcGVjaWZ5IHRoZSBjb2x1bW4gdHlwZXMgb3Igc2V0IGBzaG93X2NvbF90eXBlcyA9IEZBTFNFYCB0byBxdWlldCB0aGlzIG1lc3NhZ2UuXG4ifQ== -->
+<pre><code>New names:Rows: 546 Columns: 25── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: &quot;,&quot;
+chr  (4): Transect, Recipient, Recipient for Sorting, ...14
+dbl (21): Sequence, Plant number of fitness plant (when chosen), ...6, ...7, ...8, ...9, ...10, ...11, ...12, ...1...
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29sbmFtZXMoQUNfc2VlZG1hc3NfMSkgPC0gYyhcIlNlcXVlbmNlXCIsIFwiVHJhbnNlY3RcIiwgXCJSZWNpcGllbnRfb2xkXCIsIFwiUmVjaXBpZW50XCIsIFwiUGxhbnRfSURcIiwgXCJjbG9zZWRfZnJ1aXRzX2QxXCIsIFwidmlhYmxlX3NlZWRzX2QxXCIsIFwic2VlZHNfd2VpZ2hlZF9kMVwiLCBcInNlZWRfbWFzc19tZ19kMVwiLCBcImNsb3NlZF9mcnVpdHNfZDJcIiwgXCJ2aWFibGVfc2VlZHNfZDJcIiwgXCJzZWVkc193ZWlnaGVkX2QyXCIsIFwic2VlZF9tYXNzX21nX2QyXCIsIFwiY2xvc2VkX2ZydWl0c19kM1wiLCBcInZpYWJsZV9zZWVkc19kM1wiLCBcInNlZWRzX3dlaWdoZWRfZDNcIiwgXCJzZWVkX21hc3NfbWdfZDNcIiwgXCJjbG9zZWRfZnJ1aXRzX2Q0XCIsIFwidmlhYmxlX3NlZWRzX2Q0XCIsIFwic2VlZHNfd2VpZ2hlZF9kNFwiLCBcInNlZWRfbWFzc19tZ19kNFwiLCBcImNsb3NlZF9mcnVpdHNfZDVcIiwgXCJ2aWFibGVfc2VlZHNfZDVcIiwgXCJzZWVkc193ZWlnaGVkX2Q1XCIsIFwic2VlZF9tYXNzX21nX2Q1XCIpXG5cblxuI1Vuc3VyZSBob3cgdG8gYWNjb3VudCBmb3IgbnVtYmVyIG9mIHNlZWRzIHdlaWdoZWQgLSBlYWNoIHN0YXRpc3RpY2FsICd1bml0JyBpcyB0aGUgbWVhbiBzZWVkIHdlaWdodCBjYWxjdWxhdGVkIG9uIGEgZ2l2ZW4gZGF0ZVxuXG5BQ19zZWVkbWFzc18yIDwtIEFDX3NlZWRtYXNzXzEgJT4lIFxuICBzZWxlY3QoLXN0YXJ0c193aXRoKGMoXCJjbG9zZWRfZnJ1aXRzX1wiLCBcInZpYWJsZV9zZWVkc19cIikpLCAtUmVjaXBpZW50X29sZCkgJT4lIFxuICBtdXRhdGUobXNtX2QxID0gc2VlZF9tYXNzX21nX2QxL3NlZWRzX3dlaWdoZWRfZDEsXG4gICAgICAgICBtc21fZDIgPSBzZWVkX21hc3NfbWdfZDIvc2VlZHNfd2VpZ2hlZF9kMixcbiAgICAgICAgIG1zbV9kMyA9IHNlZWRfbWFzc19tZ19kMy9zZWVkc193ZWlnaGVkX2QzLFxuICAgICAgICAgbXNtX2Q0ID0gc2VlZF9tYXNzX21nX2Q0L3NlZWRzX3dlaWdoZWRfZDQsXG4gICAgICAgICBtc21fZDUgPSBzZWVkX21hc3NfbWdfZDUvc2VlZHNfd2VpZ2hlZF9kNSlcbiAgICAgICAgIFxuXG5BQ19zZWVkbWFzc18zIDwtIEFDX3NlZWRtYXNzXzIgJT4lXG4gIG11dGF0ZShtc21fYWxsID0gcm93TWVhbnMoc2VsZWN0KEFDX3NlZWRtYXNzXzIsIHN0YXJ0c193aXRoKFwibXNtX1wiKSksIG5hLnJtID0gVFJVRSkpICU+JSBcbiAgcm93d2lzZSgpICU+JSBcbiAgbXV0YXRlKHNkX21zbV9hbGwgPSBzZChjX2Fjcm9zcyhjKG1zbV9kMTptc21fZDUpKSwgbmEucm0gPSBUUlVFKSlcbiAgICAgICAgIFxuICBcbiMjTWVyZ2Ugd2l0aCBmcnVpdC9zZWVkIGNvdW50IGRhdGEgZnJhbWVcblxuQUNfZnJ1aXRzZWVkX2N0MyA8LSBtZXJnZShBQ19mcnVpdHNlZWRfY3QyLCBBQ19zZWVkbWFzc18zLCBieSA9IGMoXCJUcmFuc2VjdFwiLCBcIlNlcXVlbmNlXCIsIFwiUmVjaXBpZW50XCIsIFwiUGxhbnRfSURcIiksIGFsbC54ID0gVFJVRSlcbiNhbGwueCBtZWFucyB0aGF0IGFueSBmaXRuZXNzIHBsYW50IHggSUQgY29tYm9zIHRoYXQgZG9uJ3QgbWF0Y2ggdXAgd29uJ3QgYmUgaW5jbHVkZWQuXG5cbmBgYCJ9 -->
+<pre class="r"><code>colnames(AC_seedmass_1) &lt;- c(&quot;Sequence&quot;, &quot;Transect&quot;, &quot;Recipient_old&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;, &quot;closed_fruits_d1&quot;, &quot;viable_seeds_d1&quot;, &quot;seeds_weighed_d1&quot;, &quot;seed_mass_mg_d1&quot;, &quot;closed_fruits_d2&quot;, &quot;viable_seeds_d2&quot;, &quot;seeds_weighed_d2&quot;, &quot;seed_mass_mg_d2&quot;, &quot;closed_fruits_d3&quot;, &quot;viable_seeds_d3&quot;, &quot;seeds_weighed_d3&quot;, &quot;seed_mass_mg_d3&quot;, &quot;closed_fruits_d4&quot;, &quot;viable_seeds_d4&quot;, &quot;seeds_weighed_d4&quot;, &quot;seed_mass_mg_d4&quot;, &quot;closed_fruits_d5&quot;, &quot;viable_seeds_d5&quot;, &quot;seeds_weighed_d5&quot;, &quot;seed_mass_mg_d5&quot;)
 
 
 #Unsure how to account for number of seeds weighed - each statistical &#39;unit&#39; is the mean seed weight calculated on a given date
@@ -2044,22 +2182,119 @@ AC_seedmass_3 &lt;- AC_seedmass_2 %&gt;%
 ##Merge with fruit/seed count data frame
 
 AC_fruitseed_ct3 &lt;- merge(AC_fruitseed_ct2, AC_seedmass_3, by = c(&quot;Transect&quot;, &quot;Sequence&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;), all.x = TRUE)
-#all.x means that any fitness plant x ID combos that don&#39;t match up won&#39;t be included.</code></pre>
+#all.x means that any fitness plant x ID combos that don&#39;t match up won&#39;t be included.
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-</div>
-<div id="corolla-measurements" class="section level4">
-<h4>Corolla measurements</h4>
-<p>[[OLD - UPDATE]]</p>
+<p>Merge everything together:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjpbImNvcm9sbGFzX0FDIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcImNvcm9sbGFfbWVhc3VyZXNcIiwgXCJjb3JvbGxhbWVhc3VyZXNfQUNfMjAyMy0wMi0yOC5jc3ZcIikpICU+JSBzZWxlY3QoMSwgMywgNCwgNiwgNywgOSwgMTEpICU+JSAiLCIgIHJlbmFtZShwaG90b19kYXRlID0gNCwgY29yb2xsYV9kaWFtX21tID0gNSwgY29yb2xsYV9hcmVhX21tMiA9IDYsIG5vdGVzX2Nvcm9sbGEgPSA3KSAlPiUgIiwiICBmaWx0ZXIoIWdyZXBsKFwiUkVNT1ZFXCIsIG5vdGVzX2Nvcm9sbGEpKSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggXCJSRU1PVkVcIiIsIiIsImNvcm9sbGFzX0FDMiA8LSBjb3JvbGxhc19BQyAlPiUgIiwiICBmaWx0ZXIoIWlzLm5hKGNvcm9sbGFfZGlhbV9tbSkpICU+JSAiLCIgIG11dGF0ZShwaG90b19kYXRlID0gYXNfZGF0ZShwaG90b19kYXRlKSkgJT4lICNjb3JyZWN0IG1pc3NpbmcgZGF0ZXMgbWFudWFsbHkiLCIgIG11dGF0ZShSZWNpcGllbnRfbnVtID0gc3ByaW50ZihcIiUwM2RcIiwgKHBhcnNlX251bWJlcihSZWNpcGllbnQpKSkpICU+JSAjRml4IFJlY2lwaWVudCBuYW1lcyIsIiAgbXV0YXRlKFJlY2lwaWVudCA9IGFzLmNoYXJhY3RlcihzdHJfYyhcIkFDX1wiLCBSZWNpcGllbnRfbnVtKSkpICU+JSAiLCIgIHNlbGVjdCgtUmVjaXBpZW50X251bSkgJT4lICIsIiAgYXJyYW5nZShUcmFuc2VjdCwgUmVjaXBpZW50LCBQbGFudF9JRCwgcGhvdG9fZGF0ZSkgJT4lICIsIiAgZGlzdGluY3QoVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQsIC5rZWVwX2FsbCA9IFRSVUUpICNLZWVwIG9ubHkgdGhlIGVhcmxpZXN0IHBob3RvIGRhdGUgZGF0YSBmb3IgZHVwbGljYXRlcyIsIiNPbmx5IGFib3V0IDYgZHVwbGljYXRlIG9ic2VydmF0aW9ucyByZW1vdmVkIiwiIiwiIiwiIyMgTWVyZ2Ugd2l0aCBtYWluIGRhdGEgIiwiQUNfbWVyZ2VkX2RmNSA8LSBtZXJnZShBQ19tZXJnZWRfZGY0LCBjb3JvbGxhc19BQzIsIGJ5ID0gYyhcIlRyYW5zZWN0XCIsIFwiUmVjaXBpZW50XCIsIFwiUGxhbnRfSURcIiksIGFsbC54ID0gVFJVRSkiXX0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQUNfbWVyZ2VkX2RmMSA8LSBtZXJnZShBQ19HZXJtRmxvd18zLCBBQ19mcnVpdHNlZWRfY3QzLCBieSA9IGMoXCJUcmFuc2VjdFwiLCBcIlNlcXVlbmNlXCIsIFwiUmVjaXBpZW50XCIsIFwiUGxhbnRfSURcIiksIGFsbC54ID0gVFJVRSkgJT4lIFxuICBzZWxlY3QoQmxvY2ssIFRyYW5zZWN0LCBTZXF1ZW5jZSwgRG9ub3IsIFJlY2lwaWVudCwgUmVwbGljYXRlZCwgUGxhbnRfSUQsIEZpdFAsIFJlcF9GaXRQLCBhbnlfRml0UCwgZXZlcnl0aGluZygpKSAlPiUgXG4gIGFycmFuZ2UoQmxvY2ssIFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50LCBQbGFudF9JRCkgJT4lIFxuICBtdXRhdGUoY2xvc2VkX2ZydWl0c19GID0gYXMubnVtZXJpYyhjbG9zZWRfZnJ1aXRzX0YpLFxuICAgICAgICAgdG90YWxfZnJ1aXRzX0YgPSBhcy5udW1lcmljKHRvdGFsX2ZydWl0c19GKSkgI2NvcnJlY3QgY291bnRzIHRvIG51bWVyaWMgdmFsdWVzXG5cblxuI0NvcnJlY3QgRnJ1aXQgTkFzIChidXQgbm90IHNlZWQgY291bnQgTkFzKSB0byAwcyBpbiBjYXNlcyB3aGVyZSBubyBmcnVpdCBkYXRhIHdhcyBlbnRlcmVkIChmaXRuZXNzIGFuZCBub24tZml0bmVzcyBwbGFudHMpOlxuXG5BQ19tZXJnZWRfZGYyIDwtIEFDX21lcmdlZF9kZjEgJT4lIFxuICBtdXRhdGUoY2xvc2VkX2ZydWl0c19GID0gcmVwbGFjZV9uYShjbG9zZWRfZnJ1aXRzX0YsIDApLFxuICAgICAgICAgdG90YWxfZnJ1aXRzX0YgPSByZXBsYWNlX25hKHRvdGFsX2ZydWl0c19GLCAwKSxcbiAgICAgICAgIHNlZWRfY3QgPSByZXBsYWNlX25hKHNlZWRfY3QsIDApKSAjUkVQTEFDRSBBTEwgc2VlZF9jdCBOQXMgd2l0aCAwIFxuXG5cbiNDYWxjdWxhdGUgbWVhbiBzZWVkcyBwZXIgZnJ1aXQsIHRvdGFsX2VzdF9zZWVkIHByb2RcbiNUaGUgZm9sbG93aW5nIGNvZGUgbGluZXMgdGhhdCBhcmUgY29tbWVudGVkIG91dCBoYXZlIGJlZW4gbW92ZWQgdG8gYSBsb3dlciBjaHVua1xuI3ZhcmlhYmxlcyByZW5hbWVkIGxhdGVyXG5BQ19tZXJnZWRfZGYzIDwtIEFDX21lcmdlZF9kZjIgJT4lIFxuICBtdXRhdGUobWVhbl9zZWVkc19wZXJfZnJ1aXQgPSBzZWVkX2N0L2Nsb3NlZF9mcnVpdHNfRixcbiAgICAgICAgIHRvdGFsX2VzdF9zZWVkX3Byb2R1Y3Rpb24gPSBtZWFuX3NlZWRzX3Blcl9mcnVpdCp0b3RhbF9mcnVpdHNfRikgIyU+JSBcbiAgIyBtdXRhdGUobWVhbl9zZWVkc19wZXJfZnJ1aXQgPSBjYXNlX3doZW4oYW55X0ZpdFAgPT0gVFJVRSAmIGNsb3NlZF9mcnVpdHNfRiA9PSAwIH4gMCwgXG4gICMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBtZWFuX3NlZWRzX3Blcl9mcnVpdCkpICU+JSAgI2Vsc2UsIG9yaWdpbmFsIHZhbHVlXG4gICMgbXV0YXRlKHRvdGFsX2VzdF9zZWVkX3Byb2R1Y3Rpb24gPSBjYXNlX3doZW4oYW55X0ZpdFAgPT0gVFJVRSAmIG1lYW5fc2VlZHNfcGVyX2ZydWl0ID09IDAgfiAwLFxuICAjICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiB0b3RhbF9lc3Rfc2VlZF9wcm9kdWN0aW9uKSlcbiNUaGVzZSB2YWx1ZXMgd2lsbCBiZSAwIHdoZW4gc2VlZF9jdCB3YXMgcmVjb3JkZWQgYXMgTkEgKG5vIGNsb3NlZCBmcnVpdHMgb3Igbm9uLWZpdG5lc3MgcGxhbnQpIG9yIDBcblxuXG4jI2NvbW1lbnRlZCBvdXQgY29kZSB3YXMgZmlyc3QgdXNlZCB0byByZXBsYWNlIE5BcyB3aXRoIDBzIHdoZW4gZml0bmVzcyBwbGFudHMgaGFkIGNsb3NlZCBmcnVpdHMgZm9yIG1lYW4gc2VlZHMgJiBlc3Qgc2VlZCBwcm9kdWN0aW9uXG5cblxuI21lYW4gc2VlZHMgcGVyIGZydWl0IGFuZCB0b3RhbCBlc3QgZnJ1aXQgcHJvZHVjdGlvbiBoYXZlIE5Bcy9OYU5zIGZvciB3aGVuIHRoZXJlIHdlcmUgbm8gY2xvc2VkIGZydWl0cy9zZWVkcyAoZml0bmVzcyBwbGFudHMgb25seSlcblxuYGBgIn0= -->
+<pre class="r"><code>AC_merged_df1 &lt;- merge(AC_GermFlow_3, AC_fruitseed_ct3, by = c(&quot;Transect&quot;, &quot;Sequence&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;), all.x = TRUE) %&gt;% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, everything()) %&gt;% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID) %&gt;% 
+  mutate(closed_fruits_F = as.numeric(closed_fruits_F),
+         total_fruits_F = as.numeric(total_fruits_F)) #correct counts to numeric values
+
+
+#Correct Fruit NAs (but not seed count NAs) to 0s in cases where no fruit data was entered (fitness and non-fitness plants):
+
+AC_merged_df2 &lt;- AC_merged_df1 %&gt;% 
+  mutate(closed_fruits_F = replace_na(closed_fruits_F, 0),
+         total_fruits_F = replace_na(total_fruits_F, 0),
+         seed_ct = replace_na(seed_ct, 0)) #REPLACE ALL seed_ct NAs with 0 
+
+
+#Calculate mean seeds per fruit, total_est_seed prod
+#The following code lines that are commented out have been moved to a lower chunk
+#variables renamed later
+AC_merged_df3 &lt;- AC_merged_df2 %&gt;% 
+  mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
+         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) #%&gt;% 
+  # mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE &amp; closed_fruits_F == 0 ~ 0, 
+  #                                         TRUE ~ mean_seeds_per_fruit)) %&gt;%  #else, original value
+  # mutate(total_est_seed_production = case_when(any_FitP == TRUE &amp; mean_seeds_per_fruit == 0 ~ 0,
+  #                                              TRUE ~ total_est_seed_production))
+#These values will be 0 when seed_ct was recorded as NA (no closed fruits or non-fitness plant) or 0
+
+
+##commented out code was first used to replace NAs with 0s when fitness plants had closed fruits for mean seeds &amp; est seed production
+
+
+#mean seeds per fruit and total est fruit production have NAs/NaNs for when there were no closed fruits/seeds (fitness plants only)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><strong>Skeleton Weights &amp; Corolla area and diameter</strong></p>
+<p>Load and merge-in these data sheets</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyNcbnNrZWxfd2VpZ2h0c19BQyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCJza2VsZXRvbl9hbmRfc3RlbV9kYXRhXCIsIFwic2tlbGV0b25fd2VpZ2h0c19BQ18yMDIzXzAzXzAxLmNzdlwiKSkgJT4lIHNlbGVjdCgtVW5pdHMsIC03LCAtOCkgJT4lIFxuICBmaWx0ZXIoIWdyZXBsKFwiRVhDTFVERVwiLCBOb3RlcykpICU+JSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggXCJFeGNsdWRlXCJcbiAgcmVuYW1lKFBsYW50X0lEID0gYEZpdG5lc3MgUGxhbnRfSURgLCBBR19iaW9tYXNzX21nID0gYFNrZWxldG9uIFdlaWdodHMgKG1nKWApXG5gYGAifQ== -->
+<pre class="r"><code>##
+skel_weights_AC &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;skeleton_and_stem_data&quot;, &quot;skeleton_weights_AC_2023_03_01.csv&quot;)) %&gt;% select(-Units, -7, -8) %&gt;% 
+  filter(!grepl(&quot;EXCLUDE&quot;, Notes)) %&gt;% ## Filter out notes with &quot;Exclude&quot;
+  rename(Plant_ID = `Fitness Plant_ID`, AG_biomass_mg = `Skeleton Weights (mg)`)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTmV3IG5hbWVzOlJvd3M6IDQ0MSBDb2x1bW5zOiA44pSA4pSAIENvbHVtbiBzcGVjaWZpY2F0aW9uIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgFxuRGVsaW1pdGVyOiBcIixcIlxuY2hyICg1KTogUmVjaXBpZW50LCBVbml0cywgTm90ZXMsIENob3NlbiBmb3IgUHVsdmVyaXphdGlvbj8gKHkvbiksIC4uLjhcbmRibCAoMyk6IFRyYW5zZWN0LCBGaXRuZXNzIFBsYW50X0lELCBTa2VsZXRvbiBXZWlnaHRzIChtZylcbuKEuSBVc2UgYHNwZWMoKWAgdG8gcmV0cmlldmUgdGhlIGZ1bGwgY29sdW1uIHNwZWNpZmljYXRpb24gZm9yIHRoaXMgZGF0YS5cbuKEuSBTcGVjaWZ5IHRoZSBjb2x1bW4gdHlwZXMgb3Igc2V0IGBzaG93X2NvbF90eXBlcyA9IEZBTFNFYCB0byBxdWlldCB0aGlzIG1lc3NhZ2UuXG4ifQ== -->
+<pre><code>New names:Rows: 441 Columns: 8── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: &quot;,&quot;
+chr (5): Recipient, Units, Notes, Chosen for Pulverization? (y/n), ...8
+dbl (3): Transect, Fitness Plant_ID, Skeleton Weights (mg)
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1dhdGVyZWQgcG9pbnRzXG5za2VsX3dlaWdodHNfQUNfVyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCJza2VsZXRvbl9hbmRfc3RlbV9kYXRhXCIsIFwic2tlbGV0b25zX3dhdGVyZWRfQUNfMjAyM18wMl8wOC5jc3ZcIikpICU+JSBcbiAgc2VsZWN0KC1gVW5pdHMgKG1nKWApICU+JSBcbiAgcmVuYW1lKFBsYW50X0lEID0gYFBsYW50IElEYCwgQUdfYmlvbWFzc19tZyA9IGBTa2VsZXRvbiBXZWlnaHRzYClcbmBgYCJ9 -->
+<pre class="r"><code>#Watered points
+skel_weights_AC_W &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;skeleton_and_stem_data&quot;, &quot;skeletons_watered_AC_2023_02_08.csv&quot;)) %&gt;% 
+  select(-`Units (mg)`) %&gt;% 
+  rename(Plant_ID = `Plant ID`, AG_biomass_mg = `Skeleton Weights`)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUm93czogMTIzIENvbHVtbnM6IDbilIDilIAgQ29sdW1uIHNwZWNpZmljYXRpb24g4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAXG5EZWxpbWl0ZXI6IFwiLFwiXG5jaHIgKDMpOiBUcmFuc2VjdCwgUmVjaXBpZW50LCBOb3Rlc1xuZGJsICgyKTogUGxhbnQgSUQsIFNrZWxldG9uIFdlaWdodHNcbmxnbCAoMSk6IFVuaXRzIChtZylcbuKEuSBVc2UgYHNwZWMoKWAgdG8gcmV0cmlldmUgdGhlIGZ1bGwgY29sdW1uIHNwZWNpZmljYXRpb24gZm9yIHRoaXMgZGF0YS5cbuKEuSBTcGVjaWZ5IHRoZSBjb2x1bW4gdHlwZXMgb3Igc2V0IGBzaG93X2NvbF90eXBlcyA9IEZBTFNFYCB0byBxdWlldCB0aGlzIG1lc3NhZ2UuXG4ifQ== -->
+<pre><code>Rows: 123 Columns: 6── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: &quot;,&quot;
+chr (3): Transect, Recipient, Notes
+dbl (2): Plant ID, Skeleton Weights
+lgl (1): Units (mg)
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0NvbWJpbmVcbnNrZWxfd2VpZ2h0c19hbGwgPC0gcmJpbmQoc2tlbF93ZWlnaHRzX0FDLCBza2VsX3dlaWdodHNfQUNfVykgJT4lIFxuICBzZWxlY3QoLU5vdGVzKSAlPiUgXG4gIGZpbHRlcighaXMubmEoQUdfYmlvbWFzc19tZykpXG5cblxuI01lcmdlIHdpdGggZnVsbCBkYXRhIHNldFxuQUNfbWVyZ2VkX2RmNCA8LSBtZXJnZShBQ19tZXJnZWRfZGYzLCBza2VsX3dlaWdodHNfYWxsLCBieSA9IGMoXCJUcmFuc2VjdFwiLCBcIlJlY2lwaWVudFwiLCBcIlBsYW50X0lEXCIpLCBhbGwueCA9IFRSVUUpXG5cblxuYGBgIn0= -->
+<pre class="r"><code>#Combine
+skel_weights_all &lt;- rbind(skel_weights_AC, skel_weights_AC_W) %&gt;% 
+  select(-Notes) %&gt;% 
+  filter(!is.na(AG_biomass_mg))
+
+
+#Merge with full data set
+AC_merged_df4 &lt;- merge(AC_merged_df3, skel_weights_all, by = c(&quot;Transect&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;), all.x = TRUE)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Corolla measurements</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29yb2xsYXNfQUMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZShcImRhdGFfc2hlZXRzXCIsIFwiY29yb2xsYV9tZWFzdXJlc1wiLCBcImNvcm9sbGFtZWFzdXJlc19BQ18yMDIzLTAyLTI4LmNzdlwiKSkgJT4lIHNlbGVjdCgxLCAzLCA0LCA2LCA3LCA5LCAxMSkgJT4lIFxuICByZW5hbWUocGhvdG9fZGF0ZSA9IDQsIGNvcm9sbGFfZGlhbV9tbSA9IDUsIGNvcm9sbGFfYXJlYV9tbTIgPSA2LCBub3Rlc19jb3JvbGxhID0gNykgJT4lIFxuICBmaWx0ZXIoIWdyZXBsKFwiUkVNT1ZFXCIsIG5vdGVzX2Nvcm9sbGEpKSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggXCJSRU1PVkVcIlxuYGBgIn0= -->
 <pre class="r"><code>corollas_AC &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;corolla_measures&quot;, &quot;corollameasures_AC_2023-02-28.csv&quot;)) %&gt;% select(1, 3, 4, 6, 7, 9, 11) %&gt;% 
   rename(photo_date = 4, corolla_diam_mm = 5, corolla_area_mm2 = 6, notes_corolla = 7) %&gt;% 
-  filter(!grepl(&quot;REMOVE&quot;, notes_corolla)) ## Filter out notes with &quot;REMOVE&quot;
-
-corollas_AC2 &lt;- corollas_AC %&gt;% 
+  filter(!grepl(&quot;REMOVE&quot;, notes_corolla)) ## Filter out notes with &quot;REMOVE&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTmV3IG5hbWVzOldhcm5pbmc6IE9uZSBvciBtb3JlIHBhcnNpbmcgaXNzdWVzLCBjYWxsIGBwcm9ibGVtcygpYCBvbiB5b3VyIGRhdGEgZnJhbWUgZm9yIGRldGFpbHMsIGUuZy46XG4gIGRhdCA8LSB2cm9vbSguLi4pXG4gIHByb2JsZW1zKGRhdClSb3dzOiAzNTUyIENvbHVtbnM6IDI14pSA4pSAIENvbHVtbiBzcGVjaWZpY2F0aW9uIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgFxuRGVsaW1pdGVyOiBcIixcIlxuY2hyICAoMTIpOiBUcmFuc2VjdCwgUmVjaXBpZW50LCBVUkwgb2YgSlBFRyBvZiBGbG93ZXIsIFVuaXRzLi4uOCwgVW5pdHMuLi4xMCwgbWVhc3VyZW1lbnQgbm90ZXMsIFVSTCBvZiBKUEVHIG9mIFJvLi4uXG5kYmwgICgxMCk6IFNlcXVlbmNlLCBQbGFudF9JRCwgQ29yb2xsYSBEaWFtZXRlciwgQ29yb2xsYSBBcmVhLCAocGFzdGUgaGVyZSksIC4uLjE1LCAuLi4xNiwgLi4uMTcsIC4uLjE4LCAuLi4xOVxubGdsICAgKDIpOiAuLi4yNCwgQXJlYSBvZiBzbWFsbGVzdCBwb2x5Z29uIHRoYXQgZW5jbG9zZXMgbGVhZiB0aXBzIGFuZCByb3NldHRlIChtbV4yKVxuZGF0ZSAgKDEpOiBEYXRlX0Zsb3dlcl9QaG90b19UYWtlbl95ci1tby1kYXlcbuKEuSBVc2UgYHNwZWMoKWAgdG8gcmV0cmlldmUgdGhlIGZ1bGwgY29sdW1uIHNwZWNpZmljYXRpb24gZm9yIHRoaXMgZGF0YS5cbuKEuSBTcGVjaWZ5IHRoZSBjb2x1bW4gdHlwZXMgb3Igc2V0IGBzaG93X2NvbF90eXBlcyA9IEZBTFNFYCB0byBxdWlldCB0aGlzIG1lc3NhZ2UuXG4ifQ== -->
+<pre><code>New names:Warning: One or more parsing issues, call `problems()` on your data frame for details, e.g.:
+  dat &lt;- vroom(...)
+  problems(dat)Rows: 3552 Columns: 25── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: &quot;,&quot;
+chr  (12): Transect, Recipient, URL of JPEG of Flower, Units...8, Units...10, measurement notes, URL of JPEG of Ro...
+dbl  (10): Sequence, Plant_ID, Corolla Diameter, Corolla Area, (paste here), ...15, ...16, ...17, ...18, ...19
+lgl   (2): ...24, Area of smallest polygon that encloses leaf tips and rosette (mm^2)
+date  (1): Date_Flower_Photo_Taken_yr-mo-day
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY29yb2xsYXNfQUMyIDwtIGNvcm9sbGFzX0FDICU+JSBcbiAgZmlsdGVyKCFpcy5uYShjb3JvbGxhX2RpYW1fbW0pKSAlPiUgXG4gIG11dGF0ZShwaG90b19kYXRlID0gYXNfZGF0ZShwaG90b19kYXRlKSkgJT4lICNjb3JyZWN0IG1pc3NpbmcgZGF0ZXMgbWFudWFsbHlcbiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKFwiJTAzZFwiLCAocGFyc2VfbnVtYmVyKFJlY2lwaWVudCkpKSkgJT4lICNGaXggUmVjaXBpZW50IG5hbWVzXG4gIG11dGF0ZShSZWNpcGllbnQgPSBhcy5jaGFyYWN0ZXIoc3RyX2MoXCJBQ19cIiwgUmVjaXBpZW50X251bSkpKSAlPiUgXG4gIHNlbGVjdCgtUmVjaXBpZW50X251bSkgJT4lIFxuICBhcnJhbmdlKFRyYW5zZWN0LCBSZWNpcGllbnQsIFBsYW50X0lELCBwaG90b19kYXRlKSAlPiUgXG4gIGRpc3RpbmN0KFRyYW5zZWN0LCBSZWNpcGllbnQsIFBsYW50X0lELCAua2VlcF9hbGwgPSBUUlVFKSAjS2VlcCBvbmx5IHRoZSBlYXJsaWVzdCBwaG90byBkYXRlIGRhdGEgZm9yIGR1cGxpY2F0ZXNcbiNPbmx5IGFib3V0IDYgZHVwbGljYXRlIG9ic2VydmF0aW9ucyByZW1vdmVkXG5cblxuIyMgTWVyZ2Ugd2l0aCBtYWluIGRhdGEgXG5BQ19tZXJnZWRfZGY1IDwtIG1lcmdlKEFDX21lcmdlZF9kZjQsIGNvcm9sbGFzX0FDMiwgYnkgPSBjKFwiVHJhbnNlY3RcIiwgXCJSZWNpcGllbnRcIiwgXCJQbGFudF9JRFwiKSwgYWxsLnggPSBUUlVFKVxuICBcbmBgYCJ9 -->
+<pre class="r"><code>corollas_AC2 &lt;- corollas_AC %&gt;% 
   filter(!is.na(corolla_diam_mm)) %&gt;% 
   mutate(photo_date = as_date(photo_date)) %&gt;% #correct missing dates manually
   mutate(Recipient_num = sprintf(&quot;%03d&quot;, (parse_number(Recipient)))) %&gt;% #Fix Recipient names
@@ -2071,27 +2306,34 @@ corollas_AC2 &lt;- corollas_AC %&gt;%
 
 
 ## Merge with main data 
-AC_merged_df5 &lt;- merge(AC_merged_df4, corollas_AC2, by = c(&quot;Transect&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;), all.x = TRUE)</code></pre>
+AC_merged_df5 &lt;- merge(AC_merged_df4, corollas_AC2, by = c(&quot;Transect&quot;, &quot;Recipient&quot;, &quot;Plant_ID&quot;), all.x = TRUE)
+  </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p><br></p>
-</div>
-<div id="leaf-area-weight" class="section level4">
-<h4>Leaf Area &amp; Weight</h4>
-<p>[[OLD - UPDATE]]</p>
+<p><strong>Leaf Area &amp; Weight</strong></p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjpbImxlYXZlc19BQyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCJsZWFmX2RhdGFcIiwgXCJBQ19TTEFfZGF0YV8yMDIzMDUyMi5jc3ZcIikpICU+JSAiLCIgIHJlbmFtZShsZWFmX2FyZWFfbW0yID0gNSwgbGVhZmFyZWFfbm90ZXMgPSA2LCBsZWFmX2RyeXdlaWdodF9tZyA9IDcsIGxlYWZ3ZWlnaHRfbm90ZXMgPSA4KSAlPiUgIiwiICBmaWx0ZXIoIWdyZXBsKFwiRVhDTFVERVwiLCBsZWFmYXJlYV9ub3RlcykpICU+JSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggXCJFWENMVURFXCIiLCIgIGZpbHRlcighaXMubmEobGVhZl9hcmVhX21tMikpICU+JSAjZXhsY3VkZSBOQSBsZWFmIGFyZWFzPyIsIiAgbXV0YXRlKGxlYWZfYXJlYV9tbTIgPSBhcy5udW1lcmljKGxlYWZfYXJlYV9tbTIpKSIsIiIsIiIsIiIsIiNFbGltaW5hdGUgRHVwbGljYXRlcyIsIiNSYW5kb21seSBzZWxlY3Qgb25lIGxlYWYgdG8gYmUgYW5hbHl6ZWQgcGVyIHRyYW5zZWN0IHggbWF0ZXJuYWwgSUQgY29tYm8iLCJsZWF2ZXNfQUNfZHVwZWQgPC0gbGVhdmVzX0FDICU+JSAiLCIgIG11dGF0ZShkdXBlZDEgPSBkdXBsaWNhdGVkKHNlbGVjdChsZWF2ZXNfQUMsIGMoQmxvY2ssIFRyYW5zZWN0LCBSZWNpcGllbnQpKSksIiwiICAgICAgICAgZHVwZWQyID0gZHVwbGljYXRlZChzZWxlY3QobGVhdmVzX0FDLCBjKEJsb2NrLCBUcmFuc2VjdCwgUmVjaXBpZW50KSksIGZyb21MYXN0ID0gVFJVRSksIiwiICAgICAgICAgZHVwZWQgPSBjYXNlX3doZW4oZHVwZWQxfGR1cGVkMiA9PSBUUlVFIH4gVFJVRSwiLCIgICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gRkFMU0UpKSAlPiUgI2hpZ2hsaWdodCBhbGwgZHVwbGljYXRlcyIsIiAgc2VsZWN0KC1jKGR1cGVkMSwgZHVwZWQyKSkiLCIjIFNlbGVjdCBkdXBlIHJvd3MgdGhhdCBoYXZlIGJvdGggYXJlYSBhbmQgd2VpZ2h0ISIsIiIsIiIsIiNUaGlzIHNlZW1zIHRvIHdvcmsgdGhlIGJlc3QhIiwibGVhdmVzX0FDX3VuaXF1ZSA8LSBsZWF2ZXNfQUNfZHVwZWQgJT4lICIsIiAgZ3JvdXBfYnkoQmxvY2ssIFRyYW5zZWN0LCBSZWNpcGllbnQpICU+JSAiLCIgIHNsaWNlX3NhbXBsZShuID0gMSkgJT4lICAjc2VsZWN0IGEgcmFuZG9tIHJvdyBmb3IgZWFjaCAgY29tYm8gb2YgYmxvY2ssIHRyYW5zZWN0LCByZWNpcGllbnQiLCIgIHNlbGVjdCgtYyhkdXBlZCwgUGxhbnRfSUQpKSAlPiUgICNEb24ndCBuZWVkIHBsYW50IElELi4udGhlc2Ugd2VyZSBhbGwgbm9uLWZpdG5lc3MgcGxhbnRzIiwiICBtdXRhdGUoU0xBID0gbGVhZl9hcmVhX21tMiAvIGxlYWZfZHJ5d2VpZ2h0X21nLCIsIiAgICAgICAgIExNQSA9IDEgLyBTTEEpIiwiIiwiIiwiI01lcmdlIGluIHRvIG1haW4gZGF0YSAiLCIiLCJBQ19tZXJnZWRfZGY2IDwtIG1lcmdlKEFDX21lcmdlZF9kZjUsIGxlYXZlc19BQ191bmlxdWUsIGJ5ID0gYyhcIkJsb2NrXCIsIFwiVHJhbnNlY3RcIiwgXCJSZWNpcGllbnRcIiksIGFsbC54ID0gVFJVRSkgI3JlcGxpY2F0ZXMgbGVhZiBhcmVhICYgd2VpZ2h0IGZvciBldmVyeSBwbGFudCBvZiBhIHRyYW5zZWN0IHJlY2lwaWVudCBjb21ibyJdfQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVhdmVzX0FDIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcImxlYWZfZGF0YVwiLCBcIkFDX1NMQV9kYXRhXzIwMjMwNTIyLmNzdlwiKSkgJT4lIFxuICByZW5hbWUobGVhZl9hcmVhX21tMiA9IDUsIGxlYWZhcmVhX25vdGVzID0gNiwgbGVhZl9kcnl3ZWlnaHRfbWcgPSA3LCBsZWFmd2VpZ2h0X25vdGVzID0gOCkgJT4lIFxuICBmaWx0ZXIoIWdyZXBsKFwiRVhDTFVERVwiLCBsZWFmYXJlYV9ub3RlcykpICU+JSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggXCJFWENMVURFXCJcbiAgZmlsdGVyKCFpcy5uYShsZWFmX2FyZWFfbW0yKSkgJT4lICNleGxjdWRlIE5BIGxlYWYgYXJlYXM/XG4gIG11dGF0ZShsZWFmX2FyZWFfbW0yID0gYXMubnVtZXJpYyhsZWFmX2FyZWFfbW0yKSlcbmBgYCJ9 -->
 <pre class="r"><code>leaves_AC &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;leaf_data&quot;, &quot;AC_SLA_data_20230522.csv&quot;)) %&gt;% 
   rename(leaf_area_mm2 = 5, leafarea_notes = 6, leaf_dryweight_mg = 7, leafweight_notes = 8) %&gt;% 
   filter(!grepl(&quot;EXCLUDE&quot;, leafarea_notes)) %&gt;% ## Filter out notes with &quot;EXCLUDE&quot;
   filter(!is.na(leaf_area_mm2)) %&gt;% #exlcude NA leaf areas?
-  mutate(leaf_area_mm2 = as.numeric(leaf_area_mm2))
-
-
-
-#Eliminate Duplicates
+  mutate(leaf_area_mm2 = as.numeric(leaf_area_mm2))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUm93czogMzk5IENvbHVtbnM6IDjilIDilIAgQ29sdW1uIHNwZWNpZmljYXRpb24g4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAXG5EZWxpbWl0ZXI6IFwiLFwiXG5jaHIgKDcpOiBCbG9jaywgVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQsIExlYWYgYXJlYSAobW1eMiksIEFyZWEgbm90ZXMsIFdlaWdodCBub3Rlc1xuZGJsICgxKTogRHJ5IHdlaWdodCAobWcpXG7ihLkgVXNlIGBzcGVjKClgIHRvIHJldHJpZXZlIHRoZSBmdWxsIGNvbHVtbiBzcGVjaWZpY2F0aW9uIGZvciB0aGlzIGRhdGEuXG7ihLkgU3BlY2lmeSB0aGUgY29sdW1uIHR5cGVzIG9yIHNldCBgc2hvd19jb2xfdHlwZXMgPSBGQUxTRWAgdG8gcXVpZXQgdGhpcyBtZXNzYWdlLldhcm5pbmc6IFRoZXJlIHdhcyAxIHdhcm5pbmcgaW4gYG11dGF0ZSgpYC5cbuKEuSBJbiBhcmd1bWVudDogYGxlYWZfYXJlYV9tbTIgPSBhcy5udW1lcmljKGxlYWZfYXJlYV9tbTIpYC5cbkNhdXNlZCBieSB3YXJuaW5nOlxuISBOQXMgaW50cm9kdWNlZCBieSBjb2VyY2lvblxuIn0= -->
+<pre><code>Rows: 399 Columns: 8── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────
+Delimiter: &quot;,&quot;
+chr (7): Block, Transect, Recipient, Plant_ID, Leaf area (mm^2), Area notes, Weight notes
+dbl (1): Dry weight (mg)
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.Warning: There was 1 warning in `mutate()`.
+ℹ In argument: `leaf_area_mm2 = as.numeric(leaf_area_mm2)`.
+Caused by warning:
+! NAs introduced by coercion</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0VsaW1pbmF0ZSBEdXBsaWNhdGVzXG4jUmFuZG9tbHkgc2VsZWN0IG9uZSBsZWFmIHRvIGJlIGFuYWx5emVkIHBlciB0cmFuc2VjdCB4IG1hdGVybmFsIElEIGNvbWJvXG5sZWF2ZXNfQUNfZHVwZWQgPC0gbGVhdmVzX0FDICU+JSBcbiAgbXV0YXRlKGR1cGVkMSA9IGR1cGxpY2F0ZWQoc2VsZWN0KGxlYXZlc19BQywgYyhCbG9jaywgVHJhbnNlY3QsIFJlY2lwaWVudCkpKSxcbiAgICAgICAgIGR1cGVkMiA9IGR1cGxpY2F0ZWQoc2VsZWN0KGxlYXZlc19BQywgYyhCbG9jaywgVHJhbnNlY3QsIFJlY2lwaWVudCkpLCBmcm9tTGFzdCA9IFRSVUUpLFxuICAgICAgICAgZHVwZWQgPSBjYXNlX3doZW4oZHVwZWQxfGR1cGVkMiA9PSBUUlVFIH4gVFJVRSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBGQUxTRSkpICU+JSAjaGlnaGxpZ2h0IGFsbCBkdXBsaWNhdGVzXG4gIHNlbGVjdCgtYyhkdXBlZDEsIGR1cGVkMikpXG4jIFNlbGVjdCBkdXBlIHJvd3MgdGhhdCBoYXZlIGJvdGggYXJlYSBhbmQgd2VpZ2h0IVxuXG5cbiNUaGlzIHNlZW1zIHRvIHdvcmsgdGhlIGJlc3QhXG5sZWF2ZXNfQUNfdW5pcXVlIDwtIGxlYXZlc19BQ19kdXBlZCAlPiUgXG4gIGdyb3VwX2J5KEJsb2NrLCBUcmFuc2VjdCwgUmVjaXBpZW50KSAlPiUgXG4gIHNsaWNlX3NhbXBsZShuID0gMSkgJT4lICAjc2VsZWN0IGEgcmFuZG9tIHJvdyBmb3IgZWFjaCAgY29tYm8gb2YgYmxvY2ssIHRyYW5zZWN0LCByZWNpcGllbnRcbiAgc2VsZWN0KC1jKGR1cGVkLCBQbGFudF9JRCkpICU+JSAgI0Rvbid0IG5lZWQgcGxhbnQgSUQuLi50aGVzZSB3ZXJlIGFsbCBub24tZml0bmVzcyBwbGFudHNcbiAgbXV0YXRlKFNMQSA9IGxlYWZfYXJlYV9tbTIgLyBsZWFmX2RyeXdlaWdodF9tZyxcbiAgICAgICAgIExNQSA9IDEgLyBTTEEpXG5cblxuI01lcmdlIGluIHRvIG1haW4gZGF0YSBcblxuQUNfbWVyZ2VkX2RmNiA8LSBtZXJnZShBQ19tZXJnZWRfZGY1LCBsZWF2ZXNfQUNfdW5pcXVlLCBieSA9IGMoXCJCbG9ja1wiLCBcIlRyYW5zZWN0XCIsIFwiUmVjaXBpZW50XCIpLCBhbGwueCA9IFRSVUUpICNyZXBsaWNhdGVzIGxlYWYgYXJlYSAmIHdlaWdodCBmb3IgZXZlcnkgcGxhbnQgb2YgYSB0cmFuc2VjdCByZWNpcGllbnQgY29tYm9cblxuXG5cbmBgYCJ9 -->
+<pre class="r"><code>#Eliminate Duplicates
 #Randomly select one leaf to be analyzed per transect x maternal ID combo
 leaves_AC_duped &lt;- leaves_AC %&gt;% 
   mutate(duped1 = duplicated(select(leaves_AC, c(Block, Transect, Recipient))),
@@ -2113,49 +2355,12 @@ leaves_AC_unique &lt;- leaves_AC_duped %&gt;%
 
 #Merge in to main data 
 
-AC_merged_df6 &lt;- merge(AC_merged_df5, leaves_AC_unique, by = c(&quot;Block&quot;, &quot;Transect&quot;, &quot;Recipient&quot;), all.x = TRUE) #replicates leaf area &amp; weight for every plant of a transect recipient combo</code></pre>
+AC_merged_df6 &lt;- merge(AC_merged_df5, leaves_AC_unique, by = c(&quot;Block&quot;, &quot;Transect&quot;, &quot;Recipient&quot;), all.x = TRUE) #replicates leaf area &amp; weight for every plant of a transect recipient combo
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p><br></p>
-</div>
-<div id="d13c-data" class="section level4">
-<h4>d13C data</h4>
-<p>[[OLD-UPDATE]]</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjpbIk5lbW9fZDEzQyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKFwiZGF0YV9zaGVldHNcIiwgXCJpc290b3BlX2RhdGFcIiwgXCJOZW1vcGhpbGFfZDEzQ18yMzA1MTEuY3N2XCIpKSAlPiUgIiwiICBzZWxlY3QoMSwyLDMsNSw2LDkpICU+JSAiLCIgIHJlbmFtZShzYW1wbGVfSUQgPSAxLCBkMTNDID0gMiwgdG90YWxDX3VnID0gMywgc2FtcGxlX3dlaWdodF9tZyA9IDYpIiwiI1NhdmUgYXMgVVRGLTggZmlsZSBmcm9tIGV4Y2VsIHRvIGF2b2lkIGltcG9ydCBlcnJvciIsIiIsIiNmaWx0ZXIgdG8gQUMgc2FtcGxlcyIsIk5lbW9fZDEzQ19BQyA8LSBOZW1vX2QxM0MgJT4lICIsIiAgZmlsdGVyKGdyZXBsKCdBQycsIHNhbXBsZV9JRCkpIiwiIiwiI3VucmF2ZWwgc2FtcGxlIElEIiwiTmVtb19kMTNfQUMyIDwtIE5lbW9fZDEzQ19BQyAlPiUgIiwiICBtdXRhdGUoUmVjaXBpZW50ID0gZ3N1YignLScsICdfJywgc3Vic3RyKHNhbXBsZV9JRCwgMSwgNikpLCAiLCIgICAgICAgICBUcmFuc2VjdCA9IGFzLm51bWVyaWMoc3RyX3JlbW92ZShzdWJzdHIoc2FtcGxlX0lELCA4LCAxMCksIFwiXjArXCIpKSwiLCIgICAgICAgICBQbGFudF9JRCA9IGFzLm51bWVyaWMoc3Vic3RyKHNhbXBsZV9JRCwgMTIsMTMpKSkgJT4lICIsIiAgc2VsZWN0KFRyYW5zZWN0LCBSZWNpcGllbnQsIFBsYW50X0lELCBkMTNDLCBzYW1wbGVfd2VpZ2h0X21nLCAtUGxhbnRfSUQpIiwiIiwiI01lcmdlIiwiIiwiQUNfbWVyZ2VkX2RmX2ZsMyA8LSBtZXJnZShBQ19tZXJnZWRfZGZfZmwyLCBOZW1vX2QxM19BQzIsIGJ5ID0gYyhcIlJlY2lwaWVudFwiLCBcIlRyYW5zZWN0XCIpLCBhbGwueCA9IFRSVUUpIiwiI01lcmdlIGJ5IFJlY2lwaWVudCBhbmQgVHJhbnNlY3Qgb25seTogZ2Vub3R5cGUtd2lkZSBlc3RpbWF0ZXMgb2YgZDEzQyBzaW5jZSBzb21lIHBsYW50cyB3ZXJlIE5GIiwiIiwiIiwiIiwiI2NoZWNrIHRoYXQgYWxsIGRhdGEgbWFkZSBpdCAoMjY2IG9icykiLCIjdGVzdGRmIDwtIEFDX21lcmdlZF9kZl9mbDMgJT4lICIsIiMgIGZpbHRlcighaXMubmEoZDEzQykpIl19 -->
-<pre class="r"><code>Nemo_d13C &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;isotope_data&quot;, &quot;Nemophila_d13C_230511.csv&quot;)) %&gt;% 
-  select(1,2,3,5,6,9) %&gt;% 
-  rename(sample_ID = 1, d13C = 2, totalC_ug = 3, sample_weight_mg = 6)
-#Save as UTF-8 file from excel to avoid import error
-
-#filter to AC samples
-Nemo_d13C_AC &lt;- Nemo_d13C %&gt;% 
-  filter(grepl(&#39;AC&#39;, sample_ID))
-
-#unravel sample ID
-Nemo_d13_AC2 &lt;- Nemo_d13C_AC %&gt;% 
-  mutate(Recipient = gsub(&#39;-&#39;, &#39;_&#39;, substr(sample_ID, 1, 6)), 
-         Transect = as.numeric(str_remove(substr(sample_ID, 8, 10), &quot;^0+&quot;)),
-         Plant_ID = as.numeric(substr(sample_ID, 12,13))) %&gt;% 
-  select(Transect, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
-
-#Merge
-
-AC_merged_df_fl3 &lt;- merge(AC_merged_df_fl2, Nemo_d13_AC2, by = c(&quot;Recipient&quot;, &quot;Transect&quot;), all.x = TRUE)
-#Merge by Recipient and Transect only: genotype-wide estimates of d13C since some plants were NF
-
-
-
-#check that all data made it (266 obs)
-#testdf &lt;- AC_merged_df_fl3 %&gt;% 
-#  filter(!is.na(d13C))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p><br></p>
-<p><strong>Error checks</strong></p>
+<p>Error checks:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjpbIiMjQ2hlY2sgZm9yIG1pc21hdGNoZWQgKGZpdG5lc3MpIHBsYW50cyIsIiIsIkFDX0VjaGVjazEgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgIiwiICBmaWx0ZXIoYW55X0ZpdFAgPT0gRkFMU0UgJiB0b3RhbF9mcnVpdHNfRiAhPSAwKSAjZG8gdGhlIHNhbWUgZm9yIHNlZWQgY291bnQsIHVzaW5nIGA+YCBhbmQgYCE9YCIsIiIsIkFDX0VjaGVjazIgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgIiwiICBmaWx0ZXIoYW55X0ZpdFAgPT0gVFJVRSkgJT4lICIsIiAgZmlsdGVyKGNsb3NlZF9mcnVpdHNfRiA9PSAwICYgc2VlZF9jdCA+IDApIiwiIiwiIyNOQS9OYU4vSW5mbyB2YWx1ZXMgZm9yIG1lYW4gc2VlZHMvZXN0IHNlZWQgcHJvZCIsIkFDX0VjaGVjazMgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgIiwiICBmaWx0ZXIoYW55X0ZpdFAgPT0gVFJVRSAmIGlzLm5hKGFzLm51bWVyaWMobWVhbl9zZWVkc19wZXJfZnJ1aXQpKSkiLCIiLCJBQ19FY2hlY2s0IDwtIEFDX21lcmdlZF9kZjUgJT4lICIsIiAgZmlsdGVyKGFueV9GaXRQID09IFRSVUUgJiAhaXMuZmluaXRlKG1lYW5fc2VlZHNfcGVyX2ZydWl0KSkiLCIiLCIiLCIjIyBDaGVjayBmb3IgTkEgc2VlZCBjb3VudHMgZm9yIGZpdG5lc3MgcGxhbnRzICh3aGVuIGZydWl0IHByb2R1Y3Rpb24gPiAwKSIsIiNXaWxsIGJlIGVtcHR5IHdoZW4gc2VlZF9jdCBOQXMgYXJlIHJlcGxhY2VkIHdpdGggMCIsIkFDX0VjaGVjazUgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgIiwiICBmaWx0ZXIoYW55X0ZpdFAgPT0gVFJVRSAmIGlzLm5hKHNlZWRfY3QpKSIsIiMjTkFzIHByZXNlbnQgaGVyZSBiZWZvcmUgc2V0dGluZyBzZWVkX2N0IE5BcyB0byAwIHdlcmUgZnJvbSBmaXRuZXNzIHBsYW50cyB0aGF0IGhhZCAwIGNsb3NlZCBmcnVpdCIsIiIsIiIsIiNTZWVkIG1hc3MiLCJBQ19FY2hlY2s1IDwtIEFDX21lcmdlZF9kZjUgJT4lICIsIiAgZmlsdGVyKGFueV9GaXRQID09IEZBTFNFICYgIWlzLm5hKG1zbV9hbGwpKSJdfQ== -->
@@ -2192,78 +2397,180 @@ AC_Echeck5 &lt;- AC_merged_df5 %&gt;%
 <p><br></p>
 </div>
 </div>
-<div id="trait-calculations" class="section level3">
-<h3>Trait calculations</h3>
-<p>Some trait calculations performed in `Fitness_and_EDA.Rmd.</p>
-<p>Fruits were only collected from fitness plants, so only survival to
-flowering is calcualted for all plants (fitness and non-fitness).</p>
-<p>UPDATE with latest merged df…</p>
+<div id="trait-calculations" class="section level2">
+<h2>Trait calculations</h2>
+<p>Some trait calculations performed in
+<code>Fitness_and_EDA.Rmd</code></p>
+<div id="phenology" class="section level4">
+<h4>Phenology</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jU3Vydml2YWwgbWVhc3VyZXNcbiNBZGRlZCB2YXIgZm9yIGNsb3NlZCBmcnVpdCBwcm9kdWNlZFxuI3JlbmFtZWQgXCJzdXJ2aXZhbFwiIHRvIHNlZWQgcHJvZHVjdGlvblxuI1xuQUNfbWVyZ2VkX2RmMSA8LSBBQ19tZXJnZWRfMiAlPiUgXG4gIG11dGF0ZShzdXJ2X3RvX2Zsb3dlciA9IGNhc2Vfd2hlbighaXMubmEoRkZEKSB+IDEsICNwbGFudHMgdGhhdCBzdXJ2aXZlZCB0byBmbG93ZXJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpcy5uYShGRkQpIH4gMCksXG4gICAgICAgICBzdXJ2X3RvX2ZydWl0cHJvZCA9IGNhc2Vfd2hlbihGX3BsYW50ID09IFRSVUUgJiB0b3RhbF9mcnVpdHMgPiAwIH4gMSwgI3BsYW50cyB0aGF0IHN1cnZpdmVkIHRvIHByb2R1Y2UgZnJ1aXRcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEZfcGxhbnQgPT0gVFJVRSAmIHRvdGFsX2ZydWl0cyA9PSAwIH4gMCksXG4gICAgICAgICBwcm9kX2Nsb3NlZF9mcnVpdHMgPSBjYXNlX3doZW4oRl9wbGFudCA9PSBUUlVFICYgQUxMX2Nsb3NlZF9mcnVpdCA+IDAgfiAxLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGX3BsYW50ID09IFRSVUUgJiBBTExfY2xvc2VkX2ZydWl0ID09IDAgfiAwKSxcbiAgICAgICAgIHByb2RfZmlsbGVkX3NlZWRzID0gY2FzZV93aGVuKEZfcGxhbnQgPT0gVFJVRSAmIEFMTF9maWxsZWRfc2VlZHMgPiAwIH4gMSwgI3BsYW50cyBwcm9kdWNlZCBmaWxsZWQgc2VlZHNcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRl9wbGFudCA9PSBUUlVFICYgQUxMX2ZpbGxlZF9zZWVkcyA9PSAwIH4gMCkpICNlbHNlID0gMFxuXG4jTk9URVxuI0FkanVzdGluZyBmZWN1bmRpdHkvZml0bmVzczpcbiNUaGUgaXNzdWUgb2YgaG93IHRvIGhhbmRsZSAwcyB2cyBtaXNzaW5nIGRhdGEgaW4gb3JkZXIgdG8gYWNjdXJhdGVseSBjYWxjdWxhdGUgZml0bmVzcyBoYXMgbGVkIHVzIHRvIGFwcGx5IHRoZSBmb2xsb3dpbmcgY29ycmVjdGlvbnM6XG4jIEVzdGltYXRlZCBmZWN1bmRpdHkgKHNlZWRzIHBlciBmcnVpdCB4IHRvdGFsIGZydWl0cykgc2hvdWxkIGJlIHNldCB0byAqMCogd2hlbiBjbG9zZWQgZnJ1aXRzID49IDEgJiBmaWxsZWQgc2VlZHMgPT0gMDsgd2hlbiBjbG9zZWQgZnJ1aXRzID09IG9wZW4gZnJ1aXRzID09IDBcbiNTZXQgZmVjdW5kaXR5IHRvIE5BIHdoZW4gY2xvc2VkID0gMCAmIG9wZW4gPj0gMVxuXG4jTWVhbiBzZWVkcyBwZXIgZnJ1aXQgbGVmdCBhcy1pcyAoTkEgd2hlbiBubyBjbG9zZWQgZnJ1aXRzIGNvbGxlY3RlZClcbiAgICAgICAgIFxuQUNfbWVyZ2VkX2RmMiA8LSBBQ19tZXJnZWRfZGYxICU+JSBcbiAgcmVuYW1lKG1lYW5fc2VlZHNfcGVyX2ZydWl0ID0gYXZnX3NlZWRzX3Blcl9mcnVpdCkgJT4lIFxuICBtdXRhdGUoYWNyb3NzKGMoZXN0X2ZlY3VuZGl0eSwgbWVhbl9zZWVkc19wZXJfZnJ1aXQpLCB+IGFzLm51bWVyaWMobmFfaWYoLiwgXCIjRElWLzAhXCIpKSkpICU+JSAjQ29udmVydHMgdG8gTkFcbiAgbXV0YXRlKGVzdF9mZWN1bmRpdHkgPSBjYXNlX3doZW4oRl9wbGFudCA9PSBUUlVFICYgQUxMX2Nsb3NlZF9mcnVpdCA9PSAwICYgQUxMX29wZW5fZnJ1aXQgPT0gMCB+IDAsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEZfcGxhbnQgPT0gVFJVRSAmIEFMTF9jbG9zZWRfZnJ1aXQgPT0gMCAmIEFMTF9vcGVuX2ZydWl0ID49IDEgfiBOQSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRl9wbGFudCA9PSBUUlVFICYgIWlzLm5hKGVzdF9mZWN1bmRpdHkpIH4gIGVzdF9mZWN1bmRpdHkpKVxuXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQUNfbWVyZ2VkX2RmX2ZsIDwtIEFDX21lcmdlZF9kZjYgJT4lIFxuICBtdXRhdGUoRkZEID0gZG8uY2FsbChwbWluLCBjKHNlbGVjdCguLCBzdGFydHNfd2l0aCgnRmxfJykpLCBuYS5ybSA9IFRSVUUpKSwgI0ZpcnN0IGZsb3dlcmluZyBkYXRlXG4gICAgICAgICBkYXlzX2dlcm0yZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBHZXJtX0RhdGUpLCAjZGF5cyBmcm9tIGdlcm1pbmF0aW9uIHRvIGZsb3dlcmluZ1xuICAgICAgICAgZGF5c19zb3cyZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBTb3dfRGF0ZSksICNkYXlzIGZyb20gbGFiIHNvd2luZyB0byBmbG93ZXJpbmdcbiAgICAgICAgIGRheXNfcGxhbnQyZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBQbGFudF9EYXRlKSwgI2RheXMgZnJvbSBmaWVsZCBwbGFudGluZyB0byBmbG93ZXJpbmdcbiAgICAgICAgIExGRCA9IGRvLmNhbGwocG1heCwgYyhzZWxlY3QoLiwgc3RhcnRzX3dpdGgoJ0ZsXycpKSwgbmEucm0gPSBUUlVFKSksICNsYXN0IGZsb3dlcmluZyBkYXRlXG4gICAgICAgICBmbF9kdXJhdGlvbiA9IGFzLm51bWVyaWMoTEZEIC0gRkZEKSkgI0Zsb3dlcmluZyBkdXJhdGlvblxuYGBgIn0= -->
+<pre class="r"><code>AC_merged_df_fl &lt;- AC_merged_df6 %&gt;% 
+  mutate(FFD = do.call(pmin, c(select(., starts_with(&#39;Fl_&#39;)), na.rm = TRUE)), #First flowering date
+         days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
+         days_sow2flower = as.numeric(FFD - Sow_Date), #days from lab sowing to flowering
+         days_plant2flower = as.numeric(FFD - Plant_Date), #days from field planting to flowering
+         LFD = do.call(pmax, c(select(., starts_with(&#39;Fl_&#39;)), na.rm = TRUE)), #last flowering date
+         fl_duration = as.numeric(LFD - FFD)) #Flowering duration</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><strong>Revise Calculations of Fitness Data to match Year
+2</strong></p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jVXBkYXRpbmcgRnJ1aXQgY291bnQgY29sdW1uc1xuI0FsbCBGaXRuZXNzIHBsYW50cyAoYW55IGtpbmQpIHNob3VsZCBoYXZlIG5vbi1OQSB2YWx1ZXMgZm9yIGZydWl0IGFuZCBzZWVkIGNvdW50c1xuQUNfbWVyZ2VkX2RmX2ZsQiA8LSBBQ19tZXJnZWRfZGZfZmwgJT4lIFxuICBtdXRhdGUoY2xvc2VkX2ZydWl0c19GID0gY2FzZV93aGVuKGFueV9GaXRQID09IFRSVUUgJiBpcy5uYShjbG9zZWRfZnJ1aXRzX0YpIH4gMCxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhbnlfRml0UCA9PSBUUlVFICYgIWlzLm5hKGNsb3NlZF9mcnVpdHNfRikgfiBjbG9zZWRfZnJ1aXRzX0YsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVFJVRSB+IGNsb3NlZF9mcnVpdHNfRiksXG4gICAgICAgICBvcGVuX2ZydWl0c19GID0gY2FzZV93aGVuKGFueV9GaXRQID09IFRSVUUgJiBpcy5uYShvcGVuX2ZydWl0c19GKSB+IDAsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFueV9GaXRQID09IFRSVUUgJiAhaXMubmEob3Blbl9mcnVpdHNfRikgfiBvcGVuX2ZydWl0c19GLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gb3Blbl9mcnVpdHNfRiksXG4gICAgICAgICB0b3RhbF9mcnVpdHNfRiA9IGNhc2Vfd2hlbihhbnlfRml0UCA9PSBUUlVFICYgaXMubmEodG90YWxfZnJ1aXRzX0YpIH4gMCxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYW55X0ZpdFAgPT0gVFJVRSAmICFpcy5uYSh0b3RhbF9mcnVpdHNfRikgfiB0b3RhbF9mcnVpdHNfRixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVFJVRSB+IHRvdGFsX2ZydWl0c19GKSlcblxuXG5cbiNTdXJ2aXZhbCBtZWFzdXJlc1xuQUNfbWVyZ2VkX2RmX2ZsQyA8LSBBQ19tZXJnZWRfZGZfZmxCICU+JSBcbiAgbXV0YXRlKHN1cnZfdG9fZ2VybSA9IGNhc2Vfd2hlbighaXMubmEoR2VybV9EYXRlKSB+IDEsICNwbGFudHMgdGhhdCBnZXJtaW5hdGVkXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaXMubmEoR2VybV9EYXRlKSB+IDApLFxuICAgICAgICAgc3Vydl90b19mbG93ZXIgPSBjYXNlX3doZW4oIWlzLm5hKEZGRCkgfiAxLCAjcGxhbnRzIHRoYXQgc3Vydml2ZWQgdG8gZmxvd2VyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaXMubmEoRkZEKSB+IDApLFxuICAgICAgICAgc3Vydl90b19mcnVpdHByb2QgPSBjYXNlX3doZW4oYW55X0ZpdFAgPT0gVFJVRSAmIHRvdGFsX2ZydWl0c19GID4gMCB+IDEsICNwbGFudHMgdGhhdCBzdXJ2aXZlZCB0byBwcm9kdWNlIGZydWl0XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhbnlfRml0UCA9PSBUUlVFICYgdG90YWxfZnJ1aXRzX0YgPT0gMCB+IDApLFxuICAgICAgICAgcHJvZF9jbG9zZWRfZnJ1aXRzID0gY2FzZV93aGVuKGFueV9GaXRQID09IFRSVUUgJiBjbG9zZWRfZnJ1aXRzX0YgPiAwIH4gMSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhbnlfRml0UCA9PSBUUlVFICYgY2xvc2VkX2ZydWl0c19GID09IDAgfiAwKSxcbiAgICAgICAgIHByb2RfZmlsbGVkX3NlZWRzID0gY2FzZV93aGVuKGFueV9GaXRQID09IFRSVUUgJiBzZWVkX2N0ID4gMCB+IDEsICNwbGFudHMgdGhhdCBzdXJ2aXZlZCB0byBwcm9kdWNlIGZydWl0IHdpdGggdmlhYmxlIHNlZWRzXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhbnlfRml0UCA9PSBUUlVFICYgc2VlZF9jdCA9PSAwIH4gMCkpICAjZWxzZSA9IDAgXG4gIFxuXG4jQ2FsY3VsYXRlIEZlY3VuZGl0eSBoZXJlXG5BQ19tZXJnZWRfZGZfZmwyIDwtIEFDX21lcmdlZF9kZl9mbEMgJT4lIFxuICByZW5hbWUoZXN0X2ZlY3VuZGl0eSA9IHRvdGFsX2VzdF9zZWVkX3Byb2R1Y3Rpb24pICU+JSAjcmVuYW1lIHRvIG1hdGNoIFkyXG4gIG11dGF0ZShhY3Jvc3MoYyhlc3RfZmVjdW5kaXR5LCBtZWFuX3NlZWRzX3Blcl9mcnVpdCksIH4gYXMubnVtZXJpYyhuYV9pZiguLCBOYU4pKSkpICU+JSAjQ29udmVydHMgdG8gTkFcbiAgbXV0YXRlKG1lYW5fc2VlZHNfcGVyX2ZydWl0ID0gY2FzZV93aGVuKGFueV9GaXRQID09IFRSVUUgJiBjbG9zZWRfZnJ1aXRzX0YgPT0gMCB+IE5BLCAjTkEgd2hlbiAwIGNsb3NlZCBmcnVpdHNcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBtZWFuX3NlZWRzX3Blcl9mcnVpdCkpICU+JSAgI2Vsc2UsIG9yaWdpbmFsIHZhbHVlXG4gIG11dGF0ZShlc3RfZmVjdW5kaXR5ID0gY2FzZV93aGVuKGFueV9GaXRQID09IFRSVUUgJiBjbG9zZWRfZnJ1aXRzX0YgPT0gMCAmIG9wZW5fZnJ1aXRzX0YgPT0gMCB+IDAsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFueV9GaXRQID09IFRSVUUgJiBjbG9zZWRfZnJ1aXRzX0YgPT0gMCAmIG9wZW5fZnJ1aXRzX0YgPj0gMSB+IE5BLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhbnlfRml0UCA9PSBUUlVFICYgIWlzLm5hKGVzdF9mZWN1bmRpdHkpIH4gIGVzdF9mZWN1bmRpdHkpKVxuXG5cbiMjIE5vdGU6IHNob3VsZCBmbG93ZXJpbmcgZHVyYXRpb24gcmVtYWluIHVuY2hhbmdlZCB3aGVuIGEgcGxhbnQgd2VudCBzZXZlcmFsIHdlZWtzIHdpdGhvdXQgZmxvd2VyaW5nIChlLmcuLCBoYWQgdHdvIHRlbXBvcmFsbHkgZGlzdGluY3QgYmxvb21zIGR1cmluZyB0aGUgZ3Jvd2luZyBzZWFzb24pP1xuYGBgIn0= -->
 <pre class="r"><code>
+#Updating Fruit count columns
+#All Fitness plants (any kind) should have non-NA values for fruit and seed counts
+AC_merged_df_flB &lt;- AC_merged_df_fl %&gt;% 
+  mutate(closed_fruits_F = case_when(any_FitP == TRUE &amp; is.na(closed_fruits_F) ~ 0,
+                                     any_FitP == TRUE &amp; !is.na(closed_fruits_F) ~ closed_fruits_F,
+                                     TRUE ~ closed_fruits_F),
+         open_fruits_F = case_when(any_FitP == TRUE &amp; is.na(open_fruits_F) ~ 0,
+                                   any_FitP == TRUE &amp; !is.na(open_fruits_F) ~ open_fruits_F,
+                                   TRUE ~ open_fruits_F),
+         total_fruits_F = case_when(any_FitP == TRUE &amp; is.na(total_fruits_F) ~ 0,
+                                   any_FitP == TRUE &amp; !is.na(total_fruits_F) ~ total_fruits_F,
+                                   TRUE ~ total_fruits_F))
+
+
+
 #Survival measures
-#Added var for closed fruit produced
-#renamed &quot;survival&quot; to seed production
-#
-AC_merged_df1 &lt;- AC_merged_2 %&gt;% 
-  mutate(surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
+AC_merged_df_flC &lt;- AC_merged_df_flB %&gt;% 
+  mutate(surv_to_germ = case_when(!is.na(Germ_Date) ~ 1, #plants that germinated
+                                  is.na(Germ_Date) ~ 0),
+         surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
                                   is.na(FFD) ~ 0),
-         surv_to_fruitprod = case_when(F_plant == TRUE &amp; total_fruits &gt; 0 ~ 1, #plants that survived to produce fruit
-                                       F_plant == TRUE &amp; total_fruits == 0 ~ 0),
-         prod_closed_fruits = case_when(F_plant == TRUE &amp; ALL_closed_fruit &gt; 0 ~ 1,
-                                            F_plant == TRUE &amp; ALL_closed_fruit == 0 ~ 0),
-         prod_filled_seeds = case_when(F_plant == TRUE &amp; ALL_filled_seeds &gt; 0 ~ 1, #plants produced filled seeds
-                                      F_plant == TRUE &amp; ALL_filled_seeds == 0 ~ 0)) #else = 0
+         surv_to_fruitprod = case_when(any_FitP == TRUE &amp; total_fruits_F &gt; 0 ~ 1, #plants that survived to produce fruit
+                                       any_FitP == TRUE &amp; total_fruits_F == 0 ~ 0),
+         prod_closed_fruits = case_when(any_FitP == TRUE &amp; closed_fruits_F &gt; 0 ~ 1,
+                                        any_FitP == TRUE &amp; closed_fruits_F == 0 ~ 0),
+         prod_filled_seeds = case_when(any_FitP == TRUE &amp; seed_ct &gt; 0 ~ 1, #plants that survived to produce fruit with viable seeds
+                                       any_FitP == TRUE &amp; seed_ct == 0 ~ 0))  #else = 0 
+  
 
-#NOTE
-#Adjusting fecundity/fitness:
-#The issue of how to handle 0s vs missing data in order to accurately calculate fitness has led us to apply the following corrections:
-# Estimated fecundity (seeds per fruit x total fruits) should be set to *0* when closed fruits &gt;= 1 &amp; filled seeds == 0; when closed fruits == open fruits == 0
-#Set fecundity to NA when closed = 0 &amp; open &gt;= 1
+#Calculate Fecundity here
+AC_merged_df_fl2 &lt;- AC_merged_df_flC %&gt;% 
+  rename(est_fecundity = total_est_seed_production) %&gt;% #rename to match Y2
+  mutate(across(c(est_fecundity, mean_seeds_per_fruit), ~ as.numeric(na_if(., NaN)))) %&gt;% #Converts to NA
+  mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE &amp; closed_fruits_F == 0 ~ NA, #NA when 0 closed fruits
+                                          TRUE ~ mean_seeds_per_fruit)) %&gt;%  #else, original value
+  mutate(est_fecundity = case_when(any_FitP == TRUE &amp; closed_fruits_F == 0 &amp; open_fruits_F == 0 ~ 0,
+                                               any_FitP == TRUE &amp; closed_fruits_F == 0 &amp; open_fruits_F &gt;= 1 ~ NA,
+                                               any_FitP == TRUE &amp; !is.na(est_fecundity) ~  est_fecundity))
 
-#Mean seeds per fruit left as-is (NA when no closed fruits collected)
-         
-AC_merged_df2 &lt;- AC_merged_df1 %&gt;% 
-  rename(mean_seeds_per_fruit = avg_seeds_per_fruit) %&gt;% 
-  mutate(across(c(est_fecundity, mean_seeds_per_fruit), ~ as.numeric(na_if(., &quot;#DIV/0!&quot;)))) %&gt;% #Converts to NA
-  mutate(est_fecundity = case_when(F_plant == TRUE &amp; ALL_closed_fruit == 0 &amp; ALL_open_fruit == 0 ~ 0,
-                                   F_plant == TRUE &amp; ALL_closed_fruit == 0 &amp; ALL_open_fruit &gt;= 1 ~ NA,
-                                               F_plant == TRUE &amp; !is.na(est_fecundity) ~  est_fecundity))
-</code></pre>
+
+## Note: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p><br></p>
 </div>
-<div id="master-sheets-2023" class="section level3">
-<h3>Master sheets (2023)</h3>
-<p>Full and summarized data sheets for all data collected in the
-2022-2023 field season. These are merged with the year 1 data sheets
-elsewhere.</p>
+<div id="d13c-data" class="section level3">
+<h3>d13C data</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyMgJ0xvbmcnIHZlcnNpb24gd2l0aCBhbGwgZGF0YSAtIG9uZSByb3cgcGVyIHBsYW50IElEXG4jU29ydCBieSB0cmFuc2VjdCBhbmQgSUQgdmFyaWFibGVzLCB0aGVuIGJ5IEZpdG5lc3MgcGxhbnRzIGFuZCB0aG9zZSB0aGF0IGZsb3dlcmVkLi4uXG5cbiMjIyMjI1xuI1RFTVAgVkVSU0lPTlxuIyMjIyMjXG5cbkFDX21lcmdlZF9mdWxsXzEgPC0gQUNfbWVyZ2VkX2RmMiAlPiUgXG4gIGZpbHRlcihGX3BsYW50ID09IFRSVUUpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuTmVtb19kMTNDIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcImlzb3RvcGVfZGF0YVwiLCBcIk5lbW9waGlsYV9kMTNDXzIzMDUxMS5jc3ZcIikpICU+JSBcbiAgc2VsZWN0KDEsMiwzLDUsNiw5KSAlPiUgXG4gIHJlbmFtZShzYW1wbGVfSUQgPSAxLCBkMTNDID0gMiwgdG90YWxDX3VnID0gMywgc2FtcGxlX3dlaWdodF9tZyA9IDYpXG4jU2F2ZSBhcyBVVEYtOCBmaWxlIGZyb20gZXhjZWwgdG8gYXZvaWQgaW1wb3J0IGVycm9yXG5cbiNmaWx0ZXIgdG8gQUMgc2FtcGxlc1xuTmVtb19kMTNDX0FDIDwtIE5lbW9fZDEzQyAlPiUgXG4gIGZpbHRlcihncmVwbCgnQUMnLCBzYW1wbGVfSUQpKVxuXG4jdW5yYXZlbCBzYW1wbGUgSURcbk5lbW9fZDEzX0FDMiA8LSBOZW1vX2QxM0NfQUMgJT4lIFxuICBtdXRhdGUoUmVjaXBpZW50ID0gZ3N1YignLScsICdfJywgc3Vic3RyKHNhbXBsZV9JRCwgMSwgNikpLCBcbiAgICAgICAgIFRyYW5zZWN0ID0gYXMubnVtZXJpYyhzdHJfcmVtb3ZlKHN1YnN0cihzYW1wbGVfSUQsIDgsIDEwKSwgXCJeMCtcIikpLFxuICAgICAgICAgUGxhbnRfSUQgPSBhcy5udW1lcmljKHN1YnN0cihzYW1wbGVfSUQsIDEyLDEzKSkpICU+JSBcbiAgc2VsZWN0KFRyYW5zZWN0LCBSZWNpcGllbnQsIFBsYW50X0lELCBkMTNDLCBzYW1wbGVfd2VpZ2h0X21nLCAtUGxhbnRfSUQpXG5cbiNNZXJnZVxuXG5BQ19tZXJnZWRfZGZfZmwzIDwtIG1lcmdlKEFDX21lcmdlZF9kZl9mbDIsIE5lbW9fZDEzX0FDMiwgYnkgPSBjKFwiUmVjaXBpZW50XCIsIFwiVHJhbnNlY3RcIiksIGFsbC54ID0gVFJVRSlcbiNNZXJnZSBieSBSZWNpcGllbnQgYW5kIFRyYW5zZWN0IG9ubHk6IGdlbm90eXBlLXdpZGUgZXN0aW1hdGVzIG9mIGQxM0Mgc2luY2Ugc29tZSBwbGFudHMgd2VyZSBORlxuXG5cblxuI2NoZWNrIHRoYXQgYWxsIGRhdGEgbWFkZSBpdCAoMjY2IG9icylcbiN0ZXN0ZGYgPC0gQUNfbWVyZ2VkX2RmX2ZsMyAlPiUgXG4jICBmaWx0ZXIoIWlzLm5hKGQxM0MpKVxuYGBgIn0= -->
+<pre class="r"><code>Nemo_d13C &lt;- read_csv(here::here(&quot;data_sheets&quot;, &quot;isotope_data&quot;, &quot;Nemophila_d13C_230511.csv&quot;)) %&gt;% 
+  select(1,2,3,5,6,9) %&gt;% 
+  rename(sample_ID = 1, d13C = 2, totalC_ug = 3, sample_weight_mg = 6)
+#Save as UTF-8 file from excel to avoid import error
+
+#filter to AC samples
+Nemo_d13C_AC &lt;- Nemo_d13C %&gt;% 
+  filter(grepl(&#39;AC&#39;, sample_ID))
+
+#unravel sample ID
+Nemo_d13_AC2 &lt;- Nemo_d13C_AC %&gt;% 
+  mutate(Recipient = gsub(&#39;-&#39;, &#39;_&#39;, substr(sample_ID, 1, 6)), 
+         Transect = as.numeric(str_remove(substr(sample_ID, 8, 10), &quot;^0+&quot;)),
+         Plant_ID = as.numeric(substr(sample_ID, 12,13))) %&gt;% 
+  select(Transect, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
+
+#Merge
+
+AC_merged_df_fl3 &lt;- merge(AC_merged_df_fl2, Nemo_d13_AC2, by = c(&quot;Recipient&quot;, &quot;Transect&quot;), all.x = TRUE)
+#Merge by Recipient and Transect only: genotype-wide estimates of d13C since some plants were NF
+
+
+
+#check that all data made it (266 obs)
+#testdf &lt;- AC_merged_df_fl3 %&gt;% 
+#  filter(!is.na(d13C))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p><strong>Duplicate &amp; Final Error Check</strong></p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI01haW4gZml0bmVzcyBwbGFudHNcbkFDX21lcmdlZF9kZl9mbDIgJT4lIFxuICBmaWx0ZXIoRml0UCA9PSBUUlVFKSAlPiUgXG4gIGdldF9kdXBlcygpXG5cbmBgYCJ9 -->
+<pre class="r"><code>#Main fitness plants
+AC_merged_df_fl2 %&gt;% 
+  filter(FitP == TRUE) %&gt;% 
+  get_dupes()
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTm8gdmFyaWFibGUgbmFtZXMgc3BlY2lmaWVkIC0gdXNpbmcgYWxsIGNvbHVtbnMuXG5cbk5vIGR1cGxpY2F0ZSBjb21iaW5hdGlvbnMgZm91bmQgb2Y6IEJsb2NrLCBUcmFuc2VjdCwgUmVjaXBpZW50LCBQbGFudF9JRCwgU2VxdWVuY2UsIERvbm9yLCBSZXBsaWNhdGVkLCBGaXRQLCBSZXBfRml0UCwgLi4uIGFuZCA2MyBvdGhlciB2YXJpYWJsZXNcbiJ9 -->
+<pre><code>No variable names specified - using all columns.
+
+No duplicate combinations found of: Block, Transect, Recipient, Plant_ID, Sequence, Donor, Replicated, FitP, Rep_FitP, ... and 63 other variables</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6MCwibmNvbCI6NzMsInN1bW1hcnkiOnsiRGVzY3JpcHRpb24iOlsiZGYgWzAgw5cgNzNdIl19fSwicmRmIjoiSDRzSUFBQUFBQUFBQnUxV2JVL2JNQkJPU1R0b3RyNnc3VzhRaWJSRjdDT29LNnJVU1FpWXhEZkxKRTZ4Y096TWR0YjF6N001TDVjM1dnbHArN0pwU01oK25udDg5dDNabDk3TTd5Zk92V05abG0xMTdZNWw5OHpVNm4yOVc1eWNXMWIzd0lDTzFiWDY2ZmpEaUQ2WXlkTDhqNjM4cnowT1cyUGI3dXdlN1VMZjJMRG5NNnhVc1JqSTdoeHJZc2JuNXFLRG4vOTFmNHZ1eFdWcDQzOWtmSFUrOWoyYTErTGYzZThQcmQ4N0RpcS8xZVBtT0NMd3VKZEFYakxoUHhYZzZFNWlyb2l2Qzl5L0lUNk5LZUZBSEYwenpEVmF6Z0hma204SjRUNEJiM1BCaFN5QWMwTmlSbjBUUkFBUkxhaStocVhHaXVvWTgyMGQ5NitJakZDV0F0aExiT3JZeWM5U1k5NHNHSnE2bndwMG1DSHZ0R2FjdVpPYWNlYWVOcUUzcTJuUDNQT2E4Y3oxUEFoaTlmbGlBZkdHVEtMclVvZWloR2xhd1RnOVlRRUhCVVJjYUZPRm5CejVUQ2dTb0ZBbVZDc0ViZ2NpSnJ4TmpnTWM0ZlZMOFZBTGpWbWJQZWFDaDFSem9sUmhnbU1wWW55VUpSNm5VS0VOb2V0SHd3ZVFybEVtaTh6WEFFWHJpbTdMdmQxeWI0OThzbHMrMlNPZjdwWlA5OGhudStWbFZTTVZWWkhreUd1Z1NRTk5Hd2k4SEtZSU13YTNVSm1kR3N6SGlHQ084cVBGUk9iWmg4SVNwVkZJL0lRSFZHK0J2TGhDRDFRVTV3Vy84YVBRQWdYVjdSNzVRZ3JHTUFvb2psQVVRUktBeHBKZ1EwTkVnK3llb2NJS0pDTTRiQ3VIS1pseDlhdDVuRWtEdWMzU3E2dVRqVk5EUWRZWDJMZXJDNWl1dnBUVHhRS2FoYm5BVzRYVzVsbDdJUk1iQW4xaWxQRktiSnIwY1VabmI2WnBzRmVseTdjaFEwRWlzYWFDRjlRN2xjanZ5S1F1M1FnaUJLNjVRY21tRllxbGdEYjFQcDJqeHRPRUpaa2xwSXdaUzFaaUtGZVF4TVFrT3pIdnZkbDErMUpzWE9pOHRiYjhvdDA3cHRiWURhV1I1azIvNGVaUXhHbVF4c2xCK29PdzExcmNrUzFpbFBCMDArREVmMHo0MDhuRXluLzRkV3JmaC9aOG1XOXB3OEY2Y1A4SlgxTmV0bmlHSHdqYzlhRUpMb3ZOalNVdFc1MWpXT1ZtYlFrWVh6Qmc4Zy9hOHk4YWxCOUxCd3NBQUE9PSJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Block"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Transect"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Recipient"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Plant_ID"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Sequence"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Donor"],"name":[6],"type":["chr"],"align":["left"]},{"label":["Replicated"],"name":[7],"type":["chr"],"align":["left"]},{"label":["FitP"],"name":[8],"type":["lgl"],"align":["right"]},{"label":["Rep_FitP"],"name":[9],"type":["lgl"],"align":["right"]},{"label":["any_FitP"],"name":[10],"type":["lgl"],"align":["right"]},{"label":["Germ_Date"],"name":[11],"type":["date"],"align":["right"]},{"label":["Sow_Date"],"name":[12],"type":["date"],"align":["right"]},{"label":["Plant_Date"],"name":[13],"type":["date"],"align":["right"]},{"label":["Fl_4.9"],"name":[14],"type":["date"],"align":["right"]},{"label":["Fl_4.21"],"name":[15],"type":["date"],"align":["right"]},{"label":["Fl_5.3"],"name":[16],"type":["date"],"align":["right"]},{"label":["Fl_5.13"],"name":[17],"type":["date"],"align":["right"]},{"label":["Fl_5.25"],"name":[18],"type":["date"],"align":["right"]},{"label":["Fl_6.8"],"name":[19],"type":["date"],"align":["right"]},{"label":["Fl_6.22"],"name":[20],"type":["date"],"align":["right"]},{"label":["LEAF"],"name":[21],"type":["date"],"align":["right"]},{"label":["flr_P"],"name":[22],"type":["date"],"align":["right"]},{"label":["F_multi"],"name":[23],"type":["chr"],"align":["left"]},{"label":["F_plant"],"name":[24],"type":["dbl"],"align":["right"]},{"label":["F_plant_notes"],"name":[25],"type":["chr"],"align":["left"]},{"label":["closed_fruits_F"],"name":[26],"type":["dbl"],"align":["right"]},{"label":["open_fruits_F"],"name":[27],"type":["dbl"],"align":["right"]},{"label":["damaged_fruits_F"],"name":[28],"type":["dbl"],"align":["right"]},{"label":["total_fruits_F"],"name":[29],"type":["dbl"],"align":["right"]},{"label":["nonfitness_fruits"],"name":[30],"type":["dbl"],"align":["right"]},{"label":["seed_ct"],"name":[31],"type":["dbl"],"align":["right"]},{"label":["seeds_weighed_d1"],"name":[32],"type":["dbl"],"align":["right"]},{"label":["seed_mass_mg_d1"],"name":[33],"type":["dbl"],"align":["right"]},{"label":["seeds_weighed_d2"],"name":[34],"type":["dbl"],"align":["right"]},{"label":["seed_mass_mg_d2"],"name":[35],"type":["dbl"],"align":["right"]},{"label":["seeds_weighed_d3"],"name":[36],"type":["dbl"],"align":["right"]},{"label":["seed_mass_mg_d3"],"name":[37],"type":["dbl"],"align":["right"]},{"label":["seeds_weighed_d4"],"name":[38],"type":["dbl"],"align":["right"]},{"label":["seed_mass_mg_d4"],"name":[39],"type":["dbl"],"align":["right"]},{"label":["seeds_weighed_d5"],"name":[40],"type":["dbl"],"align":["right"]},{"label":["seed_mass_mg_d5"],"name":[41],"type":["dbl"],"align":["right"]},{"label":["msm_d1"],"name":[42],"type":["dbl"],"align":["right"]},{"label":["msm_d2"],"name":[43],"type":["dbl"],"align":["right"]},{"label":["msm_d3"],"name":[44],"type":["dbl"],"align":["right"]},{"label":["msm_d4"],"name":[45],"type":["dbl"],"align":["right"]},{"label":["msm_d5"],"name":[46],"type":["dbl"],"align":["right"]},{"label":["msm_all"],"name":[47],"type":["dbl"],"align":["right"]},{"label":["sd_msm_all"],"name":[48],"type":["dbl"],"align":["right"]},{"label":["mean_seeds_per_fruit"],"name":[49],"type":["dbl"],"align":["right"]},{"label":["est_fecundity"],"name":[50],"type":["dbl"],"align":["right"]},{"label":["AG_biomass_mg"],"name":[51],"type":["dbl"],"align":["right"]},{"label":["photo_date"],"name":[52],"type":["date"],"align":["right"]},{"label":["corolla_diam_mm"],"name":[53],"type":["dbl"],"align":["right"]},{"label":["corolla_area_mm2"],"name":[54],"type":["dbl"],"align":["right"]},{"label":["notes_corolla"],"name":[55],"type":["chr"],"align":["left"]},{"label":["leaf_area_mm2"],"name":[56],"type":["dbl"],"align":["right"]},{"label":["leafarea_notes"],"name":[57],"type":["chr"],"align":["left"]},{"label":["leaf_dryweight_mg"],"name":[58],"type":["dbl"],"align":["right"]},{"label":["leafweight_notes"],"name":[59],"type":["chr"],"align":["left"]},{"label":["SLA"],"name":[60],"type":["dbl"],"align":["right"]},{"label":["LMA"],"name":[61],"type":["dbl"],"align":["right"]},{"label":["FFD"],"name":[62],"type":["date"],"align":["right"]},{"label":["days_germ2flower"],"name":[63],"type":["dbl"],"align":["right"]},{"label":["days_sow2flower"],"name":[64],"type":["dbl"],"align":["right"]},{"label":["days_plant2flower"],"name":[65],"type":["dbl"],"align":["right"]},{"label":["LFD"],"name":[66],"type":["date"],"align":["right"]},{"label":["fl_duration"],"name":[67],"type":["dbl"],"align":["right"]},{"label":["surv_to_germ"],"name":[68],"type":["dbl"],"align":["right"]},{"label":["surv_to_flower"],"name":[69],"type":["dbl"],"align":["right"]},{"label":["surv_to_fruitprod"],"name":[70],"type":["dbl"],"align":["right"]},{"label":["prod_closed_fruits"],"name":[71],"type":["dbl"],"align":["right"]},{"label":["prod_filled_seeds"],"name":[72],"type":["dbl"],"align":["right"]},{"label":["dupe_count"],"name":[73],"type":["int"],"align":["right"]}],"data":[],"options":{"columns":{"min":{},"max":[10],"total":[73]},"rows":{"min":[10],"max":[10],"total":[0]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="master-sheets-v1" class="section level2">
+<h2>Master sheets (v1)</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyMgJ0xvbmcnIHZlcnNpb24gd2l0aCBhbGwgZGF0YSAtIG9uZSByb3cgcGVyIHBsYW50IElEXG4jU29ydCBieSB0cmFuc2VjdCBhbmQgSUQgdmFyaWFibGVzLCB0aGVuIGJ5IEZpdG5lc3MgcGxhbnRzIGFuZCB0aG9zZSB0aGF0IGZsb3dlcmVkLi4uXG5cblxuQUNfbWFzdGVyc2hlZXRfdjEgPC0gQUNfbWVyZ2VkX2RmX2ZsMyAlPiUgXG4gIG11dGF0ZShZZWFyID0gMjAyMiwgR2VuID0gXCJHMVwiKSAlPiUgXG4gIHNlbGVjdChZZWFyLCBHZW4sIEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIERvbm9yLCBSZWNpcGllbnQsIFJlcGxpY2F0ZWQsIFBsYW50X0lELCBGaXRQLCBSZXBfRml0UCwgYW55X0ZpdFAsIEZfcGxhbnQsIEZfbXVsdGksIEZfcGxhbnRfbm90ZXMsIGV2ZXJ5dGhpbmcoKSkgJT4lIFxuICBhcnJhbmdlKEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIFJlY2lwaWVudCwgUGxhbnRfSUQpXG5cbndyaXRlX2NzdihBQ19tYXN0ZXJzaGVldF92MSwgaGVyZTo6aGVyZShcImRhdGFfc2hlZXRzXCIsIFwiY29tcGlsZWRfc2hlZXRzXCIsIFwiQUNfbWFzdGVyc2hlZXRfZnVsbF8yMDIzLTA4LTA3LmNzdlwiKSlcbiNSZW5hbWVkIHRvIGZ1bGwgLSBoYXMgcmVjb3JkcyBvZiBhbGwgcGxhbnRzIChpbmNsdWRpbmcgbm9uLWZpdG5lc3MpXG5cblxuXG4jXG4jIyBGaXRuZXNzIFBsYW50cyBPbmx5XG4jXG5cbkFDX21hc3RlcnNoZWV0X0ZfbWFpbnMgPC0gIEFDX21hc3RlcnNoZWV0X3YxICU+JSBcbiAgZmlsdGVyKEZpdFAgPT0gVFJVRSkgI09ubHkgbWFpbiBmaXRuZXNzIHBsYW50c1xuXG5BQ19tYXN0ZXJzaGVldF9GX2FsbCA8LSBBQ19tYXN0ZXJzaGVldF92MSAlPiUgXG4gIGZpbHRlcihhbnlfRml0UCA9PSBUUlVFKSAjc2luZ2xlIGFuZCBtdWx0aXBsZSBmaXRuZXNzIHBsYW50cyAocmVwbGljYXRlZCBJRHMpXG5cblxuIyNOb3RlOiByZW1haW5pbmcgTkEgdmFsdWVzIGZvciBmaXRuZXNzIG1lYXN1cmVzIChtZWFuIHNlZWRzIHBlciBmcnVpdDsgZXN0IHNlZWQgcHJvZHVjdGlvbikgYXJlIHRoZSByZXN1bHRzIG9mIDAgY2xvc2VkIGZydWl0IGNvdW50cy4gVHJlYXRlIHRoZXNlIGFzIDAgZml0bmVzcyBvciBhcyBOQXMgdG8gcmVtb3ZlPz8/XG5cblxud3JpdGVfY3N2KEFDX21hc3RlcnNoZWV0X0ZfbWFpbnMsIGhlcmU6OmhlcmUoXCJkYXRhX3NoZWV0c1wiLCBcImNvbXBpbGVkX3NoZWV0c1wiLCBcIkFDX21hc3RlcnNoZWV0X0ZpdG5lc3MtbWFpbnNfMjAyMy0wOC0wNy5jc3ZcIikpXG5cbndyaXRlX2NzdihBQ19tYXN0ZXJzaGVldF9GX2FsbCwgaGVyZTo6aGVyZShcImRhdGFfc2hlZXRzXCIsIFwiY29tcGlsZWRfc2hlZXRzXCIsIFwiQUNfbWFzdGVyc2hlZXRfRml0bmVzcy1hbGxfMjAyMy0wOC0wNy5jc3ZcIikpXG5gYGAifQ== -->
 <pre class="r"><code>## &#39;Long&#39; version with all data - one row per plant ID
 #Sort by transect and ID variables, then by Fitness plants and those that flowered...
 
-######
-#TEMP VERSION
-######
 
-AC_merged_full_1 &lt;- AC_merged_df2 %&gt;% 
-  filter(F_plant == TRUE)</code></pre>
+AC_mastersheet_v1 &lt;- AC_merged_df_fl3 %&gt;% 
+  mutate(Year = 2022, Gen = &quot;G1&quot;) %&gt;% 
+  select(Year, Gen, Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %&gt;% 
+  arrange(Block, Transect, Sequence, Recipient, Plant_ID)
+
+write_csv(AC_mastersheet_v1, here::here(&quot;data_sheets&quot;, &quot;compiled_sheets&quot;, &quot;AC_mastersheet_full_2023-08-07.csv&quot;))
+#Renamed to full - has records of all plants (including non-fitness)
+
+
+
+#
+## Fitness Plants Only
+#
+
+AC_mastersheet_F_mains &lt;-  AC_mastersheet_v1 %&gt;% 
+  filter(FitP == TRUE) #Only main fitness plants
+
+AC_mastersheet_F_all &lt;- AC_mastersheet_v1 %&gt;% 
+  filter(any_FitP == TRUE) #single and multiple fitness plants (replicated IDs)
+
+
+##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
+
+
+write_csv(AC_mastersheet_F_mains, here::here(&quot;data_sheets&quot;, &quot;compiled_sheets&quot;, &quot;AC_mastersheet_Fitness-mains_2023-08-07.csv&quot;))
+
+write_csv(AC_mastersheet_F_all, here::here(&quot;data_sheets&quot;, &quot;compiled_sheets&quot;, &quot;AC_mastersheet_Fitness-all_2023-08-07.csv&quot;))</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gQUNfbWVyZ2VkX2RmMiAlPiUgZmlsdGVyKEZfcGxhbnQgPT0gVFJVRSkgOiBcbiAgY291bGQgbm90IGZpbmQgZnVuY3Rpb24gXCIlPiVcIlxuIn0= -->
-<pre><code>Error in AC_merged_df2 %&gt;% filter(F_plant == TRUE) : 
-  could not find function &quot;%&gt;%&quot;</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkNvbXBpbGUgRkxvd2VyLCBGcnVpdCwgYW5kIFNlZWQgY291bnQgZGF0YSBzaGVldHMgLSBBQyBGaXRuZXNzIHBsYW50cyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KYXV0aG9yOiBEZXZpbiBHYW1ibGUNCi0tLQ0KDQoNCmBgYHtyIG1lc3NhZ2UgPSBGQUxTRSwgd2FybmluZyA9IEZBTFNFfQ0KI0xvYWQgUGFja2FnZXMNCmxpYnJhcnkodGlkeXZlcnNlKQ0KbGlicmFyeShqYW5pdG9yKQ0KbGlicmFyeShoZXJlKQ0KbGlicmFyeShsdWJyaWRhdGUpDQpsaWJyYXJ5KHJlc2hhcGUyKQ0KbGlicmFyeShzdHJpbmdyKQ0KDQpgYGANCg0KIyMjSVNTVUUjIyMjDQpHZW5vdHlwZSBTZWdtZW50cyB0aGF0IGhhZCAwIHN1cnZpdm9ycyBhbmQgTk8gZml0bmVzcyBwbGFudCBzZWxlY3RlZCBhcmUgRVhDTFVERUQgYXMgb2Ygbm93Li4uIFRoZXNlIHNob3VsZCBwcm9iYWJseSBiZSBpbmNsdWRlZCBidXQgd2l0aCBhbiBhc3NpZ25tZW50IG9mIDAgZml0bmVzcw0KDQoNCiMjIyBMb2FkIGFuZCBDbGVhbiBEYXRhICAgDQoNClJlY2lwaWVudCBJRHMgdG8gZG91YmxlLWNoZWNrOg0KLSBBQ18xNTkgKEFDXzE1OUEvQikNCi0gSURzIG5vdCBwbGFudGVkDQoNCioqTG9hZCBGaXRuZXNzIFBsYW50IERhdGEqKiAgDQoNCmBgYHtyIG1lc3NhZ2UgPSBGQUxTRX0NCkFDX0ZpdG5lc3MgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZSgiZGF0YV9zaGVldHMiLCAiMjAyM195ZWFyMl9kYXRhIiwgImZpdG5lc3NfcGxhbnRzIiwgIkFDX2ZpdG5lc3NfMjMuY3N2IikpICU+JSANCiAgc2xpY2UoLTYzOSkgJT4lIA0KICBtdXRhdGUoUmVjaXBpZW50ID0gY2FzZV93aGVuKFJlY2lwaWVudCAlaW4lIGMoIkFDXzE1OSIsICJBQ18xNTlBIiwgIkFDXzE1OUIiKSB+ICJBQ18xNTkiLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBSZWNpcGllbnQpKSAlPiUgICNyZW5hbWUgMTU5IC0gbGV0dGVycyB3ZXJlIGFkZGVkIHRvIG1hcmsgcG9zaXRpb24NCiAgc2xpY2UoLTQyMykgI0FDXzIxMyBpbiBUciA2IHNlZyAzM0wgd2FzIG5ldmVyIHBsYW50ZWQgLSByZW1vdmUgZW50aXJlbHkNCg0KQUNfZG9ub3JzIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgIjIwMjNfeWVhcjJfZGF0YSIsICJwbGFudGluZ19sb2NhdGlvbnMiLCAiQUNfZG9ub3JfaW5mby5jc3YiKSkgJT4lIA0KICBzZWxlY3QoLXBvc2l0aW9uKSANCg0KI0ZpeCBSZWNpcGllbnQgYW5kIERvbm9yIG5hbWVzDQpBQ19kb25vcnMyIDwtIEFDX2Rvbm9ycyAlPiUgDQogIG11dGF0ZShSZWNpcGllbnRfbnVtID0gc3ByaW50ZigiJTAzZCIsIChwYXJzZV9udW1iZXIoUmVjaXBpZW50KSkpKSAlPiUgDQogIG11dGF0ZShSZWNpcGllbnQgPSBhcy5jaGFyYWN0ZXIoc3RyX2MoIkFDXyIsIFJlY2lwaWVudF9udW0pKSkgJT4lIA0KICBtdXRhdGUoRG9ub3JfbnVtID0gc3ByaW50ZigiJTAzZCIsIChwYXJzZV9udW1iZXIoRG9ub3IpKSkpICU+JSANCiAgbXV0YXRlKERvbm9yID0gYXMuY2hhcmFjdGVyKHN0cl9jKCJBQ18iLCBEb25vcl9udW0pKSkgJT4lIA0KICBzZWxlY3QoLVJlY2lwaWVudF9udW0sIC1Eb25vcl9udW0pDQoNCg0KDQojTXVsdGlwbGUgbWF0Y2hlcywgbWVyZ2Ugb25seSB1bmlxdWUgcGFpcnMgZm9yIERvbm9yDQpBQ19GaXRuZXNzXzIgPC0gbWVyZ2UoQUNfRml0bmVzcywgdW5pcXVlKEFDX2Rvbm9yczJbYygiR2VuIiwgIkRvbm9yIiwgIlJlY2lwaWVudCIpXSksIGJ5ID0gYygiUmVjaXBpZW50IiwgIkdlbiIpLCBhbGwueCA9IFRSVUUpICU+JSANCiAgbXV0YXRlKFNlZ1BvcyA9IHBhc3RlKFNlZ21lbnQsIHBvc2l0aW9uLCBzZXAgPSAiIikpICU+JSANCiAgc2VsZWN0KFNlcXVlbmNlLCBUcmFuc2VjdCwgU2VnUG9zLCBHZW4sIERvbm9yLCBSZWNpcGllbnQsIEZpdF9wbGFudCkgJT4lIA0KICBhcnJhbmdlKFNlcXVlbmNlLCBTZWdQb3MpDQoNCiNTYXZlIGFzIFYyIEZpdG5lc3MgUGxhbnQgU2hlZXQNCndyaXRlX2NzdihBQ19GaXRuZXNzXzIsIGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgIjIwMjNfeWVhcjJfZGF0YSIsICJmaXRuZXNzX3BsYW50cyIsICJBQ19maXRuZXNzcGxhbnRzXzIzX1YyLmNzdiIpLCBuYSA9ICIiKQ0KDQoNCmBgYA0KDQoNCg0KIyMjIFRyYWl0IERhdGEgIA0KDQpUcmFpdCBkYXRhIGdhdGhlcmVkIGFuZCBwcm9jZXNzZWQgZnJvbSB0aGUgMjAyMi0yMDIzIGZpZWxkIHNlYXNvbiBpcyBsb2FkZWQgYW5kIG9yZ2FuaXplZCBiZWxvdy4gIA0KDQoNCiMjIyMgRmxvd2VyIENoZWNrICYgUGhlbm9sb2d5ICANCi0tIE9yZ2FuaXplIGZsb3dlcmluZyBkYXRhDQotLSBBZGQgaW4gU293ICYgUGxhbnQgZGF0ZXMNCg0KIyMjIyMjIyMjDQpDcnVjaWFsIFN0ZXAhISAgDQojIyMjIyMjIyMgDQpJbiB0aGUgY3N2IGZpbGUsIHNlbGVjdCBhbGwgZGF0YSB3aXRoIGRhdGVzICh2aXNpdCBkYXRlcywgbGVhZiBzYW1wbGluZywgYW5kIGZsb3dlciBwaG90b3MpLiBSaWdodCBjbGljayAtLT4gZm9ybWF0IGNlbGxzLiBTZWxlY3QgdGhlIGRhdGUgY2F0ZWdvcnkgLS0+IFlZWVktTU0tREQuIFNhdmUgdGhlIGNzdiBhbmQgY2xvc2UgaXQuIFRoaXMgd2lsbCBzdGFuZGFyZGl6ZSBhbGwgZGF0ZXMgdG8gdGhlIHNhbWUgZm9ybWF0IGFuZCBtYWtlIHdvcmtpbmcgd2l0aCB0aGVtIGluIFIgKGFuZCBsdWJyaWRhdGUpIG11Y2ggZWFzaWVyISAgDQoNCmBgYHtyIG1lc3NhZ2UgPSBGQUxTRX0NCg0KQUNfZmxyX2RmIDwtIHJlYWRfY3N2KGZpbGUgPSBoZXJlOjpoZXJlKCAiZGF0YV9zaGVldHMiLCAiMjAyM195ZWFyMl9kYXRhIiwgImZsb3dlcmluZ19jaGVja3MiLCAiQUNfZmxvd2VyY2hlY2tfZGF0YV8yMDIzLTAzLTE1IC0gQUNfZmxvd2VyY2hlY2tfZGF0YV92MS5jc3YiKSwgbmEgPSBjKCIiLCAiTkEiKSkgDQoNCg0KQUNfZmxyMiA8LSBBQ19mbHJfZGYgJT4lIA0KICBtdXRhdGUoU2VnUG9zID0gcGFzdGUoU2VnbWVudCwgc2lkZSwgc2VwID0gIiIpKSAlPiUgDQogIHNlbGVjdChTZXF1ZW5jZSwgVHJhbnNlY3QsIFNlZ1BvcywgZXZlcnl0aGluZygpLCAtYyhTZWdtZW50LCBzaWRlLCBGRF8wNiwgRkRfMDcpKSAlPiUgDQogIHNsaWNlKC1jKDEzNTUsIDE2MDAsIDIxMTE6MjExNSwgMzE5MTozMTk1KSkgJT4lICNSZW1vdmUgcm93cyBub3QgcGxhbnRlZA0KICBhcnJhbmdlKFNlcXVlbmNlLCBUcmFuc2VjdCwgU2VnUG9zKSAlPiUgDQogIG11dGF0ZShSZWNpcGllbnQgPSBjYXNlX3doZW4oUmVjaXBpZW50ICVpbiUgYygiQUNfMTU5IiwgIkFDXzE1OUEiLCAiQUNfMTU5QiIpIH4gIkFDXzE1OSIsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVFJVRSB+IFJlY2lwaWVudCkpICNyZW5hbWUgMTU5IC0gbGV0dGVycyB3ZXJlIGFkZGVkIHRvIG1hcmsgcG9zaXRpb24NCiAgDQoNCiNDaGVjayBmb3IgbWlzbWF0Y2hlZCBmaXRuZXNzIHBsYW50cw0KQUNfZmxyX3Rlc3QgPC0gQUNfZmxyMiAlPiUgDQogIGZpbHRlcighaXMubmEoRml0X3BsYW50KSkgJT4lIA0KICBtdXRhdGUoRml0TWF0Y2ggPSBjYXNlX3doZW4oRml0X3BsYW50ID09IFBsYW50X0lEIH4gVFJVRSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEZpdF9wbGFudCAhPSBQbGFudF9JRCB+IEZBTFNFKSkNCg0KIyMgRml4IERhdGVzIQ0KDQojQ2hlY2sgb2JzIGZpcnN0IHVzaW5nIHVuaXF1ZShBQ19mbHIzJEZEXzAxKSBhbmQgbWFrZSBjb3JyZWN0aW9ucw0KDQpBQ19mbHIzIDwtIEFDX2ZscjIgJT4lDQogIG11dGF0ZV9hdCgudmFycyA9IHZhcnMoRkRfMDE6RkRfMDUpLCB+YXNfZGF0ZSguKSkgJT4lIA0KICBtdXRhdGUoRkRfMDUgPSBhc19kYXRlKGNhc2Vfd2hlbihGRF8wNSA9PSAiMjAyMy0wNi0wNyIgfiAiMjAyMy0wNi0wOCIsDQogICAgICAgICAgICAgICAgICAgICAgICAgICBGRF8wNSA9PSAiMjAyMy0wNi0wOCIgfiAiMjAyMy0wNi0wOCIsDQogICAgICAgICAgICAgICAgICAgICAgICAgICBGRF8wNSA9PSAiMjAyMy0wNi0wOSIgfiAiMjAyMy0wNi0wOSIsDQogICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gYXMuY2hhcmFjdGVyKE5BKSkpKSAjU29tZSBkYXRlIHR5cG9zIC0gb25lIGRheSBlYXJseQ0KDQpgYGANCg0KQWRkIHNvd2luZy9wbGFudGluZyBkYXRlICANCmBgYHtyfQ0KI1NvdyBEYXRlIC0gZmlyc3QgZGF0ZSAob2YgdHdvIG9yIG9uZSkgb24gd2hpY2ggc2VlZHMgd2VyZSBzb3duIGluIHRoZSBsYWINCiNQbGFudCBEYXRlIC0gbWVkaWFuIGRhdGUgb24gd2hpY2ggc2VlZCBwbHVncyB3ZXJlIHBsYW50ZWQgaW4gdGhlIGZpZWxkDQoNCkFDX2ZscjQgPC0gQUNfZmxyMyAlPiUgDQogIG11dGF0ZShTb3dfRGF0ZSA9IGFzX2RhdGUoIjIwMjItMTAtMTciKSwNCiAgICAgICAgIFBsYW50X0RhdGUgPSBhc19kYXRlKCIyMDIyLTEwLTIxIikpDQoNCmBgYA0KDQoNCk1lcmdlIGluIEZpdG5lc3MgcGxhbnQgRGF0YSAgDQotIERvbm9yDQpgYGB7ciBtZXNzYWdlID0gRkFMU0V9DQojQ2hlY2sgdG8gbWFrZSBzdXJlIGZpdG5lc3MgcGxhbnRzIGxpbmUgdXANCkFDX2ZscjUgPC0gbWVyZ2UoQUNfZmxyNCwgQUNfRml0bmVzc18yLCBieSA9IGMoIlNlcXVlbmNlIiwgIlRyYW5zZWN0IiwgIlNlZ1BvcyIsICJHZW4iLCAiUmVjaXBpZW50IiksIGFsbC54ID0gVFJVRSkgJT4lDQogIGFycmFuZ2UoU2VxdWVuY2UsIFRyYW5zZWN0LCBTZWdQb3MsIFBsYW50X0lEKSAlPiUgDQogIG11dGF0ZShGX3BsYW50ID0gY2FzZV93aGVuKCFpcy5uYShGaXRfcGxhbnQueCkgfiBUUlVFLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlzLm5hKEZpdF9wbGFudC54KSB+IEZBTFNFKSkgJT4lIA0KICBzZWxlY3QoLWMoRml0X3BsYW50LngsIEZpdF9wbGFudC55KSkgI0Ryb3AgZXh0cmEgZml0cGxhbnQgcm93IGFmdGVyIGNoZWNraW5nIHRoYXQgdGhleSBhbGwgbWF0Y2ggLSByZXRhaW4gbXVsdGlwbGUgRG9ub3JzIHBlciBzZWdtZW50DQogIA0KICANCiMjIyMjICANCiNDaGVjayB0byBtYWtlIHN1cmUgZml0bmVzcyBwbGFudHMgbGluZSB1cA0KICAjZmlsdGVyKCFpcy5uYShGaXRfcGxhbnQueCkpICU+JQ0KICAjbXV0YXRlKEZNYXRjaCA9IGNhc2Vfd2hlbihGaXRfcGxhbnQueCA9PSBGaXRfcGxhbnQueSB+IFRSVUUsDQogICMgICAgICAgICAgICAgICAgICAgICAgICAgIEZpdF9wbGFudC54ICE9IEZpdF9wbGFudC55IH4gRkFMU0UpKQ0KIw0KYGBgDQoNCg0KKipQaGVub2xvZ3kgQ2FsY3VsYXRpb25zKiogIA0KDQpgYGB7cn0NCiNTYW1lIGFzIGxhc3QgeWVhcg0KDQpBQ19mbG93ZXJpbmcgPC0gQUNfZmxyNSAlPiUgDQogIG11dGF0ZShGRkQgPSBkby5jYWxsKHBtaW4sIGMoc2VsZWN0KC4sIHN0YXJ0c193aXRoKCdGRF8nKSksIG5hLnJtID0gVFJVRSkpLCAjRmlyc3QgZmxvd2VyaW5nIGRhdGUNCiAgICAgICAgIGRheXNfc293MmZsb3dlciA9IGFzLm51bWVyaWMoRkZEIC0gU293X0RhdGUpLCAjZGF5cyBmcm9tIGxhYiBzb3dpbmcgdG8gZmxvd2VyaW5nDQogICAgICAgICBkYXlzX3BsYW50MmZsb3dlciA9IGFzLm51bWVyaWMoRkZEIC0gUGxhbnRfRGF0ZSksICNkYXlzIGZyb20gZmllbGQgcGxhbnRpbmcgdG8gZmxvd2VyaW5nDQogICAgICAgICBMRkQgPSBkby5jYWxsKHBtYXgsIGMoc2VsZWN0KC4sIHN0YXJ0c193aXRoKCdGRF8nKSksIG5hLnJtID0gVFJVRSkpLCAjbGFzdCBmbG93ZXJpbmcgZGF0ZQ0KICAgICAgICAgZmxfZHVyYXRpb24gPSBhcy5udW1lcmljKExGRCAtIEZGRCkpICU+JSAgI0Zsb3dlcmluZyBkdXJhdGlvbg0KICBzZWxlY3QoU2VxdWVuY2UsIFRyYW5zZWN0LCBTZWdQb3MsIEdlbiwgRG9ub3IsIFJlY2lwaWVudCwgUGxhbnRfSUQsIEZfcGxhbnQsIFNvd19EYXRlLCBQbGFudF9EYXRlLCBGRkQsIGRheXNfc293MmZsb3dlciwgZGF5c19wbGFudDJmbG93ZXIsIExGRCwgZmxfZHVyYXRpb24sIEZEXzAxOkZEXzA1LCBldmVyeXRoaW5nKCkpDQoNCg0KDQojVEVNUCBGSUxFIC0gZGVsZXRlIGxhdGVyDQp3cml0ZV9jc3YoQUNfZmxvd2VyaW5nLCBoZXJlOjpoZXJlKCJkYXRhX3NoZWV0cyIsICIyMDIzX3llYXIyX2RhdGEiLCAiY29tcGlsZWRfc2hlZXRzXzIwMjMiLCAiQUNfcGhlbm9sb2d5XzIwMjMuY3N2IiksIG5hID0gIiIpDQoNCmBgYA0KDQo8YnI+ICANCg0KDQojIyMjIEZydWl0IGFuZCBTZWVkIGNvdW50cyAgDQoNCkZydWl0ICYgc2VlZCBjb3VudHMgd2VyZSByZWNvcmRlZCBvbiB0aGUgc2FtZSBzcHJlYWRzaGVldCwgdW5saWtlIGxhc3QgeWVhci4gTG9hZGVkIGhlcmUgYW5kIGNoZWNrZWQgdG8gbWFrZSBzdXJlIGFsbCBJRCBpbmZvIGxpbmVzIHVwIHdpdGggdGhlIEZpdG5lc3MgZGF0YSBzaGVldC4NCg0KDQpgYGB7ciBtZXNzYWdlID0gRkFMU0V9DQojTG9hZCBGcnVpdCAmIFNlZWRzIGNvdW50IGRhdGENCg0KQUNfZnJ1aXRfc2VlZHMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZSgiZGF0YV9zaGVldHMiLCAiMjAyM195ZWFyMl9kYXRhIiwgImZydWl0X3NlZWRfY291bnRzIiwgIkFDX2ZydWl0c19zZWVkc18yMDIzIC0gQUNfZnJ1aXRfc2VlZF9jb3VudHMuY3N2IiksIHNraXAgPSAxKSAlPiUgDQogIHJlbmFtZShTZWdQb3MgPSBTZWcpDQoNCg0KIyAjUmVtb3ZlIHJvd3Mgd2hlcmUgbm8gZnJ1aXRzIGNvbGxlY3RlZCAob3B0aW9uYWwpDQojIEFDX2ZydWl0X3NlZWRzXzIgPC0gQUNfZnJ1aXRfc2VlZHMgJT4lIA0KIyAgIGZpbHRlcih0b3RhbF9mcnVpdHMgIT0gMCkNCg0KDQojI0NoZWNrIEZpdG5lc3MgcGxhbnRzDQpBQ19tZXJnZV90ZXN0IDwtIG1lcmdlKEFDX0ZpdG5lc3NfMiwgQUNfZnJ1aXRfc2VlZHMsIGJ5ID0gYygiVHJhbnNlY3QiLCAiU2VnUG9zIiwgIkdlbiIsICJSZWNpcGllbnQiKSwgYWxsLnkgPSBUUlVFKSAlPiUgDQogIG11dGF0ZShGSVRUUlVFID0gY2FzZV93aGVuKEZpdF9wbGFudC54ID09IEZpdF9wbGFudC55IH4gVFJVRSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRml0X3BsYW50LnggIT0gRml0X3BsYW50LnkgfiBGQUxTRSkpDQoNCg0KQUNfZnJ1aXRfc2VlZHNfMyA8LSBtZXJnZShBQ19GaXRuZXNzXzIsIEFDX2ZydWl0X3NlZWRzLCBieSA9IGMoIlRyYW5zZWN0IiwgIlNlZ1BvcyIsICJHZW4iLCAiUmVjaXBpZW50IiwgIkZpdF9wbGFudCIpLCBhbGwueCA9IFRSVUUpICU+JSANCiAgc2VsZWN0KC1TZXF1ZW5jZS55KSAlPiUgDQogIHJlbmFtZShTZXF1ZW5jZSA9IFNlcXVlbmNlLngsDQogICAgICAgICBQbGFudF9JRCA9IEZpdF9wbGFudCkgI1JlbmFtZSBQbGFudCBJRCBmb3IgbWVyZ2luZyBiZWxvdyBBRlRFUiBkb3VibGUtY2hlY2tpbmcgZml0bmVzcyBwbGFudHMNCmBgYA0KDQpOb3RlOiBTb21lIFNlZ21lbnRzIG5vdCByZXByZXNlbnRlZCBieSBhbnkgRml0bmVzcyBwbGFudHMgKG5vIHBsYW50cyBzdXJ2aXZlZCkgLS0gRmVjdW5kaXR5IHZhbHVlcyBhcmUgY3VycmVudGx5IE5BIGJ1dCB3aWxsIGJlIGFkanVzdGVkIHRvIDAgbGF0ZXIuIA0KDQo8YnI+ICANCg0KDQoNCiMjIyMgU2tlbGV0b24gV2VpZ2h0cyAgDQoNCmBgYHtyIG1lc3NhZ2UgPSBGQUxTRX0NCg0Kc2tlbF93ZWlnaHRzX0FDIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgIjIwMjNfeWVhcjJfZGF0YSIsICAic2tlbGV0b25fZGF0YSIsICJTa2VsZXRvbiBEYXRhIDIwMjMgLSBBQyBTa2VsZXRvbnMuY3N2IikpICU+JSANCiAgcmVuYW1lKHBvc2l0aW9uID0gc2lkZSwgR2VuID0gNCwgRml0bmVzcyA9IDcsIHNrZWxfd2VpZ2h0X21nID0gOCwgY29tcGxldGVfaW5jb21wbGV0ZSA9IDksIHNlbGVjdGVkID0gMTApICU+JSANCiAgYXJyYW5nZShUcmFuc2VjdCwgU2VnbWVudCwgcG9zaXRpb24pICU+JSANCiAgbXV0YXRlKFNlZ1BvcyA9IHBhc3RlKFNlZ21lbnQsIHBvc2l0aW9uLCBzZXAgPSAiIikpICU+JSANCiAgc2VsZWN0KFRyYW5zZWN0LCBTZWdQb3MsIEdlbiwgIFJlY2lwaWVudCwgUGxhbnRfSUQsIEZpdG5lc3MsIHNrZWxfd2VpZ2h0X21nKSAjY29tcGxldGUvc2VsZWN0ZWQgbm90IGluY2x1ZGVkDQoNCnNrZWxfd2VpZ2h0c19BQ18yIDwtIHNrZWxfd2VpZ2h0c19BQyAlPiUgDQogICAgbXV0YXRlKFJlY2lwaWVudCA9IGNhc2Vfd2hlbihSZWNpcGllbnQgJWluJSBjKCJBQ18xNTkiLCAiQUNfMTU5QSIsICJBQ18xNTlCIikgfiAiQUNfMTU5IiwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gUmVjaXBpZW50KSkgI3JlbmFtZSAxNTkgLSBsZXR0ZXJzIHdlcmUgYWRkZWQgdG8gbWFyayBwb3NpdGlvbg0KDQojQ2hlY2sgdGhhdCBJRHMgbGluZSB1cA0Kc2tlbGNoZWNrIDwtIG1lcmdlKEFDX0ZpdG5lc3NfMiwgc2tlbF93ZWlnaHRzX0FDLCBieSA9IGMoIlRyYW5zZWN0IiwgIlNlZ1BvcyIsICJHZW4iLCAiUmVjaXBpZW50IiksIGFsbC54ID0gVFJVRSkNCg0KDQojTWVyZ2Ugd2l0aCBmdWxsIGRhdGEgc2V0DQojQUNfbWVyZ2VkX2RmNSA8LSBtZXJnZShBQ19tZXJnZWRfZGY0LCBza2VsX3dlaWdodHNfQUMsIGJ5ID0gYygiVHJhbnNlY3QiLCAiUmVjaXBpZW50IiwgIlBsYW50X0lEIiksIGFsbC54ID0gVFJVRSkNCg0KDQpgYGANCg0KPGJyPiAgDQoNCioqVEVNUCBNRVJHRUQgREFUQSBGUkFNRSoqICANCg0KTWVyZ2UgdHJhaXQgZGF0YSBwcm9jZXNzZWQgdGh1cyBmYXINCg0KKipOT1RFKiogU0hPVUxEIFRIT1NFIENPTFVNTlMgQkUgUFJFU0VOVC9BQlNFTlQgSU4gVEhFIEZJTkFMIERBVEEgU0hFRVQ/Pw0KDQpgYGB7cn0NCg0KQUNfbWVyZ2VkXzEgPC0gbWVyZ2UoQUNfZmxvd2VyaW5nLCBza2VsX3dlaWdodHNfQUNfMiwgYnkgPSBjKCJUcmFuc2VjdCIsICJTZWdQb3MiLCAiR2VuIiwgIlJlY2lwaWVudCIsICJQbGFudF9JRCIpLCBhbGwueCA9IFRSVUUpICU+JSBzZWxlY3QoLWMoU2tlbGV0b246Rml0bmVzcykpICU+JSBhcnJhbmdlKFRyYW5zZWN0LCBTZXF1ZW5jZSwgU2VnUG9zKQ0KDQpBQ19tZXJnZWRfMiA8LSBtZXJnZShBQ19tZXJnZWRfMSwgQUNfZnJ1aXRfc2VlZHNfMywgYnkgPSBjKCJTZXF1ZW5jZSIsICJUcmFuc2VjdCIsICJTZWdQb3MiLCAiR2VuIiwgIlJlY2lwaWVudCIsICJEb25vciIsICJQbGFudF9JRCIpLCBhbGwueCA9IFRSVUUpICU+JSBzZWxlY3QoLWMoRkRfMDE6RkRfMDUsIE5fQ0xPU0VEX2ZydWl0X0QxOm5vdGVzKSkgJT4lIGFycmFuZ2UoVHJhbnNlY3QsIFNlcXVlbmNlLCBTZWdQb3MpICU+JSANCiAgc2VsZWN0KFNlcXVlbmNlLCBUcmFuc2VjdCwgU2VnUG9zLCBHZW4sIERvbm9yLCBSZWNpcGllbnQsIFBsYW50X0lELCBGX3BsYW50LCBldmVyeXRoaW5nKCkpDQoNCmBgYA0KDQoNCg0KIyMjIyBTZWVkIFdlaWdodHMgIA0KW1tPTEQgLSBVUERBVEVdXSAgDQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCiMgUmVhZCBpbiBvbmx5ICMgc2VlZHMgd2VpZ2hlZCBhbmQgdG90YWwgd2VpZ2h0DQojIENhbGN1bGF0ZSBtZWFuIHdlaWdodCBwZXIgc2VlZA0KDQpBQ19zZWVkbWFzc18xIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgInNlZWRfbWFzcyIsICJBQ19TZWVkX01hc3NfMjAyMy0wMi0wNS5jc3YiKSwgc2tpcCA9IDIpDQoNCmNvbG5hbWVzKEFDX3NlZWRtYXNzXzEpIDwtIGMoIlNlcXVlbmNlIiwgIlRyYW5zZWN0IiwgIlJlY2lwaWVudF9vbGQiLCAiUmVjaXBpZW50IiwgIlBsYW50X0lEIiwgImNsb3NlZF9mcnVpdHNfZDEiLCAidmlhYmxlX3NlZWRzX2QxIiwgInNlZWRzX3dlaWdoZWRfZDEiLCAic2VlZF9tYXNzX21nX2QxIiwgImNsb3NlZF9mcnVpdHNfZDIiLCAidmlhYmxlX3NlZWRzX2QyIiwgInNlZWRzX3dlaWdoZWRfZDIiLCAic2VlZF9tYXNzX21nX2QyIiwgImNsb3NlZF9mcnVpdHNfZDMiLCAidmlhYmxlX3NlZWRzX2QzIiwgInNlZWRzX3dlaWdoZWRfZDMiLCAic2VlZF9tYXNzX21nX2QzIiwgImNsb3NlZF9mcnVpdHNfZDQiLCAidmlhYmxlX3NlZWRzX2Q0IiwgInNlZWRzX3dlaWdoZWRfZDQiLCAic2VlZF9tYXNzX21nX2Q0IiwgImNsb3NlZF9mcnVpdHNfZDUiLCAidmlhYmxlX3NlZWRzX2Q1IiwgInNlZWRzX3dlaWdoZWRfZDUiLCAic2VlZF9tYXNzX21nX2Q1IikNCg0KDQojVW5zdXJlIGhvdyB0byBhY2NvdW50IGZvciBudW1iZXIgb2Ygc2VlZHMgd2VpZ2hlZCAtIGVhY2ggc3RhdGlzdGljYWwgJ3VuaXQnIGlzIHRoZSBtZWFuIHNlZWQgd2VpZ2h0IGNhbGN1bGF0ZWQgb24gYSBnaXZlbiBkYXRlDQoNCkFDX3NlZWRtYXNzXzIgPC0gQUNfc2VlZG1hc3NfMSAlPiUgDQogIHNlbGVjdCgtc3RhcnRzX3dpdGgoYygiY2xvc2VkX2ZydWl0c18iLCAidmlhYmxlX3NlZWRzXyIpKSwgLVJlY2lwaWVudF9vbGQpICU+JSANCiAgbXV0YXRlKG1zbV9kMSA9IHNlZWRfbWFzc19tZ19kMS9zZWVkc193ZWlnaGVkX2QxLA0KICAgICAgICAgbXNtX2QyID0gc2VlZF9tYXNzX21nX2QyL3NlZWRzX3dlaWdoZWRfZDIsDQogICAgICAgICBtc21fZDMgPSBzZWVkX21hc3NfbWdfZDMvc2VlZHNfd2VpZ2hlZF9kMywNCiAgICAgICAgIG1zbV9kNCA9IHNlZWRfbWFzc19tZ19kNC9zZWVkc193ZWlnaGVkX2Q0LA0KICAgICAgICAgbXNtX2Q1ID0gc2VlZF9tYXNzX21nX2Q1L3NlZWRzX3dlaWdoZWRfZDUpDQogICAgICAgICANCg0KQUNfc2VlZG1hc3NfMyA8LSBBQ19zZWVkbWFzc18yICU+JQ0KICBtdXRhdGUobXNtX2FsbCA9IHJvd01lYW5zKHNlbGVjdChBQ19zZWVkbWFzc18yLCBzdGFydHNfd2l0aCgibXNtXyIpKSwgbmEucm0gPSBUUlVFKSkgJT4lIA0KICByb3d3aXNlKCkgJT4lIA0KICBtdXRhdGUoc2RfbXNtX2FsbCA9IHNkKGNfYWNyb3NzKGMobXNtX2QxOm1zbV9kNSkpLCBuYS5ybSA9IFRSVUUpKQ0KICAgICAgICAgDQogIA0KIyNNZXJnZSB3aXRoIGZydWl0L3NlZWQgY291bnQgZGF0YSBmcmFtZQ0KDQpBQ19mcnVpdHNlZWRfY3QzIDwtIG1lcmdlKEFDX2ZydWl0c2VlZF9jdDIsIEFDX3NlZWRtYXNzXzMsIGJ5ID0gYygiVHJhbnNlY3QiLCAiU2VxdWVuY2UiLCAiUmVjaXBpZW50IiwgIlBsYW50X0lEIiksIGFsbC54ID0gVFJVRSkNCiNhbGwueCBtZWFucyB0aGF0IGFueSBmaXRuZXNzIHBsYW50IHggSUQgY29tYm9zIHRoYXQgZG9uJ3QgbWF0Y2ggdXAgd29uJ3QgYmUgaW5jbHVkZWQuDQoNCmBgYA0KDQoNCg0KDQoNCiMjIyMgQ29yb2xsYSBtZWFzdXJlbWVudHMgIA0KW1tPTEQgLSBVUERBVEVdXQ0KDQpgYGB7ciBldmFsID0gRkFMU0V9DQpjb3JvbGxhc19BQyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKCJkYXRhX3NoZWV0cyIsICJjb3JvbGxhX21lYXN1cmVzIiwgImNvcm9sbGFtZWFzdXJlc19BQ18yMDIzLTAyLTI4LmNzdiIpKSAlPiUgc2VsZWN0KDEsIDMsIDQsIDYsIDcsIDksIDExKSAlPiUgDQogIHJlbmFtZShwaG90b19kYXRlID0gNCwgY29yb2xsYV9kaWFtX21tID0gNSwgY29yb2xsYV9hcmVhX21tMiA9IDYsIG5vdGVzX2Nvcm9sbGEgPSA3KSAlPiUgDQogIGZpbHRlcighZ3JlcGwoIlJFTU9WRSIsIG5vdGVzX2Nvcm9sbGEpKSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggIlJFTU9WRSINCg0KY29yb2xsYXNfQUMyIDwtIGNvcm9sbGFzX0FDICU+JSANCiAgZmlsdGVyKCFpcy5uYShjb3JvbGxhX2RpYW1fbW0pKSAlPiUgDQogIG11dGF0ZShwaG90b19kYXRlID0gYXNfZGF0ZShwaG90b19kYXRlKSkgJT4lICNjb3JyZWN0IG1pc3NpbmcgZGF0ZXMgbWFudWFsbHkNCiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKCIlMDNkIiwgKHBhcnNlX251bWJlcihSZWNpcGllbnQpKSkpICU+JSAjRml4IFJlY2lwaWVudCBuYW1lcw0KICBtdXRhdGUoUmVjaXBpZW50ID0gYXMuY2hhcmFjdGVyKHN0cl9jKCJBQ18iLCBSZWNpcGllbnRfbnVtKSkpICU+JSANCiAgc2VsZWN0KC1SZWNpcGllbnRfbnVtKSAlPiUgDQogIGFycmFuZ2UoVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQsIHBob3RvX2RhdGUpICU+JSANCiAgZGlzdGluY3QoVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQsIC5rZWVwX2FsbCA9IFRSVUUpICNLZWVwIG9ubHkgdGhlIGVhcmxpZXN0IHBob3RvIGRhdGUgZGF0YSBmb3IgZHVwbGljYXRlcw0KI09ubHkgYWJvdXQgNiBkdXBsaWNhdGUgb2JzZXJ2YXRpb25zIHJlbW92ZWQNCg0KDQojIyBNZXJnZSB3aXRoIG1haW4gZGF0YSANCkFDX21lcmdlZF9kZjUgPC0gbWVyZ2UoQUNfbWVyZ2VkX2RmNCwgY29yb2xsYXNfQUMyLCBieSA9IGMoIlRyYW5zZWN0IiwgIlJlY2lwaWVudCIsICJQbGFudF9JRCIpLCBhbGwueCA9IFRSVUUpDQogIA0KYGBgDQoNCjxicj4gIA0KDQoNCiMjIyMgTGVhZiBBcmVhICYgV2VpZ2h0ICANCltbT0xEIC0gVVBEQVRFXV0NCg0KYGBge3IgZXZhbCA9IEZBTFNFfQ0KbGVhdmVzX0FDIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImxlYWZfZGF0YSIsICJBQ19TTEFfZGF0YV8yMDIzMDUyMi5jc3YiKSkgJT4lIA0KICByZW5hbWUobGVhZl9hcmVhX21tMiA9IDUsIGxlYWZhcmVhX25vdGVzID0gNiwgbGVhZl9kcnl3ZWlnaHRfbWcgPSA3LCBsZWFmd2VpZ2h0X25vdGVzID0gOCkgJT4lIA0KICBmaWx0ZXIoIWdyZXBsKCJFWENMVURFIiwgbGVhZmFyZWFfbm90ZXMpKSAlPiUgIyMgRmlsdGVyIG91dCBub3RlcyB3aXRoICJFWENMVURFIg0KICBmaWx0ZXIoIWlzLm5hKGxlYWZfYXJlYV9tbTIpKSAlPiUgI2V4bGN1ZGUgTkEgbGVhZiBhcmVhcz8NCiAgbXV0YXRlKGxlYWZfYXJlYV9tbTIgPSBhcy5udW1lcmljKGxlYWZfYXJlYV9tbTIpKQ0KDQoNCg0KI0VsaW1pbmF0ZSBEdXBsaWNhdGVzDQojUmFuZG9tbHkgc2VsZWN0IG9uZSBsZWFmIHRvIGJlIGFuYWx5emVkIHBlciB0cmFuc2VjdCB4IG1hdGVybmFsIElEIGNvbWJvDQpsZWF2ZXNfQUNfZHVwZWQgPC0gbGVhdmVzX0FDICU+JSANCiAgbXV0YXRlKGR1cGVkMSA9IGR1cGxpY2F0ZWQoc2VsZWN0KGxlYXZlc19BQywgYyhCbG9jaywgVHJhbnNlY3QsIFJlY2lwaWVudCkpKSwNCiAgICAgICAgIGR1cGVkMiA9IGR1cGxpY2F0ZWQoc2VsZWN0KGxlYXZlc19BQywgYyhCbG9jaywgVHJhbnNlY3QsIFJlY2lwaWVudCkpLCBmcm9tTGFzdCA9IFRSVUUpLA0KICAgICAgICAgZHVwZWQgPSBjYXNlX3doZW4oZHVwZWQxfGR1cGVkMiA9PSBUUlVFIH4gVFJVRSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBGQUxTRSkpICU+JSAjaGlnaGxpZ2h0IGFsbCBkdXBsaWNhdGVzDQogIHNlbGVjdCgtYyhkdXBlZDEsIGR1cGVkMikpDQojIFNlbGVjdCBkdXBlIHJvd3MgdGhhdCBoYXZlIGJvdGggYXJlYSBhbmQgd2VpZ2h0IQ0KDQoNCiNUaGlzIHNlZW1zIHRvIHdvcmsgdGhlIGJlc3QhDQpsZWF2ZXNfQUNfdW5pcXVlIDwtIGxlYXZlc19BQ19kdXBlZCAlPiUgDQogIGdyb3VwX2J5KEJsb2NrLCBUcmFuc2VjdCwgUmVjaXBpZW50KSAlPiUgDQogIHNsaWNlX3NhbXBsZShuID0gMSkgJT4lICAjc2VsZWN0IGEgcmFuZG9tIHJvdyBmb3IgZWFjaCAgY29tYm8gb2YgYmxvY2ssIHRyYW5zZWN0LCByZWNpcGllbnQNCiAgc2VsZWN0KC1jKGR1cGVkLCBQbGFudF9JRCkpICU+JSAgI0Rvbid0IG5lZWQgcGxhbnQgSUQuLi50aGVzZSB3ZXJlIGFsbCBub24tZml0bmVzcyBwbGFudHMNCiAgbXV0YXRlKFNMQSA9IGxlYWZfYXJlYV9tbTIgLyBsZWFmX2RyeXdlaWdodF9tZywNCiAgICAgICAgIExNQSA9IDEgLyBTTEEpDQoNCg0KI01lcmdlIGluIHRvIG1haW4gZGF0YSANCg0KQUNfbWVyZ2VkX2RmNiA8LSBtZXJnZShBQ19tZXJnZWRfZGY1LCBsZWF2ZXNfQUNfdW5pcXVlLCBieSA9IGMoIkJsb2NrIiwgIlRyYW5zZWN0IiwgIlJlY2lwaWVudCIpLCBhbGwueCA9IFRSVUUpICNyZXBsaWNhdGVzIGxlYWYgYXJlYSAmIHdlaWdodCBmb3IgZXZlcnkgcGxhbnQgb2YgYSB0cmFuc2VjdCByZWNpcGllbnQgY29tYm8NCg0KDQoNCmBgYA0KDQo8YnI+ICANCg0KDQojIyMjIGQxM0MgZGF0YSAgDQpbW09MRC1VUERBVEVdXQ0KDQpgYGB7ciBldmFsID0gRkFMU0V9DQpOZW1vX2QxM0MgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZSgiZGF0YV9zaGVldHMiLCAiaXNvdG9wZV9kYXRhIiwgIk5lbW9waGlsYV9kMTNDXzIzMDUxMS5jc3YiKSkgJT4lIA0KICBzZWxlY3QoMSwyLDMsNSw2LDkpICU+JSANCiAgcmVuYW1lKHNhbXBsZV9JRCA9IDEsIGQxM0MgPSAyLCB0b3RhbENfdWcgPSAzLCBzYW1wbGVfd2VpZ2h0X21nID0gNikNCiNTYXZlIGFzIFVURi04IGZpbGUgZnJvbSBleGNlbCB0byBhdm9pZCBpbXBvcnQgZXJyb3INCg0KI2ZpbHRlciB0byBBQyBzYW1wbGVzDQpOZW1vX2QxM0NfQUMgPC0gTmVtb19kMTNDICU+JSANCiAgZmlsdGVyKGdyZXBsKCdBQycsIHNhbXBsZV9JRCkpDQoNCiN1bnJhdmVsIHNhbXBsZSBJRA0KTmVtb19kMTNfQUMyIDwtIE5lbW9fZDEzQ19BQyAlPiUgDQogIG11dGF0ZShSZWNpcGllbnQgPSBnc3ViKCctJywgJ18nLCBzdWJzdHIoc2FtcGxlX0lELCAxLCA2KSksIA0KICAgICAgICAgVHJhbnNlY3QgPSBhcy5udW1lcmljKHN0cl9yZW1vdmUoc3Vic3RyKHNhbXBsZV9JRCwgOCwgMTApLCAiXjArIikpLA0KICAgICAgICAgUGxhbnRfSUQgPSBhcy5udW1lcmljKHN1YnN0cihzYW1wbGVfSUQsIDEyLDEzKSkpICU+JSANCiAgc2VsZWN0KFRyYW5zZWN0LCBSZWNpcGllbnQsIFBsYW50X0lELCBkMTNDLCBzYW1wbGVfd2VpZ2h0X21nLCAtUGxhbnRfSUQpDQoNCiNNZXJnZQ0KDQpBQ19tZXJnZWRfZGZfZmwzIDwtIG1lcmdlKEFDX21lcmdlZF9kZl9mbDIsIE5lbW9fZDEzX0FDMiwgYnkgPSBjKCJSZWNpcGllbnQiLCAiVHJhbnNlY3QiKSwgYWxsLnggPSBUUlVFKQ0KI01lcmdlIGJ5IFJlY2lwaWVudCBhbmQgVHJhbnNlY3Qgb25seTogZ2Vub3R5cGUtd2lkZSBlc3RpbWF0ZXMgb2YgZDEzQyBzaW5jZSBzb21lIHBsYW50cyB3ZXJlIE5GDQoNCg0KDQojY2hlY2sgdGhhdCBhbGwgZGF0YSBtYWRlIGl0ICgyNjYgb2JzKQ0KI3Rlc3RkZiA8LSBBQ19tZXJnZWRfZGZfZmwzICU+JSANCiMgIGZpbHRlcighaXMubmEoZDEzQykpDQpgYGANCg0KPGJyPiAgDQoNCg0KKipFcnJvciBjaGVja3MqKg0KDQpgYGB7ciBldmFsID0gRkFMU0V9DQojI0NoZWNrIGZvciBtaXNtYXRjaGVkIChmaXRuZXNzKSBwbGFudHMNCg0KQUNfRWNoZWNrMSA8LSBBQ19tZXJnZWRfZGY1ICU+JSANCiAgZmlsdGVyKGFueV9GaXRQID09IEZBTFNFICYgdG90YWxfZnJ1aXRzX0YgIT0gMCkgI2RvIHRoZSBzYW1lIGZvciBzZWVkIGNvdW50LCB1c2luZyBgPmAgYW5kIGAhPWANCg0KQUNfRWNoZWNrMiA8LSBBQ19tZXJnZWRfZGY1ICU+JSANCiAgZmlsdGVyKGFueV9GaXRQID09IFRSVUUpICU+JSANCiAgZmlsdGVyKGNsb3NlZF9mcnVpdHNfRiA9PSAwICYgc2VlZF9jdCA+IDApDQoNCiMjTkEvTmFOL0luZm8gdmFsdWVzIGZvciBtZWFuIHNlZWRzL2VzdCBzZWVkIHByb2QNCkFDX0VjaGVjazMgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgDQogIGZpbHRlcihhbnlfRml0UCA9PSBUUlVFICYgaXMubmEoYXMubnVtZXJpYyhtZWFuX3NlZWRzX3Blcl9mcnVpdCkpKQ0KDQpBQ19FY2hlY2s0IDwtIEFDX21lcmdlZF9kZjUgJT4lIA0KICBmaWx0ZXIoYW55X0ZpdFAgPT0gVFJVRSAmICFpcy5maW5pdGUobWVhbl9zZWVkc19wZXJfZnJ1aXQpKQ0KDQoNCiMjIENoZWNrIGZvciBOQSBzZWVkIGNvdW50cyBmb3IgZml0bmVzcyBwbGFudHMgKHdoZW4gZnJ1aXQgcHJvZHVjdGlvbiA+IDApDQojV2lsbCBiZSBlbXB0eSB3aGVuIHNlZWRfY3QgTkFzIGFyZSByZXBsYWNlZCB3aXRoIDANCkFDX0VjaGVjazUgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgDQogIGZpbHRlcihhbnlfRml0UCA9PSBUUlVFICYgaXMubmEoc2VlZF9jdCkpDQojI05BcyBwcmVzZW50IGhlcmUgYmVmb3JlIHNldHRpbmcgc2VlZF9jdCBOQXMgdG8gMCB3ZXJlIGZyb20gZml0bmVzcyBwbGFudHMgdGhhdCBoYWQgMCBjbG9zZWQgZnJ1aXQNCg0KDQojU2VlZCBtYXNzDQpBQ19FY2hlY2s1IDwtIEFDX21lcmdlZF9kZjUgJT4lIA0KICBmaWx0ZXIoYW55X0ZpdFAgPT0gRkFMU0UgJiAhaXMubmEobXNtX2FsbCkpDQoNCg0KYGBgDQoNCjxicj4gIA0KDQoNCiMjIyBUcmFpdCBjYWxjdWxhdGlvbnMgDQoNClNvbWUgdHJhaXQgY2FsY3VsYXRpb25zIHBlcmZvcm1lZCBpbiBgRml0bmVzc19hbmRfRURBLlJtZC4gIA0KDQpGcnVpdHMgd2VyZSBvbmx5IGNvbGxlY3RlZCBmcm9tIGZpdG5lc3MgcGxhbnRzLCBzbyBvbmx5IHN1cnZpdmFsIHRvIGZsb3dlcmluZyBpcyBjYWxjdWFsdGVkIGZvciBhbGwgcGxhbnRzIChmaXRuZXNzIGFuZCBub24tZml0bmVzcykuDQoNClVQREFURSB3aXRoIGxhdGVzdCBtZXJnZWQgZGYuLi4NCg0KYGBge3J9DQoNCiNTdXJ2aXZhbCBtZWFzdXJlcw0KI0FkZGVkIHZhciBmb3IgY2xvc2VkIGZydWl0IHByb2R1Y2VkDQojcmVuYW1lZCAic3Vydml2YWwiIHRvIHNlZWQgcHJvZHVjdGlvbg0KIw0KQUNfbWVyZ2VkX2RmMSA8LSBBQ19tZXJnZWRfMiAlPiUgDQogIG11dGF0ZShzdXJ2X3RvX2Zsb3dlciA9IGNhc2Vfd2hlbighaXMubmEoRkZEKSB+IDEsICNwbGFudHMgdGhhdCBzdXJ2aXZlZCB0byBmbG93ZXINCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpcy5uYShGRkQpIH4gMCksDQogICAgICAgICBzdXJ2X3RvX2ZydWl0cHJvZCA9IGNhc2Vfd2hlbihGX3BsYW50ID09IFRSVUUgJiB0b3RhbF9mcnVpdHMgPiAwIH4gMSwgI3BsYW50cyB0aGF0IHN1cnZpdmVkIHRvIHByb2R1Y2UgZnJ1aXQNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEZfcGxhbnQgPT0gVFJVRSAmIHRvdGFsX2ZydWl0cyA9PSAwIH4gMCksDQogICAgICAgICBwcm9kX2Nsb3NlZF9mcnVpdHMgPSBjYXNlX3doZW4oRl9wbGFudCA9PSBUUlVFICYgQUxMX2Nsb3NlZF9mcnVpdCA+IDAgfiAxLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGX3BsYW50ID09IFRSVUUgJiBBTExfY2xvc2VkX2ZydWl0ID09IDAgfiAwKSwNCiAgICAgICAgIHByb2RfZmlsbGVkX3NlZWRzID0gY2FzZV93aGVuKEZfcGxhbnQgPT0gVFJVRSAmIEFMTF9maWxsZWRfc2VlZHMgPiAwIH4gMSwgI3BsYW50cyBwcm9kdWNlZCBmaWxsZWQgc2VlZHMNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRl9wbGFudCA9PSBUUlVFICYgQUxMX2ZpbGxlZF9zZWVkcyA9PSAwIH4gMCkpICNlbHNlID0gMA0KDQojTk9URQ0KI0FkanVzdGluZyBmZWN1bmRpdHkvZml0bmVzczoNCiNUaGUgaXNzdWUgb2YgaG93IHRvIGhhbmRsZSAwcyB2cyBtaXNzaW5nIGRhdGEgaW4gb3JkZXIgdG8gYWNjdXJhdGVseSBjYWxjdWxhdGUgZml0bmVzcyBoYXMgbGVkIHVzIHRvIGFwcGx5IHRoZSBmb2xsb3dpbmcgY29ycmVjdGlvbnM6DQojIEVzdGltYXRlZCBmZWN1bmRpdHkgKHNlZWRzIHBlciBmcnVpdCB4IHRvdGFsIGZydWl0cykgc2hvdWxkIGJlIHNldCB0byAqMCogd2hlbiBjbG9zZWQgZnJ1aXRzID49IDEgJiBmaWxsZWQgc2VlZHMgPT0gMDsgd2hlbiBjbG9zZWQgZnJ1aXRzID09IG9wZW4gZnJ1aXRzID09IDANCiNTZXQgZmVjdW5kaXR5IHRvIE5BIHdoZW4gY2xvc2VkID0gMCAmIG9wZW4gPj0gMQ0KDQojTWVhbiBzZWVkcyBwZXIgZnJ1aXQgbGVmdCBhcy1pcyAoTkEgd2hlbiBubyBjbG9zZWQgZnJ1aXRzIGNvbGxlY3RlZCkNCiAgICAgICAgIA0KQUNfbWVyZ2VkX2RmMiA8LSBBQ19tZXJnZWRfZGYxICU+JSANCiAgcmVuYW1lKG1lYW5fc2VlZHNfcGVyX2ZydWl0ID0gYXZnX3NlZWRzX3Blcl9mcnVpdCkgJT4lIA0KICBtdXRhdGUoYWNyb3NzKGMoZXN0X2ZlY3VuZGl0eSwgbWVhbl9zZWVkc19wZXJfZnJ1aXQpLCB+IGFzLm51bWVyaWMobmFfaWYoLiwgIiNESVYvMCEiKSkpKSAlPiUgI0NvbnZlcnRzIHRvIE5BDQogIG11dGF0ZShlc3RfZmVjdW5kaXR5ID0gY2FzZV93aGVuKEZfcGxhbnQgPT0gVFJVRSAmIEFMTF9jbG9zZWRfZnJ1aXQgPT0gMCAmIEFMTF9vcGVuX2ZydWl0ID09IDAgfiAwLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGX3BsYW50ID09IFRSVUUgJiBBTExfY2xvc2VkX2ZydWl0ID09IDAgJiBBTExfb3Blbl9mcnVpdCA+PSAxIH4gTkEsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEZfcGxhbnQgPT0gVFJVRSAmICFpcy5uYShlc3RfZmVjdW5kaXR5KSB+ICBlc3RfZmVjdW5kaXR5KSkNCg0KYGBgDQoNCjxicj4gIA0KDQoNCg0KIyMjIE1hc3RlciBzaGVldHMgKDIwMjMpICANCg0KRnVsbCBhbmQgc3VtbWFyaXplZCBkYXRhIHNoZWV0cyBmb3IgYWxsIGRhdGEgY29sbGVjdGVkIGluIHRoZSAyMDIyLTIwMjMgZmllbGQgc2Vhc29uLiANClRoZXNlIGFyZSBtZXJnZWQgd2l0aCB0aGUgeWVhciAxIGRhdGEgc2hlZXRzIGVsc2V3aGVyZS4gIA0KDQpgYGB7cn0NCiMjICdMb25nJyB2ZXJzaW9uIHdpdGggYWxsIGRhdGEgLSBvbmUgcm93IHBlciBwbGFudCBJRA0KI1NvcnQgYnkgdHJhbnNlY3QgYW5kIElEIHZhcmlhYmxlcywgdGhlbiBieSBGaXRuZXNzIHBsYW50cyBhbmQgdGhvc2UgdGhhdCBmbG93ZXJlZC4uLg0KDQojIyMjIyMNCiNURU1QIFZFUlNJT04NCiMjIyMjIw0KDQpBQ19tZXJnZWRfZnVsbF8xIDwtIEFDX21lcmdlZF9kZjIgJT4lIA0KICBmaWx0ZXIoRl9wbGFudCA9PSBUUlVFKQ0KIyNOT1RFUyAtIHRoZXJlIGFyZSBzdGlsbCBmaXRuZXNzIHBsYW50cyB0aGF0IG5ldmVyIGZsb3dlcmVkLi4uIGtlZXAgYXMgMHMNCg0KDQp3cml0ZV9jc3YoQUNfbWVyZ2VkX2Z1bGxfMSwgaGVyZTo6aGVyZSgiZGF0YV9zaGVldHMiLCAiMjAyM195ZWFyMl9kYXRhIiwgImNvbXBpbGVkX3NoZWV0c18yMDIzIiwgIkFDX3RyYWl0c19ZMl9pbmNvbXBsZXRlXzIwMjMwOTIyLmNzdiIpLCBuYSA9ICIiKQ0KDQoNCiMjIyMjIw0KIyMjIyMjDQoNCg0KQUNfbWFzdGVyc2hlZXRfdjEgPC0gQUNfbWVyZ2VkX2RmX2ZsMyAlPiUgDQogIG11dGF0ZShZZWFyID0gMjAyMiwgR2VuID0gIkcxIikgJT4lIA0KICBzZWxlY3QoWWVhciwgR2VuLCBCbG9jaywgVHJhbnNlY3QsIFNlcXVlbmNlLCBEb25vciwgUmVjaXBpZW50LCBSZXBsaWNhdGVkLCBQbGFudF9JRCwgRml0UCwgUmVwX0ZpdFAsIGFueV9GaXRQLCBGX3BsYW50LCBGX211bHRpLCBGX3BsYW50X25vdGVzLCBldmVyeXRoaW5nKCkpICU+JSANCiAgYXJyYW5nZShCbG9jaywgVHJhbnNlY3QsIFNlcXVlbmNlLCBSZWNpcGllbnQsIFBsYW50X0lEKQ0KDQp3cml0ZV9jc3YoQUNfbWFzdGVyc2hlZXRfdjEsIGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImNvbXBpbGVkX3NoZWV0cyIsICJBQ19tYXN0ZXJzaGVldF9mdWxsXzIwMjMtMDgtMDcuY3N2IikpDQojUmVuYW1lZCB0byBmdWxsIC0gaGFzIHJlY29yZHMgb2YgYWxsIHBsYW50cyAoaW5jbHVkaW5nIG5vbi1maXRuZXNzKQ0KDQoNCg0KIw0KIyMgRml0bmVzcyBQbGFudHMgT25seQ0KIw0KDQpBQ19tYXN0ZXJzaGVldF9GX21haW5zIDwtICBBQ19tYXN0ZXJzaGVldF92MSAlPiUgDQogIGZpbHRlcihGaXRQID09IFRSVUUpICNPbmx5IG1haW4gZml0bmVzcyBwbGFudHMNCg0KQUNfbWFzdGVyc2hlZXRfRl9hbGwgPC0gQUNfbWFzdGVyc2hlZXRfdjEgJT4lIA0KICBmaWx0ZXIoYW55X0ZpdFAgPT0gVFJVRSkgI3NpbmdsZSBhbmQgbXVsdGlwbGUgZml0bmVzcyBwbGFudHMgKHJlcGxpY2F0ZWQgSURzKQ0KDQoNCiMjTm90ZTogcmVtYWluaW5nIE5BIHZhbHVlcyBmb3IgZml0bmVzcyBtZWFzdXJlcyAobWVhbiBzZWVkcyBwZXIgZnJ1aXQ7IGVzdCBzZWVkIHByb2R1Y3Rpb24pIGFyZSB0aGUgcmVzdWx0cyBvZiAwIGNsb3NlZCBmcnVpdCBjb3VudHMuIFRyZWF0ZSB0aGVzZSBhcyAwIGZpdG5lc3Mgb3IgYXMgTkFzIHRvIHJlbW92ZT8/Pw0KDQoNCndyaXRlX2NzdihBQ19tYXN0ZXJzaGVldF9GX21haW5zLCBoZXJlOjpoZXJlKCJkYXRhX3NoZWV0cyIsICJjb21waWxlZF9zaGVldHMiLCAiQUNfbWFzdGVyc2hlZXRfRml0bmVzcy1tYWluc18yMDIzLTA4LTA3LmNzdiIpKQ0KDQp3cml0ZV9jc3YoQUNfbWFzdGVyc2hlZXRfRl9hbGwsIGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImNvbXBpbGVkX3NoZWV0cyIsICJBQ19tYXN0ZXJzaGVldF9GaXRuZXNzLWFsbF8yMDIzLTA4LTA3LmNzdiIpKQ0KYGBgDQoNCg0KDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkNvbXBpbGUgRkxvd2VyLCBGcnVpdCwgYW5kIFNlZWQgY291bnQgZGF0YSBzaGVldHMgLSBGaXRuZXNzIHBsYW50cyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KYXV0aG9yOiBEZXZpbiBHYW1ibGUNCi0tLQ0KDQoNCmBgYHtyIG1lc3NhZ2UgPSBGQUxTRSwgd2FybmluZyA9IEZBTFNFfQ0KI0xvYWQgUGFja2FnZXMNCmxpYnJhcnkodGlkeXZlcnNlKQ0KbGlicmFyeShqYW5pdG9yKQ0KbGlicmFyeShoZXJlKQ0KbGlicmFyeShsdWJyaWRhdGUpDQpsaWJyYXJ5KHJlc2hhcGUyKQ0KbGlicmFyeShzdHJpbmdyKQ0KDQpgYGANCg0KDQoNCiMjIExvYWQgYW5kIENsZWFuIERhdGEgICANCg0KTk9URTogQWxsIGRhdGUgZGF0YSBzaG91bGQgYmUgc3RhbmRhcmRpemVkIHByaW9yIHRvIGltcG9ydGluZyBpbnRvIFIuIEluIEV4Y2VsLCBzZXQgZm9ybWF0IHRvIFlZWVktTU0tREQgZm9yIGNvbnNpc3RlbmN5LiBVbmZvcnR1bmF0ZWx5LCB0aGlzIHByb2Nlc3MgaW4gRXhjZWwgd2lsbCBhdXRvLXBvcHVsYXRlIHRoZSB5ZWFyICh3aGVuIG5vdCBhbHJlYWR5IHByZXNlbnQpIGJhc2VkIG9uIHN5c3RlbSBzZXR0aW5ncy4gRm9yIGdlcm1pbmF0aW9uIGRhdGEsIHRoaXMgbWVhbnMgdGhhdCB0aGUgeWVhciBzaG91bGQgYmUgY29ycmVjdGVkIHRvIDIwMjEhIQ0KDQoNCk5PVEUgMjogQWxsIHBhdGhzIGFyZSByZWxhdGl2ZSB0aGFua3MgdG8gdGhlICdoZXJlJyBwYWNrYWdlLiAgDQoNCg0KKipHZXJtaW5hdGlvbiBEYXRhKiogIA0KLSBBZGQgJ0RhdGUgU293bicgY29sdW1uIGFuZCBkYXRhIGluIGFzIHdlbGwuDQoNCg0KLU5PVEU6IGZvciBBQywgcGxhbnQgbnVtYmVyIG11c3QgYmUgRkxJUFBFRCAoaS5lLiwgcGxhbnRzIDEsMiwzLDQsNSw2LDcsOCw5LDEwIGJlY29tZSBwbGFudHMgMTAsOSw4LDcsNiw1LDQsMywyLDEsIHJlc3BlY3RpdmVseSkgIA0KYGBge3IgbWVzc2FnZSA9IEZBTFNFfQ0KI0xvYWQgY3N2DQoNCiNTa2lwIGZpcnN0IG5vbnNlbnNlIHJvdyAodGhlIHNlY29uZCByb3cgaXMgdGhlIGhlYWRlcikNCkFDX2dlcm1fZGYxIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImdlcm1pbmF0aW9uX2NoZWNrc18yMDIxLTIwMjIiLCAiQUNfZ2VybV9kYXRhLmNzdiIpLCBza2lwID0gMSkgJT4lDQogIHJlbmFtZShCbG9jayA9ICdCbG9jayAoMS0zKScsIFRyYW5zZWN0ID0gJ1RyYW5zZWN0ICgxLTkpJywgU2VxdWVuY2UgPSAnU2VxdWVuY2UgKDEtMzIxKScsIERvbm9yID0gIlBvbGxlbiBEb25vciBJRCIsIFJlY2lwaWVudCA9ICJNYXRlcm5hbCBTaWJzaGlwIiwgU3RhZ2UgPSAnbW0vZGQnKSAlPiUgDQogIGZpbHRlcighU3RhZ2UgPT0gIkZsb3cgRGF0ZSIpICAgI1JlbW92ZSBlbXB0eSBmbG93ZXJpbmcgZGF0ZSByb3dzDQoNCg0KIw0KI1Jlc2hhcGUgZGF0YSBzaGVldCB0byAnbG9uZycgZm9ybWF0DQpBQ19nZXJtX2RmMiA8LSBBQ19nZXJtX2RmMSAlPiUgDQogIHBpdm90X2xvbmdlcihjb2xzID0gYygnMSc6JzEwJyksDQogICAgICAgICAgICAgICBuYW1lc190byA9ICdQbGFudF9JRCcsDQogICAgICAgICAgICAgICB2YWx1ZXNfdG8gPSAnR2VybV9EYXRlJykgDQoNCg0KIw0KIyNGaXggdHlwb3MgaW4gZGF0ZSB2YWx1ZXMNCiMjTUFKT1IgVFlQTzogRXhjZWwgYXV0by1wb3B1bGF0ZWQgeWVhciBhcyAyMDIyIHdoZW4gaW4gZmFjdCB0aGUgeWVhciBzaG91bGQgYmUgMjAyMSENCnVuaXF1ZShBQ19nZXJtX2RmMiRHZXJtX0RhdGUpDQoNCkFDX2dlcm1fZGYzIDwtIEFDX2dlcm1fZGYyICU+JSANCiAgbXV0YXRlKEdlcm1fRGF0ZSA9IHJlcGxhY2UoR2VybV9EYXRlLCBHZXJtX0RhdGUgJWluJSBjKCJEZWFkIDEyLzUsIHBsdWcgbWlzc2luZyIsICJkaXN0dXJiZWQgYnkgYW5pbWFsIChkZWVyKSIsICI/IGRpc3R1cmJlZCBieSBhbmltYWwgKGRlZXIpIiksIE5BKSkgJT4lICNzcGVjaWZ5IHZhbHVlcyB0byBhc3NpZ24gJ05BJyBmaXJzdCB0byBhdm9pZCBtaXNtYXRjaGluZyB0ZXh0ICgiZGlzdHVyYmVkIikgcHJlc2VudCBpbiB2YWxpZCBkYXRlcw0KbXV0YXRlKA0KICBHZXJtX0RhdGUgPSBjYXNlX3doZW4oDQogICAgR2VybV9EYXRlICVpbiUgYygiMjAyMi0xMi0wNSIsICIxMi81LCA/IHBsdWcgYnVyaWVkIiwgIjEyLzUvMjAyMSwgPyIsICIxMi81LzIwMjEsIGRpc3R1cmJlZCBieSBhbmltYWwgKGRlZXIpIikgfiAiMjAyMS0xMi0wNSIsDQogICAgR2VybV9EYXRlICVpbiUgYygiMjAyMi0xMS0wMyIsICIxMS8zLzIwMjEsIGRpc3R1cmJlZCBieSBhbmltYWwgKGRlZXIpIiwgIjExLzMgKG49Miwgbj0xIG9uIDEyLzUpIikgfiAiMjAyMS0xMS0wMyIpKSANCg0KI2NoZWNrIGFnYWluDQp1bmlxdWUoQUNfZ2VybV9kZjMkR2VybV9EYXRlKQ0KI1VzZSBzdW0oaXMubmEoQUNfZ2VybV9kZjIkRGF0ZSkpIHRvIGNvbXBhcmUgY2hhbmdlIGluIG51bWJlciBvZiBOQSB2YWx1ZXMNCg0KDQojDQojQWRqdXN0IERvbm9yIGFuZCBSZWNpcGllbnQgbmFtZXMgZm9yIGVhc3kgc29ydGluZyAtIHRocmVlIGRpZ2l0cyAobGVhZGluZyB6ZXJvcykNCiNTcGVjaWZ5IEdlcm1fRGF0ZSBhcyAnZGF0ZScgY2xhc3MgdmFyaWFibGUNCkFDX2dlcm1fZGY0IDwtIEFDX2dlcm1fZGYzICU+JSANCiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKCIlMDNkIiwgKHBhcnNlX251bWJlcihSZWNpcGllbnQpKSkpICU+JSANCiAgbXV0YXRlKFJlY2lwaWVudCA9IGFzLmNoYXJhY3RlcihzdHJfYygiQUNfIiwgUmVjaXBpZW50X251bSkpKSAlPiUgDQogIG11dGF0ZShEb25vcl9udW0gPSBzcHJpbnRmKCIlMDNkIiwgKHBhcnNlX251bWJlcihEb25vcikpKSkgJT4lIA0KICBtdXRhdGUoRG9ub3IgPSBhcy5jaGFyYWN0ZXIoc3RyX2MoIkFDXyIsIERvbm9yX251bSkpKSAlPiUNCiAgbXV0YXRlKEdlcm1fRGF0ZSA9IGFzX2RhdGUoR2VybV9EYXRlKSkgJT4lICNzZXQgdmFyaWFibGUgdG8gY2xhc3MgPSBkYXRlDQogIHNlbGVjdChCbG9jaywgVHJhbnNlY3QsIFNlcXVlbmNlLCBEb25vciwgRG9ub3JfbnVtLCBSZWNpcGllbnQsIFJlY2lwaWVudF9udW0sIFBsYW50X0lELCBldmVyeXRoaW5nKCkpICU+JSANCiAgc2VsZWN0KC1jKFN0YWdlLCBEb25vcl9udW0sIFJlY2lwaWVudF9udW0pKQ0KDQoNCiMNCiMjQWRkIGluIFNvdyBEYXRlIChsYWIgc293bikgYW5kIFBsYW50IGRhdGUgKGluIGZpZWxkKQ0KQUNfZ2VybV9kZjUgPC0gQUNfZ2VybV9kZjQgJT4lIA0KICBtdXRhdGUoU293X0RhdGUgPSBhc19kYXRlKCIyMDIxLTEwLTI3IikpICU+JSANCiAgbXV0YXRlKFBsYW50X0RhdGUgPSBhc19kYXRlKCIyMDIxLTExLTA0IikpDQojU29tZSBwbHVncyBtYXkgaGF2ZSBiZWVuIHNvd24gb24gTm92ZW1iZXIgNSwgMjAyMiAoaW5mb3JtYXRpb24gb24gd2hpY2ggdHJhbnNlY3RzIG5vdCByZWNvcmRlZCkNCg0KDQojDQojIyBGbGlwIFBsYW50IG51bWJlcnMNCiMjIChBQyBnZXJtaW5hdGlvbiBkYXRhIG9ubHkpIC0gdGhlIG9yaWVudGF0aW9uIGluIHdoaWNoIHBsYW50cyB3ZXJlIGlkZW50aWZpZWQgYW5kIGNoZWNrZWQgZm9yIGZsb3dlcmluZyB3YXMgcmV2ZXJzZWQNCkFDX2dlcm1fZGY2IDwtIEFDX2dlcm1fZGY1ICU+JSANCiAgbXV0YXRlKFBsYW50X0lEID0gYXMubnVtZXJpYyhjYXNlX3doZW4oDQogICAgUGxhbnRfSUQgPT0gIjEiIH4gIjEwIiwNCiAgICBQbGFudF9JRCA9PSAiMiIgfiAiOSIsDQogICAgUGxhbnRfSUQgPT0gIjMiIH4gIjgiLA0KICAgIFBsYW50X0lEID09ICI0IiB+ICI3IiwNCiAgICBQbGFudF9JRCA9PSAiNSIgfiAiNiIsDQogICAgUGxhbnRfSUQgPT0gIjYiIH4gIjUiLA0KICAgIFBsYW50X0lEID09ICI3IiB+ICI0IiwNCiAgICBQbGFudF9JRCA9PSAiOCIgfiAiMyIsDQogICAgUGxhbnRfSUQgPT0gIjkiIH4gIjIiLA0KICAgIFBsYW50X0lEID09ICIxMCIgfiAiMSIpKSkgJT4lIA0KICBhcnJhbmdlKEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIFJlY2lwaWVudCwgUGxhbnRfSUQpICNBcnJhbmdlIGJ5IFRyYW5zZWN0LCBSZWNpcGllbnQsIFBsYW50X0lEDQoNCmBgYA0KDQoNCkFkZCBpbiB3YXRlcmVkIHRyYW5zZWN0IGdlcm1pbmF0aW9uIGRhdGENCmBgYHtyIG1lc3NhZ2UgPSBGQUxTRX0NCiNBQw0KIyMgQWRkIGluIHdhdGVyZWQgdHJhbnNlY3RzDQojIyAqTm90ZSo6IE9ubHkgOCBzZWVkcyBzb3duIGluIHRoZXNlIHNlZ21lbnRzIGluc3RlYWQgb2YgMTAhDQpBQ19nZXJtX1cxIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImdlcm1pbmF0aW9uX2NoZWNrc18yMDIxLTIwMjIiLCAid2F0ZXJlZF9BQ19nZXJtLmNzdiIpLCBza2lwID0gMSkgJT4lDQogIHJlbmFtZShTZXF1ZW5jZSA9ICdTZXEgKDEtNDIpJywgRG9ub3IgPSAiRG9ub3JfSUQiLCBSZWNpcGllbnQgPSAiUmVjaXBpZW50X0lEIiwgU3RhZ2UgPSAnRGF0ZSAobW0vZGQpJykgJT4lIA0KICBmaWx0ZXIoIVN0YWdlID09ICJGbG93IikgJT4lICAgICNSZW1vdmUgZW1wdHkgZmxvd2VyaW5nIGRhdGUgcm93cw0KICBtdXRhdGUoYDJgID0gYXNfZGF0ZShgMmApLCBgNWAgPSBhc19kYXRlKGA1YCksIGA4YCA9IGFzX2RhdGUoYDhgKSkgI3RoZXNlIGNvbHVtbnMgbm90IHJlY29nbml6ZWQgYXMgZGF0ZXMgZHVyaW5nIHJlYWQtaW4uIFRoZXNlIG11c3QgYWxsIGJlIHRoZSBzYW1lIGNsYXNzIHNpbmNlIHRoZXknbGwgYmUgcmVzaGFwZWQgYmVsb3cuDQogIA0KIw0KI1Jlc2hhcGUgZGF0YSBzaGVldCB0byAnbG9uZycgZm9ybWF0DQpBQ19nZXJtX1cyIDwtIEFDX2dlcm1fVzEgJT4lIA0KICBwaXZvdF9sb25nZXIoY29scyA9IGMoJzEnOic4JyksDQogICAgICAgICAgICAgICBuYW1lc190byA9ICdQbGFudF9JRCcsDQogICAgICAgICAgICAgICB2YWx1ZXNfdG8gPSAnR2VybV9EYXRlJykgDQoNCiMNCiMjRml4IHR5cG9zIGluIGRhdGUgdmFsdWVzDQojI01BSk9SIFRZUE86IEV4Y2VsIGF1dG8tcG9wdWxhdGVkIHllYXIgYXMgMjAyMiB3aGVuIGluIGZhY3QgdGhlIHllYXIgc2hvdWxkIGJlIDIwMjEhDQp1bmlxdWUoQUNfZ2VybV9XMiRHZXJtX0RhdGUpICNubyB0eXBvcyBoZXJlDQoNCkFDX2dlcm1fVzMgPC0gQUNfZ2VybV9XMiAlPiUgDQogIG11dGF0ZShHZXJtX0RhdGUgPSBjYXNlX3doZW4oDQogICAgR2VybV9EYXRlID09ICIyMDIyLTEyLTA1IiB+ICIyMDIxLTEyLTA1IiwNCiAgICBHZXJtX0RhdGUgPT0gIjIwMjItMTEtMDMiIH4gIjIwMjEtMTEtMDMiKSkNCg0KDQojDQojQWRqdXN0IERvbm9yIGFuZCBSZWNpcGllbnQgbmFtZXMgZm9yIGVhc3kgc29ydGluZyAtIHRocmVlIGRpZ2l0cyAobGVhZGluZyB6ZXJvcykNCiNTcGVjaWZ5IEdlcm1fRGF0ZSBhcyAnZGF0ZScgY2xhc3MgdmFyaWFibGUNCkFDX2dlcm1fVzQgPC0gQUNfZ2VybV9XMyAlPiUgDQogIG11dGF0ZShSZWNpcGllbnRfbnVtID0gc3ByaW50ZigiJTAzZCIsIChwYXJzZV9udW1iZXIoUmVjaXBpZW50KSkpKSAlPiUgDQogIG11dGF0ZShSZWNpcGllbnQgPSBhcy5jaGFyYWN0ZXIoc3RyX2MoIkFDXyIsIFJlY2lwaWVudF9udW0pKSkgJT4lIA0KICBtdXRhdGUoRG9ub3JfbnVtID0gc3ByaW50ZigiJTAzZCIsIChwYXJzZV9udW1iZXIoRG9ub3IpKSkpICU+JSANCiAgbXV0YXRlKERvbm9yID0gYXMuY2hhcmFjdGVyKHN0cl9jKCJBQ18iLCBEb25vcl9udW0pKSkgJT4lDQogIG11dGF0ZShHZXJtX0RhdGUgPSBhc19kYXRlKEdlcm1fRGF0ZSkpICU+JSAjc2V0IHZhcmlhYmxlIHRvIGNsYXNzID0gZGF0ZQ0KICBtdXRhdGUoUGxhbnRfSUQgPSBhcy5udW1lcmljKFBsYW50X0lEKSkgJT4lICNzZXQgUGxhbnQgSUQgdG8gbnVtZXJpYyBmb3Igc29ydGluZyBwdXJwb3Nlcw0KICBzZWxlY3QoLWMoU3RhZ2UsIENvLiwgRG9ub3JfbnVtLCBSZWNpcGllbnRfbnVtKSkNCg0KDQojDQojI0FkZCBpbiBTb3cgRGF0ZSAmIFVwZGF0ZSBTZXF1ZW5jZSBudW1iZXIgJiBhZGQgYmxvY2sgKCdXJykNCkFDX2dlcm1fVzUgPC0gQUNfZ2VybV9XNCAlPiUgDQogIG11dGF0ZShTb3dfRGF0ZSA9IGFzX2RhdGUoIjIwMjEtMTAtMjciKSkgJT4lIA0KICBtdXRhdGUoUGxhbnRfRGF0ZSA9IGFzX2RhdGUoIjIwMjEtMTEtMDQiKSkgJT4lIA0KICBtdXRhdGUoU2VxdWVuY2UgPSAoU2VxdWVuY2UgKyAzMjEpKSAlPiUgDQogIG11dGF0ZShCbG9jayA9ICJXIikgJT4lIA0KICBzZWxlY3QoQmxvY2ssIFRyYW5zZWN0LCBTZXF1ZW5jZSwgRG9ub3IsIFJlY2lwaWVudCwgUGxhbnRfSUQsIGV2ZXJ5dGhpbmcoKSkgJT4lIA0KICBhcnJhbmdlKFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50LCBQbGFudF9JRCkgI0FycmFuZ2UgYnkgVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQNCg0KDQojDQojIyBGbGlwcGluZyBQbGFudCBudW1iZXJzIG5vdCByZXF1aXJlZCBmb3Igd2F0ZXJpbmcgdHJhbnNlY3RzIC0gcGx1Z3MgcGxhbnRlZCB0b3AtdG8tYm90dG9tIGZvciBJRCAxIHRocm91Z2ggOA0KDQoNCiMNCiMjIENvbWJpbmUgd2F0ZXJlZCBhbmQgbWFpbiBleHBlcmltZW50IGdlcm1pbmF0aW9uIGRhdGENCg0KQUNfZ2VybV9mdWxsIDwtIHJiaW5kKEFDX2dlcm1fZGY2LCBBQ19nZXJtX1c1KQ0KDQp3cml0ZV9jc3YoQUNfZ2VybV9mdWxsLCBoZXJlOjpoZXJlKCJkYXRhX3NoZWV0cyIsICJjb21waWxlZF9zaGVldHMiLCAiQUNfZ2VybWluYXRpb25fZnVsbF8yMDIxLTIwMjIuY3N2IikpDQoNCmBgYA0KDQoNCg0KDQoqKkZsb3dlciBDaGVjayBzaGVldHMqKiAgDQotLSBPcmdhbml6ZSBmbG93ZXJpbmcgZGF0YQ0KLS0gRG8gbm90IHRydXN0IHRoZSBmaXRuZXNzIHBsYW50IGRhdGEgaW4gdGhlIGZsb3dlcmluZyBjaGVjayBkYXRhIHNoZWV0cyAoYWRkIGluIGxhdGVyKS4gIA0KDQoqSW1wb3J0YW50IFN0ZXAhISogIA0KSW4gdGhlIGNzdiBmaWxlLCBzZWxlY3QgYWxsIGRhdGEgd2l0aCBkYXRlcyAodmlzaXQgZGF0ZXMsIGxlYWYgc2FtcGxpbmcsIGFuZCBmbG93ZXIgcGhvdG9zKS4gUmlnaHQgY2xpY2sgLS0+IGZvcm1hdCBjZWxscy4gU2VsZWN0IHRoZSBkYXRlIGNhdGVnb3J5IC0tPiBZWVlZLU1NLURELiBTYXZlIHRoZSBjc3YgYW5kIGNsb3NlIGl0LiBUaGlzIHdpbGwgc3RhbmRhcmRpemUgYWxsIGRhdGVzIHRvIHRoZSBzYW1lIGZvcm1hdCBhbmQgbWFrZSB3b3JraW5nIHdpdGggdGhlbSBpbiBSIG11Y2ggZWFzaWVyISAgDQoNCg0KDQpgYGB7cn0NCiMjQUMjIw0KDQpBQ2Zscl9kZiA8LSByZWFkX2NzdihmaWxlID0gaGVyZTo6aGVyZSggImRhdGFfc2hlZXRzIiwgInNlYXNvbl9lbmRfZmxvd2VyY2hlY2tzXzIwMjIiLCAgIkFDX2Zsb3dlcmNoZWNrXzIwMjJfMDZfMjguY3N2IiksIG5hID0gYygiIiwgIk5BIikpDQojI0lnbm9yZSAnRicgcGxhbnRzIC0gbW9yZSB1cC10by1kYXRlIGZpdG5lc3MgcGxhbnQgZGF0YSBpcyBtYXRjaGVkIGluIGJlbG93IA0KDQojc3BsaXQgZ3JvdXBzDQpmMV9BQ2xvbmcgPC0gQUNmbHJfZGZbYygxOjE1KV0gIyBHcm91cCAxOiBwbGFudHMgMS01DQpmMl9BQ2xvbmcgPC0gQUNmbHJfZGZbYygxLCAxNjoyOSldICMgR3JvdXAgMjogcGxhbnRzIDYtMTANCg0KI1JldmlzZSBuYW1lcw0KY29sbmFtZXMoZjFfQUNsb25nKSA8LSBjKCJUcmFuc2VjdCIsICJSZWNpcGllbnQiLCAiUGxhbnRfSUQiLCAiRi4iLCAiRmxfNC45IiwgIkZsXzQuMjEiLCAiRmxfNS4zIiwgIkZsXzUuMTMiLCAiRmxfNS4yNSIsICJGbF82LjgiLCAiRmxfNi4yMiIsICJEIiwgIkQxIiwgIkxFQUYiLCAiZmxyX1AiKQ0KY29sbmFtZXMoZjJfQUNsb25nKSA8LSBjKCJUcmFuc2VjdCIsICJSZWNpcGllbnQiLCAiUGxhbnRfSUQiLCAiRi4iLCAiRmxfNC45IiwgIkZsXzQuMjEiLCAiRmxfNS4zIiwgIkZsXzUuMTMiLCAiRmxfNS4yNSIsICJGbF82LjgiLCAiRmxfNi4yMiIsICJEIiwgIkQxIiwgIkxFQUYiLCAiZmxyX1AiKQ0KDQojcmJpbmQsIHRpZHkgdXAgYW5kIHJlbW92ZSB1bm5lY2Vzc2FyeSBjb2x1bW5zDQpmX0FDbG9uZyA8LSByYmluZChmMV9BQ2xvbmcsIGYyX0FDbG9uZykgJT4lIGFycmFuZ2UoVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQpICU+JSBzZWxlY3QoLWMoRi4sIEQsIEQxKSkgJT4lIHJlbW92ZV9lbXB0eSgicm93cyIpICNzb3J0IGJ5IHRyYW5zZWN0LCB0aGVuIFJlY2lwaWVudCwgdGhlbiBQbGFudCBJRA0KDQoNCiNGb3JtYXQgcmVjaXBpZW50IElEcyBmb3IgZWFzaWVyIHNvcnRpbmcgLSB0aHJlZSBkaWdpdHMgKGluY2x1ZGVzIGxlYWRpbmcgemVyb3MpDQpmX0FDbG9uZ18yIDwtIGZfQUNsb25nICU+JSANCiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKCIlMDNkIiwgKHBhcnNlX251bWJlcihSZWNpcGllbnQpKSkpICU+JSANCiAgbXV0YXRlKFJlY2lwaWVudCA9IGFzLmNoYXJhY3RlcihzdHJfYygiQUNfIiwgUmVjaXBpZW50X251bSkpKSAlPiUgDQogIHNlbGVjdChUcmFuc2VjdCwgUmVjaXBpZW50LCBSZWNpcGllbnRfbnVtLCBQbGFudF9JRCwgZXZlcnl0aGluZygpKSAlPiUgDQogIHNlbGVjdCgtUmVjaXBpZW50X251bSkNCg0KDQoNCiMjRml4IERhdGVzIQ0KDQpmX0FDbG9uZ18zIDwtIGZfQUNsb25nXzIgJT4lIA0KICBtdXRhdGUoRmxfNC4yMSA9IGNhc2Vfd2hlbihGbF80LjkgPT0gIjIwMjItMDQtMjIiIH4gIjIwMjItMDQtMjIiLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGbF80LjIxID09ICIyMDIyLTA0LTIyIiB+ICIyMDIyLTA0LTIyIiwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRmxfNC4yMSA9PSAiMjAyMi0wNC0yMSIgfiAiMjAyMi0wNC0yMSIpKSAlPiUgDQogIG11dGF0ZShGbF80LjkgPSBjYXNlX3doZW4oRmxfNC45ID09ICIyMDIyLTA0LTA5IiB+ICIyMDIyLTA0LTA5IiwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gYXMuY2hhcmFjdGVyKE5BKSkpICU+JSANCiAgbXV0YXRlKEZsXzYuMjIgPSBjYXNlX3doZW4oRmxfNi4yMiA9PSAxOTE2NSB+ICIyMDIyLTA2LTIyIiwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVFJVRSB+IGFzLmNoYXJhY3RlcihOQSkpKQ0KDQoNCg0KI09sZCAtIExLDQojIyMjZl9BQ2xvbmdURVNUIDwtIGZfQUNsb25nW2NvbXBsZXRlLmNhc2VzKGZfQUNsb25nWyAsIDVdKSwgXSAjVGhpcyByZW1vdmVzIHBsYW50cyB0aGF0IGRpZG4ndCBmbG93ZXIgb24gNC85LCBidXQgYWxzbyBwbGFudHMgdGhhdCBtYXkgaGF2ZSBmbG93ZXJlZCBsYXRlcg0KDQojI2ZfQUNsb25nJGZmX2RhdGUgPC0gd2l0aChmX0FDbG9uZywgY29hbGVzY2UoWDQuOSwgWDA0LjIxLCBYNS4zLCBYNS4xMywgWDUuMjUsIFg2LjgsIHg2LjIyKSkNCiMjd3JpdGUuY3N2KGZfQUNsb25nLCAiY0FDXzA3MTQyMDIyLmNzdiIgKQ0KDQpgYGANCg0KDQpDb21iaW5lIEdlcm1pbmF0aW9uIGFuZCBGbG93ZXJpbmcgZGF0YSBmcmFtZXMNCmBgYHtyfQ0KI01lcmdlIGJ5IFJlY2lwaWVudCwgVHJhbnNlY3QsIGFuZCBQbGFudCBJRA0KQUNfR2VybUZsb3dfMSA8LSBsZWZ0X2pvaW4oQUNfZ2VybV9mdWxsLCBmX0FDbG9uZ18zLCBieSA9IGMoIlJlY2lwaWVudCIsICJUcmFuc2VjdCIsICJQbGFudF9JRCIpKSAlPiUgDQogIG11dGF0ZShGbF82LjIyID0gYXNfZGF0ZShGbF82LjIyKSwNCiAgICAgICAgIEZsXzQuOSA9IGFzX2RhdGUoRmxfNC45KSwNCiAgICAgICAgIEZsXzQuMjEgPSBhc19kYXRlKEZsXzQuMjEpKSAjY29ycmVjdCB0aGlzIGNvbHVtbiB0byBiZSBjbGFzcyAnZGF0ZScNCg0KYGBgDQoNCg0KPGJyPiAgDQoNCg0KIyMjIyBGaXRuZXNzIFBsYW50IGRhdGEgIA0KLSBJbmRpY2F0ZSB3aGljaCBwbGFudHMgd2VyZSBmaXRuZXNzIHBsYW50cw0KLSBSZXBsaWNhdGVkPyBJbmRpY2F0ZSB3aGljaCBtYXRlcm5hbCBmYW1pbGllcyB3ZXJlIHByZXNlbnQgaW4gdGhlIG1haW4gYW5kIHdhdGVyaW5nIGV4cGVyaW1lbnQgIA0KDQpgYGB7ciBtZXNzYWdlID0gRkFMU0V9DQpBQ19GcGxhbnRzIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImZpdG5lc3NfcGxhbnRzXzctMjEtMjAyMiIsICJBQ19GX3BsYW50cy5jc3YiKSwgY29sX3R5cGVzID0gY29scyhgQUxMIEZpdG5lc3MgUGxhbnRzYCA9IGNvbF9jaGFyYWN0ZXIoKSkpICU+JSAjcmV0YWluIGNvbW1hcyBmb3IgY29sdW1uIHdpdGggbXVsdGlwbGUgZml0bmVzcyBwbGFudHMNCiAgcmVuYW1lKEZfcGxhbnQgPSBgU0lOR0xFIEZpdG5lc3MgUGxhbnRgLCBGX211bHRpID0gYEFMTCBGaXRuZXNzIFBsYW50c2AsIEZfcGxhbnRfbm90ZXMgPSBOT1RFUykgJT4lIA0KICBzZWxlY3QoVHJhbnNlY3Q6Rl9wbGFudF9ub3RlcykNCg0KI0FkanVzdCBSZWNpcGllbnQgbmFtZXMgdG8gbWF0Y2ggdGhyZWUtZGlnaXQgZm9ybWF0DQpBQ19GcGxhbnRzMiA8LSBBQ19GcGxhbnRzICU+JSANCiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKCIlMDNkIiwgKHBhcnNlX251bWJlcihSZWNpcGllbnQpKSkpICU+JSANCiAgbXV0YXRlKFJlY2lwaWVudCA9IGFzLmNoYXJhY3RlcihzdHJfYygiQUNfIiwgUmVjaXBpZW50X251bSkpKSAlPiUgDQogIHNlbGVjdCgtUmVjaXBpZW50X251bSkgJT4lIA0KICBtdXRhdGUoUmVwbGljYXRlZCA9IGNhc2Vfd2hlbihSZXBsaWNhdGVkID09ICJSIiB+ICJSIiwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaXMubmEoUmVwbGljYXRlZCkgfiAibiIpKSAjY2hhbmdlIE5BcyB0byAnbicgKG5vKSBmb3Igbm9uLXJlcCdkIFJlY2lwaWVudCBJRHMNCg0KYGBgDQoNCg0KSW5kZXggZml0bmVzcyBwbGFudHMgJiBSZXBsaWNhdGVkICh5L24pIGluIGdlcm1pbmF0aW9uIGFuZCBmbG93ZXJpbmcgZGF0YQ0KYGBge3IgbWVzc2FnZSA9IEZBTFNFfQ0KIyBNZXJnZSB0aGUgdHdvIGRhdGFmcmFtZXMgLSBGIHBsYW50IGRhdGEgd2lsbCBiZSByZXBlYXRlZCB4MTAgDQojIENyZWF0ZSBuZXcgcm93IChQbGFudCBJRCkgc3BlY2lmaWMgdmFyaWFibGVzIGZvciBtYWluIGFuZCByZXBsaWNhdGVkIGZpdG5lc3MgcGxhbnRzDQpBQ19HZXJtRmxvd18yIDwtIG1lcmdlKEFDX0dlcm1GbG93XzEsIEFDX0ZwbGFudHMyKSAlPiUgDQogIG11dGF0ZShGaXRQID0gY2FzZV93aGVuKEZfcGxhbnQgPT0gUGxhbnRfSUQgfiBUUlVFLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgRl9wbGFudCAhPSBQbGFudF9JRCB+IEZBTFNFKSkgJT4lIA0KICBtdXRhdGUoUmVwX0ZpdFAgPSBjYXNlX3doZW4oUmVwbGljYXRlZCA9PSAiUiIgJiBQbGFudF9JRCAhPSAxICYgUGxhbnRfSUQgPT0gYXMubnVtZXJpYyhzdHJfbWF0Y2goRl9tdWx0aSwgYXMuY2hhcmFjdGVyKFBsYW50X0lEKSkpIH4gVFJVRSwgI3ByZXZlbnQgc3RyX21hdGNoIGZyb20gbWF0Y2hpbmcgJzEnIHRvIHRoZSAxIGluICcxMCcNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFJlcGxpY2F0ZWQgPT0gIlIiICYgUGxhbnRfSUQgPT0gMSAmIFBsYW50X0lEID09IGFzLm51bWVyaWMoc3RyX21hdGNoKEZfbXVsdGksICIxKD8hMCkiKSkgfiBUUlVFLCAjY2FzZXMgd2hlcmUgUmVwX0ZpdFAgc2hvdWxkID09IDENCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBGQUxTRSkpICU+JSAgI2lmIGVsc2UsIHNldCB2YWx1ZSB0byBGQUxTRQ0KICBtdXRhdGUoYW55X0ZpdFAgPSBjYXNlX3doZW4oRml0UCA9PSBUUlVFIHwgUmVwX0ZpdFAgPT0gVFJVRSB+IFRSVUUsICNwbGFudCBpcyBhbnkgZm9ybSBvZiBmaXRuZXNzIHBsYW50DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gRkFMU0UpKQ0KDQojTm90ZSAtIGFkZGVkIGFzLm51bWVyaWMoKSBhcm91bmQgdGhlIHN0cl9tYXRjaCBjYWxscyBhYm92ZSBzaW5jZSBhbiBSIHVwZGF0ZSBjYXVzZWQgdGhlIHByZXZpb3VzIHZlcnNpb24gb2YgdGhpcyBjb2RlIHRvIG5vdCB3b3JrLg0KDQojVGlkeSB1cA0KQUNfR2VybUZsb3dfMyA8LSBBQ19HZXJtRmxvd18yICU+JSANCiAgc2VsZWN0KEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIERvbm9yLCBSZWNpcGllbnQsIFJlcGxpY2F0ZWQsIFBsYW50X0lELCBGaXRQLCBSZXBfRml0UCwgYW55X0ZpdFAsIGV2ZXJ5dGhpbmcoKSkgJT4lIA0KICBhcnJhbmdlKFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50LCBQbGFudF9JRCkNCg0KDQpgYGANCg0KDQoNCioqRnJ1aXQgYW5kIFNlZWQgY291bnRzKiogIA0KDQpEdWUgdG8gdGhlIHN0cnVjdHVyZSBvZiBleGNlbCBkYXRhIHNoZWV0cywgaXQgc2VlbXMgZWFzaWVzdCB0byB1cGxvYWQgZnJ1aXQgYW5kIHNlZWQgY291bnQgZGF0YSBzZXBhcmF0ZWx5IHNpbmNlIGRpZmZlcmVudCBzcHJlYWRzaGVldHMgd2VyZSB1c2VkIHRvIHJlY29yZCBlYWNoLiBJbmZvIG9uIHBsYW50cycgQmxvY2ssIFRyYW5zZWN0LCBzZXF1ZW5jZSwgZXRjLiB3aWxsIGJlIHB1bGxlZCBmcm9tIHRoZSBmcnVpdCBjb3VudCBzaGVldHMgKHNob3VsZCBiZSB1cC10by1kYXRlKS4gRm9yIHNoZWV0cyBpbnRlbmRlZCB0byByZWNvcmQgZnJ1aXQgcHJvZHVjdGlvbiBvbmx5LCBjb3VudHMgb2YgdmlhYmxlIHNlZWRzLCBtZWFuIHNlZWQgd2VpZ2h0LCBldGMuIHRoYXQgYXJlIGNvcGllZCBvdmVyIGFyZSBpZ25vcmVkIGFuZCBpbnN0ZWFkIHB1bGxlZCBzdHJhaWdodCBmcm9tIHNoZWV0cyB3aGVyZSB0aGV5IHdlcmUgZmlyc3QgZW50ZXJlZCBsYXRlciBkb3VibGUtY2hlY2tlZC4NCg0KRGF0ZSBhZGRlZDogKipGZWIgMDUsIDIwMjMqKiAgDQoNCipOT1RFKjogQWxsIHR5cG9zIGJlbGlldmVkIHRvIGhhdmUgYmVlbiByZW1vdmVkLiBJbmRpdmlkdWFsIHJvd3Mgb2YgZnJ1aXQvc2VlZCBkYXRhIGNyb3NzLWNoZWNrZWQgYWdhaW5zdCBsaXN0ZWQgZml0bmVzcyBwbGFudCBhbmQgbG9vayBnb29kLiANCmBgYHtyIG1lc3NhZ2UgPSBGQUxTRX0NCiMNCiMgRnJ1aXQgY291bnQgZGF0YQ0KIyBEYXRhIG9uICp3aGVuKiBmcnVpdHMgd2VyZSBjb2xsZWN0ZWQgd2lsbCBiZSBvbWl0dGVkIGhlcmU7IG9ubHkgdGhlIHRvdGFsIGZydWl0IGNvdW50cyAoY2xvc2VkLCBvcGVuLCBub24tZml0bmVzcykgYXJlIHJldGFpbmVkIGZyb20gdGhlIGNzdg0KDQpBQ19mcnVpdHByb2RfMSA8LSByZWFkX2NzdihoZXJlOjpoZXJlKCJkYXRhX3NoZWV0cyIsICJmcnVpdF9zZWVkX2NvdW50c19maW5hbCIsICJBQy1mcnVpdC1wcm9kdWN0aW9uXzIwMjMtMDItMDUuY3N2IiksIHNraXAgPSAyKSAlPiUgDQogIHNlbGVjdCgxOjExKSAjb21pdCBzb3cgYW5kIGZsb3dlciBkYXRlLCBzZWVkIGNvdW50LCBhbmQgZGF0ZS1zcGVjaWZpYyBmcnVpdCBjb3VudHMgYnkgY29sdW1uIGluZGV4DQoNCkFDX2ZydWl0cHJvZF8yIDwtIEFDX2ZydWl0cHJvZF8xICU+JSANCiAgc2VsZWN0KC1jKFJlY2lwaWVudCwgOSkpICU+JSANCiAgcmVuYW1lKFJlY2lwaWVudCA9IGBSZWNpcGllbnQgZm9yIFNvcnRpbmdgLCBQbGFudF9JRCA9IGBQbGFudCBudW1iZXIgb2YgZml0bmVzcyBwbGFudCAod2hlbiBjaG9zZW4pYCwgY2xvc2VkX2ZydWl0c19GID0gYE51bWJlciBvZiBjbG9zZWQgZnJ1aXRzIHVzZWQgdG8gZXN0aW1hdGUgbWVhbiBzZWVkcyBwZXIgZnJ1aXQgKGluY2x1ZGUgbXVsdGlwbGUgZGF0ZXMpYCwgb3Blbl9mcnVpdHNfRiA9IGBPcGVuIEZydWl0c2AsIGRhbWFnZWRfZnJ1aXRzX0YgPSBgRWF0ZW4gb3IgZGFtYWdlZCBmcnVpdHNgLCB0b3RhbF9mcnVpdHNfRiA9IGBUb3RhbCBudW1iZXIgb2YgYWxsIGZydWl0cyBwcm9kdWNlZCBieSB0aGUgcGxhbnQgKG9wZW4gKyBjbG9zZWQpYCwgbm9uZml0bmVzc19mcnVpdHMgPSBgVG90YWwgbnVtYmVyIG9mIG5vbi1maXRuZXNzIGZydWl0cyBjb2xsZWN0ZWQgZnJvbSBzZWdtZW50YCkgDQoNCiNOb3RlOiB0b3RhbCBmcnVpdHMgc2hvdWxkIG5vdCBpbmNsdWRlIGVhdGVuL2RhbWFnZWQgZnJ1aXQNCg0KDQojDQojIFNlZWQgY291bnQgZGF0YSAodmlhYmxlIHNlZWRzKQ0KIyBTaW1pbGFybHksIG9ubHkgc2VlZCBjb3VudCBkYXRhIGFyZSByZXRhaW5lZCBmcm9tIHRoaXMgc3ByZWFkc2hlZXQgdG8gbWluaW1pemUgZXJyb3JzDQoNCkFDX3NlZWRjdF8xIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImZydWl0X3NlZWRfY291bnRzX2ZpbmFsIiwgIkFDLXNlZWQtY291bnRfMjAyMy0wMi0wNS5jc3YiKSwgc2tpcCA9IDIpICU+JSANCiAgc2VsZWN0KC1jKDMsIDYsIDcsIDk6MjkpKSAlPiUgDQogIHJlbmFtZShSZWNpcGllbnQgPSBgUmVjaXBpZW50IGZvciBTb3J0aW5nYCwgUGxhbnRfSUQgPSBgUGxhbnQgbnVtYmVyIG9mIGZpdG5lc3MgcGxhbnQgKHdoZW4gY2hvc2VuKWAsIHNlZWRfY3QgPSBgVG90YWwgbnVtYmVyIG9mIHZpYWJsZSBzZWVkcyBjb3VudGVkIGFjcm9zcyBtdWx0aXBsZSBkYXRlc2ApDQoNCg0KDQojbWVyZ2UgZGF0YQ0KQUNfZnJ1aXRzZWVkX2N0MSA8LSBsZWZ0X2pvaW4oQUNfZnJ1aXRwcm9kXzIsIEFDX3NlZWRjdF8xLCBieSA9IGMoIlNlcXVlbmNlIiwgIlRyYW5zZWN0IiwgIlJlY2lwaWVudCIsICJQbGFudF9JRCIpKQ0KI1NlcXVlbmNlIGRhdGEgaW4gZnJ1aXQgY291bnQgc2hlZXRzIG1heSBiZSB1bnJlbGlhYmxlIGZvciBzb21lIHNpdGVzIChlLmcuLCBCTykNCg0KDQojIHN1bW1hcnkgdmFyaWFibGVzLCB0aWR5aW5nIHVwDQpBQ19mcnVpdHNlZWRfY3QyIDwtIEFDX2ZydWl0c2VlZF9jdDEgJT4lIA0KICBzZWxlY3QoVHJhbnNlY3QsIFNlcXVlbmNlLCBSZWNpcGllbnQsIFBsYW50X0lELCBjbG9zZWRfZnJ1aXRzX0YsIG9wZW5fZnJ1aXRzX0YsIGRhbWFnZWRfZnJ1aXRzX0YsIHRvdGFsX2ZydWl0c19GLCBub25maXRuZXNzX2ZydWl0cywgZXZlcnl0aGluZygpKSAlPiUgDQogIGFycmFuZ2UoVHJhbnNlY3QsIFNlcXVlbmNlLCBSZWNpcGllbnQpDQoNCiMjIE5PVEU6IHRvdGFsIG51bWJlciBvZiBub24tZml0bmVzcyBmcnVpdHMgcGVyIHNlZ21lbnQgbWF5IGJlIHVuZGVyLXJlcHJlc2VudGVkIGhlcmUgc2luY2Ugbm90IGFsbCBjb3VudHMgd2VyZSBtYXRjaGVkIHRvIGZpdG5lc3MgcGxhbnRzIGFuZCB0aGVyZWZvcmUgbWVyZ2VkIGluLg0KDQpgYGANCg0KDQoNCioqU2VlZCBXZWlnaHRzKiogIA0KDQoqTm90ZSo6IFByaW9yIHRvIGNzdiByZWFkaW5nOg0KLSBoZWFkZXIgcm93IGZvciBzZWVkIHdlaWdodHMgd2FzIG1vdmVkIGRvd24gdG8gbGluZSB1cCB3aXRoIG90aGVyIGhlYWRlcnMNCg0KDQpgYGB7cn0NCiMgUmVhZCBpbiBvbmx5ICMgc2VlZHMgd2VpZ2hlZCBhbmQgdG90YWwgd2VpZ2h0DQojIENhbGN1bGF0ZSBtZWFuIHdlaWdodCBwZXIgc2VlZA0KDQpBQ19zZWVkbWFzc18xIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgInNlZWRfbWFzcyIsICJBQ19TZWVkX01hc3NfMjAyMy0wMi0wNS5jc3YiKSwgc2tpcCA9IDIpDQoNCmNvbG5hbWVzKEFDX3NlZWRtYXNzXzEpIDwtIGMoIlNlcXVlbmNlIiwgIlRyYW5zZWN0IiwgIlJlY2lwaWVudF9vbGQiLCAiUmVjaXBpZW50IiwgIlBsYW50X0lEIiwgImNsb3NlZF9mcnVpdHNfZDEiLCAidmlhYmxlX3NlZWRzX2QxIiwgInNlZWRzX3dlaWdoZWRfZDEiLCAic2VlZF9tYXNzX21nX2QxIiwgImNsb3NlZF9mcnVpdHNfZDIiLCAidmlhYmxlX3NlZWRzX2QyIiwgInNlZWRzX3dlaWdoZWRfZDIiLCAic2VlZF9tYXNzX21nX2QyIiwgImNsb3NlZF9mcnVpdHNfZDMiLCAidmlhYmxlX3NlZWRzX2QzIiwgInNlZWRzX3dlaWdoZWRfZDMiLCAic2VlZF9tYXNzX21nX2QzIiwgImNsb3NlZF9mcnVpdHNfZDQiLCAidmlhYmxlX3NlZWRzX2Q0IiwgInNlZWRzX3dlaWdoZWRfZDQiLCAic2VlZF9tYXNzX21nX2Q0IiwgImNsb3NlZF9mcnVpdHNfZDUiLCAidmlhYmxlX3NlZWRzX2Q1IiwgInNlZWRzX3dlaWdoZWRfZDUiLCAic2VlZF9tYXNzX21nX2Q1IikNCg0KDQojVW5zdXJlIGhvdyB0byBhY2NvdW50IGZvciBudW1iZXIgb2Ygc2VlZHMgd2VpZ2hlZCAtIGVhY2ggc3RhdGlzdGljYWwgJ3VuaXQnIGlzIHRoZSBtZWFuIHNlZWQgd2VpZ2h0IGNhbGN1bGF0ZWQgb24gYSBnaXZlbiBkYXRlDQoNCkFDX3NlZWRtYXNzXzIgPC0gQUNfc2VlZG1hc3NfMSAlPiUgDQogIHNlbGVjdCgtc3RhcnRzX3dpdGgoYygiY2xvc2VkX2ZydWl0c18iLCAidmlhYmxlX3NlZWRzXyIpKSwgLVJlY2lwaWVudF9vbGQpICU+JSANCiAgbXV0YXRlKG1zbV9kMSA9IHNlZWRfbWFzc19tZ19kMS9zZWVkc193ZWlnaGVkX2QxLA0KICAgICAgICAgbXNtX2QyID0gc2VlZF9tYXNzX21nX2QyL3NlZWRzX3dlaWdoZWRfZDIsDQogICAgICAgICBtc21fZDMgPSBzZWVkX21hc3NfbWdfZDMvc2VlZHNfd2VpZ2hlZF9kMywNCiAgICAgICAgIG1zbV9kNCA9IHNlZWRfbWFzc19tZ19kNC9zZWVkc193ZWlnaGVkX2Q0LA0KICAgICAgICAgbXNtX2Q1ID0gc2VlZF9tYXNzX21nX2Q1L3NlZWRzX3dlaWdoZWRfZDUpDQogICAgICAgICANCg0KQUNfc2VlZG1hc3NfMyA8LSBBQ19zZWVkbWFzc18yICU+JQ0KICBtdXRhdGUobXNtX2FsbCA9IHJvd01lYW5zKHNlbGVjdChBQ19zZWVkbWFzc18yLCBzdGFydHNfd2l0aCgibXNtXyIpKSwgbmEucm0gPSBUUlVFKSkgJT4lIA0KICByb3d3aXNlKCkgJT4lIA0KICBtdXRhdGUoc2RfbXNtX2FsbCA9IHNkKGNfYWNyb3NzKGMobXNtX2QxOm1zbV9kNSkpLCBuYS5ybSA9IFRSVUUpKQ0KICAgICAgICAgDQogIA0KIyNNZXJnZSB3aXRoIGZydWl0L3NlZWQgY291bnQgZGF0YSBmcmFtZQ0KDQpBQ19mcnVpdHNlZWRfY3QzIDwtIG1lcmdlKEFDX2ZydWl0c2VlZF9jdDIsIEFDX3NlZWRtYXNzXzMsIGJ5ID0gYygiVHJhbnNlY3QiLCAiU2VxdWVuY2UiLCAiUmVjaXBpZW50IiwgIlBsYW50X0lEIiksIGFsbC54ID0gVFJVRSkNCiNhbGwueCBtZWFucyB0aGF0IGFueSBmaXRuZXNzIHBsYW50IHggSUQgY29tYm9zIHRoYXQgZG9uJ3QgbWF0Y2ggdXAgd29uJ3QgYmUgaW5jbHVkZWQuDQoNCmBgYA0KDQoNCg0KTWVyZ2UgZXZlcnl0aGluZyB0b2dldGhlcjogIA0KYGBge3J9DQpBQ19tZXJnZWRfZGYxIDwtIG1lcmdlKEFDX0dlcm1GbG93XzMsIEFDX2ZydWl0c2VlZF9jdDMsIGJ5ID0gYygiVHJhbnNlY3QiLCAiU2VxdWVuY2UiLCAiUmVjaXBpZW50IiwgIlBsYW50X0lEIiksIGFsbC54ID0gVFJVRSkgJT4lIA0KICBzZWxlY3QoQmxvY2ssIFRyYW5zZWN0LCBTZXF1ZW5jZSwgRG9ub3IsIFJlY2lwaWVudCwgUmVwbGljYXRlZCwgUGxhbnRfSUQsIEZpdFAsIFJlcF9GaXRQLCBhbnlfRml0UCwgZXZlcnl0aGluZygpKSAlPiUgDQogIGFycmFuZ2UoQmxvY2ssIFRyYW5zZWN0LCBTZXF1ZW5jZSwgUmVjaXBpZW50LCBQbGFudF9JRCkgJT4lIA0KICBtdXRhdGUoY2xvc2VkX2ZydWl0c19GID0gYXMubnVtZXJpYyhjbG9zZWRfZnJ1aXRzX0YpLA0KICAgICAgICAgdG90YWxfZnJ1aXRzX0YgPSBhcy5udW1lcmljKHRvdGFsX2ZydWl0c19GKSkgI2NvcnJlY3QgY291bnRzIHRvIG51bWVyaWMgdmFsdWVzDQoNCg0KI0NvcnJlY3QgRnJ1aXQgTkFzIChidXQgbm90IHNlZWQgY291bnQgTkFzKSB0byAwcyBpbiBjYXNlcyB3aGVyZSBubyBmcnVpdCBkYXRhIHdhcyBlbnRlcmVkIChmaXRuZXNzIGFuZCBub24tZml0bmVzcyBwbGFudHMpOg0KDQpBQ19tZXJnZWRfZGYyIDwtIEFDX21lcmdlZF9kZjEgJT4lIA0KICBtdXRhdGUoY2xvc2VkX2ZydWl0c19GID0gcmVwbGFjZV9uYShjbG9zZWRfZnJ1aXRzX0YsIDApLA0KICAgICAgICAgdG90YWxfZnJ1aXRzX0YgPSByZXBsYWNlX25hKHRvdGFsX2ZydWl0c19GLCAwKSwNCiAgICAgICAgIHNlZWRfY3QgPSByZXBsYWNlX25hKHNlZWRfY3QsIDApKSAjUkVQTEFDRSBBTEwgc2VlZF9jdCBOQXMgd2l0aCAwIA0KDQoNCiNDYWxjdWxhdGUgbWVhbiBzZWVkcyBwZXIgZnJ1aXQsIHRvdGFsX2VzdF9zZWVkIHByb2QNCiNUaGUgZm9sbG93aW5nIGNvZGUgbGluZXMgdGhhdCBhcmUgY29tbWVudGVkIG91dCBoYXZlIGJlZW4gbW92ZWQgdG8gYSBsb3dlciBjaHVuaw0KI3ZhcmlhYmxlcyByZW5hbWVkIGxhdGVyDQpBQ19tZXJnZWRfZGYzIDwtIEFDX21lcmdlZF9kZjIgJT4lIA0KICBtdXRhdGUobWVhbl9zZWVkc19wZXJfZnJ1aXQgPSBzZWVkX2N0L2Nsb3NlZF9mcnVpdHNfRiwNCiAgICAgICAgIHRvdGFsX2VzdF9zZWVkX3Byb2R1Y3Rpb24gPSBtZWFuX3NlZWRzX3Blcl9mcnVpdCp0b3RhbF9mcnVpdHNfRikgIyU+JSANCiAgIyBtdXRhdGUobWVhbl9zZWVkc19wZXJfZnJ1aXQgPSBjYXNlX3doZW4oYW55X0ZpdFAgPT0gVFJVRSAmIGNsb3NlZF9mcnVpdHNfRiA9PSAwIH4gMCwgDQogICMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBtZWFuX3NlZWRzX3Blcl9mcnVpdCkpICU+JSAgI2Vsc2UsIG9yaWdpbmFsIHZhbHVlDQogICMgbXV0YXRlKHRvdGFsX2VzdF9zZWVkX3Byb2R1Y3Rpb24gPSBjYXNlX3doZW4oYW55X0ZpdFAgPT0gVFJVRSAmIG1lYW5fc2VlZHNfcGVyX2ZydWl0ID09IDAgfiAwLA0KICAjICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiB0b3RhbF9lc3Rfc2VlZF9wcm9kdWN0aW9uKSkNCiNUaGVzZSB2YWx1ZXMgd2lsbCBiZSAwIHdoZW4gc2VlZF9jdCB3YXMgcmVjb3JkZWQgYXMgTkEgKG5vIGNsb3NlZCBmcnVpdHMgb3Igbm9uLWZpdG5lc3MgcGxhbnQpIG9yIDANCg0KDQojI2NvbW1lbnRlZCBvdXQgY29kZSB3YXMgZmlyc3QgdXNlZCB0byByZXBsYWNlIE5BcyB3aXRoIDBzIHdoZW4gZml0bmVzcyBwbGFudHMgaGFkIGNsb3NlZCBmcnVpdHMgZm9yIG1lYW4gc2VlZHMgJiBlc3Qgc2VlZCBwcm9kdWN0aW9uDQoNCg0KI21lYW4gc2VlZHMgcGVyIGZydWl0IGFuZCB0b3RhbCBlc3QgZnJ1aXQgcHJvZHVjdGlvbiBoYXZlIE5Bcy9OYU5zIGZvciB3aGVuIHRoZXJlIHdlcmUgbm8gY2xvc2VkIGZydWl0cy9zZWVkcyAoZml0bmVzcyBwbGFudHMgb25seSkNCg0KYGBgDQoNCg0KDQoqKlNrZWxldG9uIFdlaWdodHMgJiBDb3JvbGxhIGFyZWEgYW5kIGRpYW1ldGVyKiogIA0KDQpMb2FkIGFuZCBtZXJnZS1pbiB0aGVzZSBkYXRhIHNoZWV0cw0KYGBge3J9DQojIw0Kc2tlbF93ZWlnaHRzX0FDIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgInNrZWxldG9uX2FuZF9zdGVtX2RhdGEiLCAic2tlbGV0b25fd2VpZ2h0c19BQ18yMDIzXzAzXzAxLmNzdiIpKSAlPiUgc2VsZWN0KC1Vbml0cywgLTcsIC04KSAlPiUgDQogIGZpbHRlcighZ3JlcGwoIkVYQ0xVREUiLCBOb3RlcykpICU+JSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggIkV4Y2x1ZGUiDQogIHJlbmFtZShQbGFudF9JRCA9IGBGaXRuZXNzIFBsYW50X0lEYCwgQUdfYmlvbWFzc19tZyA9IGBTa2VsZXRvbiBXZWlnaHRzIChtZylgKQ0KDQojV2F0ZXJlZCBwb2ludHMNCnNrZWxfd2VpZ2h0c19BQ19XIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgInNrZWxldG9uX2FuZF9zdGVtX2RhdGEiLCAic2tlbGV0b25zX3dhdGVyZWRfQUNfMjAyM18wMl8wOC5jc3YiKSkgJT4lIA0KICBzZWxlY3QoLWBVbml0cyAobWcpYCkgJT4lIA0KICByZW5hbWUoUGxhbnRfSUQgPSBgUGxhbnQgSURgLCBBR19iaW9tYXNzX21nID0gYFNrZWxldG9uIFdlaWdodHNgKQ0KDQojQ29tYmluZQ0Kc2tlbF93ZWlnaHRzX2FsbCA8LSByYmluZChza2VsX3dlaWdodHNfQUMsIHNrZWxfd2VpZ2h0c19BQ19XKSAlPiUgDQogIHNlbGVjdCgtTm90ZXMpICU+JSANCiAgZmlsdGVyKCFpcy5uYShBR19iaW9tYXNzX21nKSkNCg0KDQojTWVyZ2Ugd2l0aCBmdWxsIGRhdGEgc2V0DQpBQ19tZXJnZWRfZGY0IDwtIG1lcmdlKEFDX21lcmdlZF9kZjMsIHNrZWxfd2VpZ2h0c19hbGwsIGJ5ID0gYygiVHJhbnNlY3QiLCAiUmVjaXBpZW50IiwgIlBsYW50X0lEIiksIGFsbC54ID0gVFJVRSkNCg0KDQpgYGANCg0KDQpDb3JvbGxhIG1lYXN1cmVtZW50cw0KYGBge3J9DQpjb3JvbGxhc19BQyA8LSByZWFkX2NzdihoZXJlOjpoZXJlKCJkYXRhX3NoZWV0cyIsICJjb3JvbGxhX21lYXN1cmVzIiwgImNvcm9sbGFtZWFzdXJlc19BQ18yMDIzLTAyLTI4LmNzdiIpKSAlPiUgc2VsZWN0KDEsIDMsIDQsIDYsIDcsIDksIDExKSAlPiUgDQogIHJlbmFtZShwaG90b19kYXRlID0gNCwgY29yb2xsYV9kaWFtX21tID0gNSwgY29yb2xsYV9hcmVhX21tMiA9IDYsIG5vdGVzX2Nvcm9sbGEgPSA3KSAlPiUgDQogIGZpbHRlcighZ3JlcGwoIlJFTU9WRSIsIG5vdGVzX2Nvcm9sbGEpKSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggIlJFTU9WRSINCg0KY29yb2xsYXNfQUMyIDwtIGNvcm9sbGFzX0FDICU+JSANCiAgZmlsdGVyKCFpcy5uYShjb3JvbGxhX2RpYW1fbW0pKSAlPiUgDQogIG11dGF0ZShwaG90b19kYXRlID0gYXNfZGF0ZShwaG90b19kYXRlKSkgJT4lICNjb3JyZWN0IG1pc3NpbmcgZGF0ZXMgbWFudWFsbHkNCiAgbXV0YXRlKFJlY2lwaWVudF9udW0gPSBzcHJpbnRmKCIlMDNkIiwgKHBhcnNlX251bWJlcihSZWNpcGllbnQpKSkpICU+JSAjRml4IFJlY2lwaWVudCBuYW1lcw0KICBtdXRhdGUoUmVjaXBpZW50ID0gYXMuY2hhcmFjdGVyKHN0cl9jKCJBQ18iLCBSZWNpcGllbnRfbnVtKSkpICU+JSANCiAgc2VsZWN0KC1SZWNpcGllbnRfbnVtKSAlPiUgDQogIGFycmFuZ2UoVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQsIHBob3RvX2RhdGUpICU+JSANCiAgZGlzdGluY3QoVHJhbnNlY3QsIFJlY2lwaWVudCwgUGxhbnRfSUQsIC5rZWVwX2FsbCA9IFRSVUUpICNLZWVwIG9ubHkgdGhlIGVhcmxpZXN0IHBob3RvIGRhdGUgZGF0YSBmb3IgZHVwbGljYXRlcw0KI09ubHkgYWJvdXQgNiBkdXBsaWNhdGUgb2JzZXJ2YXRpb25zIHJlbW92ZWQNCg0KDQojIyBNZXJnZSB3aXRoIG1haW4gZGF0YSANCkFDX21lcmdlZF9kZjUgPC0gbWVyZ2UoQUNfbWVyZ2VkX2RmNCwgY29yb2xsYXNfQUMyLCBieSA9IGMoIlRyYW5zZWN0IiwgIlJlY2lwaWVudCIsICJQbGFudF9JRCIpLCBhbGwueCA9IFRSVUUpDQogIA0KYGBgDQoNCg0KDQoNCioqTGVhZiBBcmVhICYgV2VpZ2h0KiogIA0KYGBge3J9DQpsZWF2ZXNfQUMgPC0gcmVhZF9jc3YoaGVyZTo6aGVyZSgiZGF0YV9zaGVldHMiLCAibGVhZl9kYXRhIiwgIkFDX1NMQV9kYXRhXzIwMjMwNTIyLmNzdiIpKSAlPiUgDQogIHJlbmFtZShsZWFmX2FyZWFfbW0yID0gNSwgbGVhZmFyZWFfbm90ZXMgPSA2LCBsZWFmX2RyeXdlaWdodF9tZyA9IDcsIGxlYWZ3ZWlnaHRfbm90ZXMgPSA4KSAlPiUgDQogIGZpbHRlcighZ3JlcGwoIkVYQ0xVREUiLCBsZWFmYXJlYV9ub3RlcykpICU+JSAjIyBGaWx0ZXIgb3V0IG5vdGVzIHdpdGggIkVYQ0xVREUiDQogIGZpbHRlcighaXMubmEobGVhZl9hcmVhX21tMikpICU+JSAjZXhsY3VkZSBOQSBsZWFmIGFyZWFzPw0KICBtdXRhdGUobGVhZl9hcmVhX21tMiA9IGFzLm51bWVyaWMobGVhZl9hcmVhX21tMikpDQoNCg0KDQojRWxpbWluYXRlIER1cGxpY2F0ZXMNCiNSYW5kb21seSBzZWxlY3Qgb25lIGxlYWYgdG8gYmUgYW5hbHl6ZWQgcGVyIHRyYW5zZWN0IHggbWF0ZXJuYWwgSUQgY29tYm8NCmxlYXZlc19BQ19kdXBlZCA8LSBsZWF2ZXNfQUMgJT4lIA0KICBtdXRhdGUoZHVwZWQxID0gZHVwbGljYXRlZChzZWxlY3QobGVhdmVzX0FDLCBjKEJsb2NrLCBUcmFuc2VjdCwgUmVjaXBpZW50KSkpLA0KICAgICAgICAgZHVwZWQyID0gZHVwbGljYXRlZChzZWxlY3QobGVhdmVzX0FDLCBjKEJsb2NrLCBUcmFuc2VjdCwgUmVjaXBpZW50KSksIGZyb21MYXN0ID0gVFJVRSksDQogICAgICAgICBkdXBlZCA9IGNhc2Vfd2hlbihkdXBlZDF8ZHVwZWQyID09IFRSVUUgfiBUUlVFLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgVFJVRSB+IEZBTFNFKSkgJT4lICNoaWdobGlnaHQgYWxsIGR1cGxpY2F0ZXMNCiAgc2VsZWN0KC1jKGR1cGVkMSwgZHVwZWQyKSkNCiMgU2VsZWN0IGR1cGUgcm93cyB0aGF0IGhhdmUgYm90aCBhcmVhIGFuZCB3ZWlnaHQhDQoNCg0KI1RoaXMgc2VlbXMgdG8gd29yayB0aGUgYmVzdCENCmxlYXZlc19BQ191bmlxdWUgPC0gbGVhdmVzX0FDX2R1cGVkICU+JSANCiAgZ3JvdXBfYnkoQmxvY2ssIFRyYW5zZWN0LCBSZWNpcGllbnQpICU+JSANCiAgc2xpY2Vfc2FtcGxlKG4gPSAxKSAlPiUgICNzZWxlY3QgYSByYW5kb20gcm93IGZvciBlYWNoICBjb21ibyBvZiBibG9jaywgdHJhbnNlY3QsIHJlY2lwaWVudA0KICBzZWxlY3QoLWMoZHVwZWQsIFBsYW50X0lEKSkgJT4lICAjRG9uJ3QgbmVlZCBwbGFudCBJRC4uLnRoZXNlIHdlcmUgYWxsIG5vbi1maXRuZXNzIHBsYW50cw0KICBtdXRhdGUoU0xBID0gbGVhZl9hcmVhX21tMiAvIGxlYWZfZHJ5d2VpZ2h0X21nLA0KICAgICAgICAgTE1BID0gMSAvIFNMQSkNCg0KDQojTWVyZ2UgaW4gdG8gbWFpbiBkYXRhIA0KDQpBQ19tZXJnZWRfZGY2IDwtIG1lcmdlKEFDX21lcmdlZF9kZjUsIGxlYXZlc19BQ191bmlxdWUsIGJ5ID0gYygiQmxvY2siLCAiVHJhbnNlY3QiLCAiUmVjaXBpZW50IiksIGFsbC54ID0gVFJVRSkgI3JlcGxpY2F0ZXMgbGVhZiBhcmVhICYgd2VpZ2h0IGZvciBldmVyeSBwbGFudCBvZiBhIHRyYW5zZWN0IHJlY2lwaWVudCBjb21ibw0KDQoNCg0KYGBgDQoNCg0KDQpFcnJvciBjaGVja3M6DQoNCmBgYHtyIGV2YWwgPSBGQUxTRX0NCiMjQ2hlY2sgZm9yIG1pc21hdGNoZWQgKGZpdG5lc3MpIHBsYW50cw0KDQpBQ19FY2hlY2sxIDwtIEFDX21lcmdlZF9kZjUgJT4lIA0KICBmaWx0ZXIoYW55X0ZpdFAgPT0gRkFMU0UgJiB0b3RhbF9mcnVpdHNfRiAhPSAwKSAjZG8gdGhlIHNhbWUgZm9yIHNlZWQgY291bnQsIHVzaW5nIGA+YCBhbmQgYCE9YA0KDQpBQ19FY2hlY2syIDwtIEFDX21lcmdlZF9kZjUgJT4lIA0KICBmaWx0ZXIoYW55X0ZpdFAgPT0gVFJVRSkgJT4lIA0KICBmaWx0ZXIoY2xvc2VkX2ZydWl0c19GID09IDAgJiBzZWVkX2N0ID4gMCkNCg0KIyNOQS9OYU4vSW5mbyB2YWx1ZXMgZm9yIG1lYW4gc2VlZHMvZXN0IHNlZWQgcHJvZA0KQUNfRWNoZWNrMyA8LSBBQ19tZXJnZWRfZGY1ICU+JSANCiAgZmlsdGVyKGFueV9GaXRQID09IFRSVUUgJiBpcy5uYShhcy5udW1lcmljKG1lYW5fc2VlZHNfcGVyX2ZydWl0KSkpDQoNCkFDX0VjaGVjazQgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgDQogIGZpbHRlcihhbnlfRml0UCA9PSBUUlVFICYgIWlzLmZpbml0ZShtZWFuX3NlZWRzX3Blcl9mcnVpdCkpDQoNCg0KIyMgQ2hlY2sgZm9yIE5BIHNlZWQgY291bnRzIGZvciBmaXRuZXNzIHBsYW50cyAod2hlbiBmcnVpdCBwcm9kdWN0aW9uID4gMCkNCiNXaWxsIGJlIGVtcHR5IHdoZW4gc2VlZF9jdCBOQXMgYXJlIHJlcGxhY2VkIHdpdGggMA0KQUNfRWNoZWNrNSA8LSBBQ19tZXJnZWRfZGY1ICU+JSANCiAgZmlsdGVyKGFueV9GaXRQID09IFRSVUUgJiBpcy5uYShzZWVkX2N0KSkNCiMjTkFzIHByZXNlbnQgaGVyZSBiZWZvcmUgc2V0dGluZyBzZWVkX2N0IE5BcyB0byAwIHdlcmUgZnJvbSBmaXRuZXNzIHBsYW50cyB0aGF0IGhhZCAwIGNsb3NlZCBmcnVpdA0KDQoNCiNTZWVkIG1hc3MNCkFDX0VjaGVjazUgPC0gQUNfbWVyZ2VkX2RmNSAlPiUgDQogIGZpbHRlcihhbnlfRml0UCA9PSBGQUxTRSAmICFpcy5uYShtc21fYWxsKSkNCg0KDQpgYGANCg0KPGJyPiAgDQoNCg0KIyMgVHJhaXQgY2FsY3VsYXRpb25zIA0KDQpTb21lIHRyYWl0IGNhbGN1bGF0aW9ucyBwZXJmb3JtZWQgaW4gYEZpdG5lc3NfYW5kX0VEQS5SbWRgICANCg0KDQojIyMjIFBoZW5vbG9neSAgDQoNCmBgYHtyfQ0KQUNfbWVyZ2VkX2RmX2ZsIDwtIEFDX21lcmdlZF9kZjYgJT4lIA0KICBtdXRhdGUoRkZEID0gZG8uY2FsbChwbWluLCBjKHNlbGVjdCguLCBzdGFydHNfd2l0aCgnRmxfJykpLCBuYS5ybSA9IFRSVUUpKSwgI0ZpcnN0IGZsb3dlcmluZyBkYXRlDQogICAgICAgICBkYXlzX2dlcm0yZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBHZXJtX0RhdGUpLCAjZGF5cyBmcm9tIGdlcm1pbmF0aW9uIHRvIGZsb3dlcmluZw0KICAgICAgICAgZGF5c19zb3cyZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBTb3dfRGF0ZSksICNkYXlzIGZyb20gbGFiIHNvd2luZyB0byBmbG93ZXJpbmcNCiAgICAgICAgIGRheXNfcGxhbnQyZmxvd2VyID0gYXMubnVtZXJpYyhGRkQgLSBQbGFudF9EYXRlKSwgI2RheXMgZnJvbSBmaWVsZCBwbGFudGluZyB0byBmbG93ZXJpbmcNCiAgICAgICAgIExGRCA9IGRvLmNhbGwocG1heCwgYyhzZWxlY3QoLiwgc3RhcnRzX3dpdGgoJ0ZsXycpKSwgbmEucm0gPSBUUlVFKSksICNsYXN0IGZsb3dlcmluZyBkYXRlDQogICAgICAgICBmbF9kdXJhdGlvbiA9IGFzLm51bWVyaWMoTEZEIC0gRkZEKSkgI0Zsb3dlcmluZyBkdXJhdGlvbg0KYGBgDQoNCg0KKipSZXZpc2UgQ2FsY3VsYXRpb25zIG9mIEZpdG5lc3MgRGF0YSB0byBtYXRjaCBZZWFyIDIqKg0KDQpgYGB7cn0NCg0KI1VwZGF0aW5nIEZydWl0IGNvdW50IGNvbHVtbnMNCiNBbGwgRml0bmVzcyBwbGFudHMgKGFueSBraW5kKSBzaG91bGQgaGF2ZSBub24tTkEgdmFsdWVzIGZvciBmcnVpdCBhbmQgc2VlZCBjb3VudHMNCkFDX21lcmdlZF9kZl9mbEIgPC0gQUNfbWVyZ2VkX2RmX2ZsICU+JSANCiAgbXV0YXRlKGNsb3NlZF9mcnVpdHNfRiA9IGNhc2Vfd2hlbihhbnlfRml0UCA9PSBUUlVFICYgaXMubmEoY2xvc2VkX2ZydWl0c19GKSB+IDAsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYW55X0ZpdFAgPT0gVFJVRSAmICFpcy5uYShjbG9zZWRfZnJ1aXRzX0YpIH4gY2xvc2VkX2ZydWl0c19GLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiBjbG9zZWRfZnJ1aXRzX0YpLA0KICAgICAgICAgb3Blbl9mcnVpdHNfRiA9IGNhc2Vfd2hlbihhbnlfRml0UCA9PSBUUlVFICYgaXMubmEob3Blbl9mcnVpdHNfRikgfiAwLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhbnlfRml0UCA9PSBUUlVFICYgIWlzLm5hKG9wZW5fZnJ1aXRzX0YpIH4gb3Blbl9mcnVpdHNfRiwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgVFJVRSB+IG9wZW5fZnJ1aXRzX0YpLA0KICAgICAgICAgdG90YWxfZnJ1aXRzX0YgPSBjYXNlX3doZW4oYW55X0ZpdFAgPT0gVFJVRSAmIGlzLm5hKHRvdGFsX2ZydWl0c19GKSB+IDAsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFueV9GaXRQID09IFRSVUUgJiAhaXMubmEodG90YWxfZnJ1aXRzX0YpIH4gdG90YWxfZnJ1aXRzX0YsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFRSVUUgfiB0b3RhbF9mcnVpdHNfRikpDQoNCg0KDQojU3Vydml2YWwgbWVhc3VyZXMNCkFDX21lcmdlZF9kZl9mbEMgPC0gQUNfbWVyZ2VkX2RmX2ZsQiAlPiUgDQogIG11dGF0ZShzdXJ2X3RvX2dlcm0gPSBjYXNlX3doZW4oIWlzLm5hKEdlcm1fRGF0ZSkgfiAxLCAjcGxhbnRzIHRoYXQgZ2VybWluYXRlZA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlzLm5hKEdlcm1fRGF0ZSkgfiAwKSwNCiAgICAgICAgIHN1cnZfdG9fZmxvd2VyID0gY2FzZV93aGVuKCFpcy5uYShGRkQpIH4gMSwgI3BsYW50cyB0aGF0IHN1cnZpdmVkIHRvIGZsb3dlcg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlzLm5hKEZGRCkgfiAwKSwNCiAgICAgICAgIHN1cnZfdG9fZnJ1aXRwcm9kID0gY2FzZV93aGVuKGFueV9GaXRQID09IFRSVUUgJiB0b3RhbF9mcnVpdHNfRiA+IDAgfiAxLCAjcGxhbnRzIHRoYXQgc3Vydml2ZWQgdG8gcHJvZHVjZSBmcnVpdA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYW55X0ZpdFAgPT0gVFJVRSAmIHRvdGFsX2ZydWl0c19GID09IDAgfiAwKSwNCiAgICAgICAgIHByb2RfY2xvc2VkX2ZydWl0cyA9IGNhc2Vfd2hlbihhbnlfRml0UCA9PSBUUlVFICYgY2xvc2VkX2ZydWl0c19GID4gMCB+IDEsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYW55X0ZpdFAgPT0gVFJVRSAmIGNsb3NlZF9mcnVpdHNfRiA9PSAwIH4gMCksDQogICAgICAgICBwcm9kX2ZpbGxlZF9zZWVkcyA9IGNhc2Vfd2hlbihhbnlfRml0UCA9PSBUUlVFICYgc2VlZF9jdCA+IDAgfiAxLCAjcGxhbnRzIHRoYXQgc3Vydml2ZWQgdG8gcHJvZHVjZSBmcnVpdCB3aXRoIHZpYWJsZSBzZWVkcw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYW55X0ZpdFAgPT0gVFJVRSAmIHNlZWRfY3QgPT0gMCB+IDApKSAgI2Vsc2UgPSAwIA0KICANCg0KI0NhbGN1bGF0ZSBGZWN1bmRpdHkgaGVyZQ0KQUNfbWVyZ2VkX2RmX2ZsMiA8LSBBQ19tZXJnZWRfZGZfZmxDICU+JSANCiAgcmVuYW1lKGVzdF9mZWN1bmRpdHkgPSB0b3RhbF9lc3Rfc2VlZF9wcm9kdWN0aW9uKSAlPiUgI3JlbmFtZSB0byBtYXRjaCBZMg0KICBtdXRhdGUoYWNyb3NzKGMoZXN0X2ZlY3VuZGl0eSwgbWVhbl9zZWVkc19wZXJfZnJ1aXQpLCB+IGFzLm51bWVyaWMobmFfaWYoLiwgTmFOKSkpKSAlPiUgI0NvbnZlcnRzIHRvIE5BDQogIG11dGF0ZShtZWFuX3NlZWRzX3Blcl9mcnVpdCA9IGNhc2Vfd2hlbihhbnlfRml0UCA9PSBUUlVFICYgY2xvc2VkX2ZydWl0c19GID09IDAgfiBOQSwgI05BIHdoZW4gMCBjbG9zZWQgZnJ1aXRzDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBUUlVFIH4gbWVhbl9zZWVkc19wZXJfZnJ1aXQpKSAlPiUgICNlbHNlLCBvcmlnaW5hbCB2YWx1ZQ0KICBtdXRhdGUoZXN0X2ZlY3VuZGl0eSA9IGNhc2Vfd2hlbihhbnlfRml0UCA9PSBUUlVFICYgY2xvc2VkX2ZydWl0c19GID09IDAgJiBvcGVuX2ZydWl0c19GID09IDAgfiAwLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhbnlfRml0UCA9PSBUUlVFICYgY2xvc2VkX2ZydWl0c19GID09IDAgJiBvcGVuX2ZydWl0c19GID49IDEgfiBOQSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYW55X0ZpdFAgPT0gVFJVRSAmICFpcy5uYShlc3RfZmVjdW5kaXR5KSB+ICBlc3RfZmVjdW5kaXR5KSkNCg0KDQojIyBOb3RlOiBzaG91bGQgZmxvd2VyaW5nIGR1cmF0aW9uIHJlbWFpbiB1bmNoYW5nZWQgd2hlbiBhIHBsYW50IHdlbnQgc2V2ZXJhbCB3ZWVrcyB3aXRob3V0IGZsb3dlcmluZyAoZS5nLiwgaGFkIHR3byB0ZW1wb3JhbGx5IGRpc3RpbmN0IGJsb29tcyBkdXJpbmcgdGhlIGdyb3dpbmcgc2Vhc29uKT8NCmBgYA0KDQo8YnI+ICANCg0KDQojIyMgZDEzQyBkYXRhICANCg0KYGBge3IgbWVzc2FnZSA9IEZBTFNFfQ0KTmVtb19kMTNDIDwtIHJlYWRfY3N2KGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImlzb3RvcGVfZGF0YSIsICJOZW1vcGhpbGFfZDEzQ18yMzA1MTEuY3N2IikpICU+JSANCiAgc2VsZWN0KDEsMiwzLDUsNiw5KSAlPiUgDQogIHJlbmFtZShzYW1wbGVfSUQgPSAxLCBkMTNDID0gMiwgdG90YWxDX3VnID0gMywgc2FtcGxlX3dlaWdodF9tZyA9IDYpDQojU2F2ZSBhcyBVVEYtOCBmaWxlIGZyb20gZXhjZWwgdG8gYXZvaWQgaW1wb3J0IGVycm9yDQoNCiNmaWx0ZXIgdG8gQUMgc2FtcGxlcw0KTmVtb19kMTNDX0FDIDwtIE5lbW9fZDEzQyAlPiUgDQogIGZpbHRlcihncmVwbCgnQUMnLCBzYW1wbGVfSUQpKQ0KDQojdW5yYXZlbCBzYW1wbGUgSUQNCk5lbW9fZDEzX0FDMiA8LSBOZW1vX2QxM0NfQUMgJT4lIA0KICBtdXRhdGUoUmVjaXBpZW50ID0gZ3N1YignLScsICdfJywgc3Vic3RyKHNhbXBsZV9JRCwgMSwgNikpLCANCiAgICAgICAgIFRyYW5zZWN0ID0gYXMubnVtZXJpYyhzdHJfcmVtb3ZlKHN1YnN0cihzYW1wbGVfSUQsIDgsIDEwKSwgIl4wKyIpKSwNCiAgICAgICAgIFBsYW50X0lEID0gYXMubnVtZXJpYyhzdWJzdHIoc2FtcGxlX0lELCAxMiwxMykpKSAlPiUgDQogIHNlbGVjdChUcmFuc2VjdCwgUmVjaXBpZW50LCBQbGFudF9JRCwgZDEzQywgc2FtcGxlX3dlaWdodF9tZywgLVBsYW50X0lEKQ0KDQojTWVyZ2UNCg0KQUNfbWVyZ2VkX2RmX2ZsMyA8LSBtZXJnZShBQ19tZXJnZWRfZGZfZmwyLCBOZW1vX2QxM19BQzIsIGJ5ID0gYygiUmVjaXBpZW50IiwgIlRyYW5zZWN0IiksIGFsbC54ID0gVFJVRSkNCiNNZXJnZSBieSBSZWNpcGllbnQgYW5kIFRyYW5zZWN0IG9ubHk6IGdlbm90eXBlLXdpZGUgZXN0aW1hdGVzIG9mIGQxM0Mgc2luY2Ugc29tZSBwbGFudHMgd2VyZSBORg0KDQoNCg0KI2NoZWNrIHRoYXQgYWxsIGRhdGEgbWFkZSBpdCAoMjY2IG9icykNCiN0ZXN0ZGYgPC0gQUNfbWVyZ2VkX2RmX2ZsMyAlPiUgDQojICBmaWx0ZXIoIWlzLm5hKGQxM0MpKQ0KYGBgDQoNCg0KKipEdXBsaWNhdGUgJiBGaW5hbCBFcnJvciBDaGVjayoqICANCg0KYGBge3J9DQojQWxsIHJvd3MNCkFDX21lcmdlZF9kZl9mbDIgJT4lIGdldF9kdXBlcygpDQoNCg0KI0ZpdG5lc3MgUGxhbnRzDQpBQ19tZXJnZWRfZGZfZmwyICU+JSANCiAgZmlsdGVyKGFueV9GaXRQID09IFRSVUUpICU+JSANCiAgZ2V0X2R1cGVzKCkNCg0KDQoNCiNNYWluIGZpdG5lc3MgcGxhbnRzDQpBQ19tZXJnZWRfZGZfZmwyICU+JSANCiAgZmlsdGVyKEZpdFAgPT0gVFJVRSkgJT4lIA0KICBnZXRfZHVwZXMoKQ0KDQpgYGANCg0KDQoNCiMjIE1hc3RlciBzaGVldHMgKHYxKSAgDQoNCg0KYGBge3J9DQojIyAnTG9uZycgdmVyc2lvbiB3aXRoIGFsbCBkYXRhIC0gb25lIHJvdyBwZXIgcGxhbnQgSUQNCiNTb3J0IGJ5IHRyYW5zZWN0IGFuZCBJRCB2YXJpYWJsZXMsIHRoZW4gYnkgRml0bmVzcyBwbGFudHMgYW5kIHRob3NlIHRoYXQgZmxvd2VyZWQuLi4NCg0KDQpBQ19tYXN0ZXJzaGVldF92MSA8LSBBQ19tZXJnZWRfZGZfZmwzICU+JSANCiAgbXV0YXRlKFllYXIgPSAyMDIyLCBHZW4gPSAiRzEiKSAlPiUgDQogIHNlbGVjdChZZWFyLCBHZW4sIEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIERvbm9yLCBSZWNpcGllbnQsIFJlcGxpY2F0ZWQsIFBsYW50X0lELCBGaXRQLCBSZXBfRml0UCwgYW55X0ZpdFAsIEZfcGxhbnQsIEZfbXVsdGksIEZfcGxhbnRfbm90ZXMsIGV2ZXJ5dGhpbmcoKSkgJT4lIA0KICBhcnJhbmdlKEJsb2NrLCBUcmFuc2VjdCwgU2VxdWVuY2UsIFJlY2lwaWVudCwgUGxhbnRfSUQpDQoNCndyaXRlX2NzdihBQ19tYXN0ZXJzaGVldF92MSwgaGVyZTo6aGVyZSgiZGF0YV9zaGVldHMiLCAiY29tcGlsZWRfc2hlZXRzIiwgIkFDX21hc3RlcnNoZWV0X2Z1bGxfMjAyMy0wOC0wNy5jc3YiKSkNCiNSZW5hbWVkIHRvIGZ1bGwgLSBoYXMgcmVjb3JkcyBvZiBhbGwgcGxhbnRzIChpbmNsdWRpbmcgbm9uLWZpdG5lc3MpDQoNCg0KDQojDQojIyBGaXRuZXNzIFBsYW50cyBPbmx5DQojDQoNCkFDX21hc3RlcnNoZWV0X0ZfbWFpbnMgPC0gIEFDX21hc3RlcnNoZWV0X3YxICU+JSANCiAgZmlsdGVyKEZpdFAgPT0gVFJVRSkgI09ubHkgbWFpbiBmaXRuZXNzIHBsYW50cw0KDQpBQ19tYXN0ZXJzaGVldF9GX2FsbCA8LSBBQ19tYXN0ZXJzaGVldF92MSAlPiUgDQogIGZpbHRlcihhbnlfRml0UCA9PSBUUlVFKSAjc2luZ2xlIGFuZCBtdWx0aXBsZSBmaXRuZXNzIHBsYW50cyAocmVwbGljYXRlZCBJRHMpDQoNCg0KIyNOb3RlOiByZW1haW5pbmcgTkEgdmFsdWVzIGZvciBmaXRuZXNzIG1lYXN1cmVzIChtZWFuIHNlZWRzIHBlciBmcnVpdDsgZXN0IHNlZWQgcHJvZHVjdGlvbikgYXJlIHRoZSByZXN1bHRzIG9mIDAgY2xvc2VkIGZydWl0IGNvdW50cy4gVHJlYXRlIHRoZXNlIGFzIDAgZml0bmVzcyBvciBhcyBOQXMgdG8gcmVtb3ZlPz8/DQoNCg0Kd3JpdGVfY3N2KEFDX21hc3RlcnNoZWV0X0ZfbWFpbnMsIGhlcmU6OmhlcmUoImRhdGFfc2hlZXRzIiwgImNvbXBpbGVkX3NoZWV0cyIsICJBQ19tYXN0ZXJzaGVldF9GaXRuZXNzLW1haW5zXzIwMjMtMDgtMDcuY3N2IikpDQoNCndyaXRlX2NzdihBQ19tYXN0ZXJzaGVldF9GX2FsbCwgaGVyZTo6aGVyZSgiZGF0YV9zaGVldHMiLCAiY29tcGlsZWRfc2hlZXRzIiwgIkFDX21hc3RlcnNoZWV0X0ZpdG5lc3MtYWxsXzIwMjMtMDgtMDcuY3N2IikpDQpgYGANCg0KDQoNCg==</div>
 
 
 
@@ -2310,7 +2617,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("compile_datasheets_AC_year2.Rmd");
+  window.initializeSourceEmbed("compile_datasheets_AC.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

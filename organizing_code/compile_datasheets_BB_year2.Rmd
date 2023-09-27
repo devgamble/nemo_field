@@ -31,6 +31,7 @@ Recipient IDs to double-check:
 - BB_147 (BB_147a/b)
 - BB_070 (BB_070A/B)
 - IDs not planted (SegPos 208L)(see below)
+- BB_070 at 223R and at 224R - no fruit data recorded
 
 
 NOTE: Two iterations of a maternal family ID (names fixed before saving csv):
@@ -119,7 +120,8 @@ BB_flr_df <- read_csv(file = here::here("data_sheets", "2023_year2_data", "flowe
 BB_flr2 <- BB_flr_df %>% 
   mutate(SegPos = paste(Sequence, side, sep = "")) %>% 
   select(Sequence, Location, SegPos, everything()) %>% 
-  slice(-c(2214:2218, 2882, 3216:3220)) %>% #Remove rows not planted
+  filter(!grepl(c("NOT PLANTED"), Notes)) %>% #Remove rows not planted (better alternative to slice())
+  filter(Gen != "NULL") %>% #Empty Rows
   arrange(Sequence, Location, SegPos) %>% 
   mutate(Recipient = case_when(Recipient %in% c("BB_205", "BB_205A", "BB_205B") ~ "BB_205",
                                TRUE ~ Recipient)) %>%  #reset 205 - A/B specifiedbased on donor
@@ -173,17 +175,22 @@ BB_flr5 <- merge(BB_flr4, BB_Fitness_2a, by = c("Sequence", "Location", "SegPos"
   mutate(Recipient = case_when(Donor == "BB_217" & Recipient == "BB_205" ~ "BB_205A",
                                Donor == "BB_188" & Recipient == "BB_205" ~ "BB_205B",
                                TRUE ~ Recipient)) %>% #Fix 205 A/B labeling based on donor
-  select(-c(Fit_plant.x, Fit_plant.y, side)) %>% #Drop extra fitplant row after checking that they all match - retain multiple Donors per segment
-  slice(-c(2071:2075))# Remove Segment that was never actually planted
+  select(-c(Fit_plant.x, Fit_plant.y, side))#Drop extra fitplant row after checking that they all match - retain multiple Donors per segment
+
   
   
 #####  
 #Check to make sure fitness plants line up
-# BB_flrt <- BB_flr5 %>% 
-#   filter(!is.na(Fit_plant.x)) %>%
-#   mutate(FMatch = case_when(Fit_plant.x == Fit_plant.y ~ TRUE,
-#                             Fit_plant.x != Fit_plant.y ~ FALSE))
 
+#One Fitness plant missing from flowering sheet (499 vs 500 rows in Fitness sheet)
+  #Corrected!
+
+# BB_flr_merge <- merge(BB_flrt, BB_Fitness_2.5, all.y = TRUE) %>% 
+#   filter(!is.na(Fit_plant)) %>% #filter to all F plants from fitness sheet
+#   mutate(FITCHECK = case_when(Fit_plant == Plant_ID ~ TRUE,
+#                               TRUE ~ FALSE))
+
+   
 ```
 
 
@@ -230,13 +237,31 @@ BB_fruit_seeds <- read_csv(here::here("data_sheets", "2023_year2_data", "fruit_s
 
 
 ##Check Fitness plants
-BB_merge_test <- merge(BB_Fitness_2.5, BB_fruit_seeds, by = c("Location", "SegPos", "Gen", "Recipient", "Fit_plant"), all.y = TRUE) 
-#Fit datasheets with updated labels used here
+BB_merge_test <- merge(BB_Fitness_2.5, BB_fruit_seeds, by = c("Location", "SegPos", "Gen", "Recipient"), all.x = TRUE) %>% 
+  filter(!is.na(Fit_plant.x)) %>% 
+  mutate(GoodFit = case_when(Fit_plant.x == Fit_plant.y ~ TRUE,
+                             TRUE ~ FALSE)) #Only BB_070 at 223 & 224 missing (no fruit data entered)
 
 
 
-BB_fruit_seeds_3 <- merge(BB_Fitness_2.5, BB_fruit_seeds, by = c("Location", "SegPos", "Gen", "Recipient", "Fit_plant"), all.x = TRUE) %>% 
-  rename(Plant_ID = Fit_plant) #Rename Plant ID for merging below AFTER double-checking fitness plants)
+BB_fruit_seeds_2 <- merge(BB_Fitness_2.5, BB_fruit_seeds, by = c("Location", "SegPos", "Gen", "Recipient", "Fit_plant"), all.x = TRUE) %>% 
+  rename(Plant_ID = Fit_plant) %>% #Rename Plant ID for merging below AFTER double-checking fitness plants)
+  mutate(ALL_closed_fruit = case_when(Recipient == "BB_070" & SegPos == "223R" ~ 0,
+                                      Recipient == "BB_070" & SegPos == "224R" ~ 0,
+                                      TRUE ~ ALL_closed_fruit),
+         ALL_open_fruit = case_when(Recipient == "BB_070" & SegPos == "223R" ~ 0,
+                                      Recipient == "BB_070" & SegPos == "224R" ~ 0,
+                                      TRUE ~ ALL_open_fruit),
+         ALL_filled_seeds = case_when(Recipient == "BB_070" & SegPos == "223R" ~ 0,
+                                      Recipient == "BB_070" & SegPos == "224R" ~ 0,
+                                      TRUE ~ ALL_filled_seeds),
+         total_seeds = case_when(Recipient == "BB_070" & SegPos == "223R" ~ 0,
+                                      Recipient == "BB_070" & SegPos == "224R" ~ 0,
+                                      TRUE ~ total_seeds),
+         total_fruits = case_when(Recipient == "BB_070" & SegPos == "223R" ~ 0,
+                                      Recipient == "BB_070" & SegPos == "224R" ~ 0,
+                                      TRUE ~ total_fruits)
+         ) #Manually correct missing entries - Fitness plants chosen but IDs were absent from fruit collection data
 
 ```
 
@@ -274,7 +299,7 @@ Merge trait data processed thus far
 
 BB_merged_1 <- merge(BB_flowering, skel_weights_BB_2, by = c("Location", "SegPos", "Gen", "Recipient", "Plant_ID"), all.x = TRUE) %>% select(-c(Skeleton:Fitness)) %>% arrange(Location, Sequence, SegPos)
 
-BB_merged_2 <- merge(BB_merged_1, BB_fruit_seeds_3, by = c("Sequence", "Location", "SegPos", "Gen", "Recipient", "Donor", "Plant_ID"), all.x = TRUE) %>% select(-c(FD_01:FD_05, N_CLOSED_fruit_D1:N_total_seeds_D8)) %>% arrange(Location, Sequence, SegPos) %>% 
+BB_merged_2 <- merge(BB_merged_1, BB_fruit_seeds_2, by = c("Sequence", "Location", "SegPos", "Gen", "Recipient", "Donor", "Plant_ID"), all.x = TRUE) %>% select(-c(FD_01:FD_05, N_CLOSED_fruit_D1:N_total_seeds_D8)) %>% arrange(Location, Sequence, SegPos) %>% 
   select(Sequence, Location, SegPos, Gen, Donor, Recipient, Plant_ID, F_plant, everything(), -36)
 
 ```
