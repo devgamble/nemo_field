@@ -51,14 +51,28 @@ AC_prop2 <- AC_FitP %>%
   summarize(zero_closed = 128/546,
             zero_total = n()/546) #54
 
+#Good estimates of fecundity - including 0s
+AC_prop2b <- AC_FitP %>% 
+  filter(est_fecundity >= 0) %>% #NOT the same as (ALL_closed_fruit != 0 & ALL_filled_seeds >=0)!!!!!
+  summarize(zero_closed = 128/546,
+            real_fecundity = n()) #472
+
+#Good estimates of fecundity - excluding 0s
+AC_prop2c <- AC_FitP %>% 
+  filter(est_fecundity > 0) %>% 
+  summarize(zero_closed = 128/546,
+            zero_total = n()) #360
+
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 AC_prop3 <- AC_FitP %>% 
   filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
   summarize(pop = "AC",
             N_fitness_plants = 546,
+            real_fecundity = 472/546,
+            pos_fecundity = 360/546,
             zero_closed_fruits = 128/546,
             zero_total_fruits = 54/546,
-            zero_seeds_from_nonzero_closed = n()/546) #58
+            zero_seeds_from_nonzero_closed = n()/546)#58
 
 
 ```
@@ -80,11 +94,23 @@ BB_prop2 <- BB_FitP %>%
   summarize(zero_closed = 116/500,
             zero_total = n()) #101
 
+#Good estimates of fecundity - including 0s
+BB_prop2b <- BB_FitP %>% 
+  filter(est_fecundity >= 0) %>% #NOT the same as (ALL_closed_fruit != 0 & ALL_filled_seeds >=0)!!!!!
+  summarize(real_fecdunity = n()) #485
+
+#Good estimates of fecundity - excluding 0s
+BB_prop2c <- BB_FitP %>% 
+  filter(est_fecundity > 0) %>% 
+  summarize(pos_fecundity = n()) #351
+
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 BB_prop3 <- BB_FitP %>% 
   filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
   summarize(pop = "BB",
             N_fitness_plants = 500,
+            real_fecundity = 485/500,
+            pos_fecundity = 351/500,
             zero_closed_fruits = 114/500,
             zero_total_fruits = 101/500,
             zero_seeds_from_nonzero_closed = n()/500) #33
@@ -109,11 +135,23 @@ BO_prop2 <- BO_FitP %>%
   summarize(zero_closed = 89/257,
             zero_total = n()) #44
 
+#Good estimates of fecundity - including 0s
+BO_prop2b <- BO_FitP %>% 
+  filter(est_fecundity >= 0) %>% #NOT the same as (ALL_closed_fruit != 0 & ALL_filled_seeds >=0)!!!!!
+  summarize(real_fecdunity = n()) #212
+
+#Good estimates of fecundity - excluding 0s
+BO_prop2c <- BO_FitP %>% 
+  filter(est_fecundity > 0) %>% 
+  summarize(pos_fecundity = n()) #145
+
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 BO_prop3 <- BO_FitP %>% 
   filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
   summarize(pop = "BO",
             N_fitness_plants = 257,
+            real_fecundity = 212/257,
+            pos_fecundity = 145/257,
             zero_closed_fruits = 89/257,
             zero_total_fruits = 44/257,
             zero_seeds_from_nonzero_closed = n()/257) #23
@@ -137,12 +175,25 @@ HR_prop2 <- HR_FitP %>%
   summarize(zero_closed = 197/780,
             zero_total = n()) #105
 
+#Good estimates of fecundity - including 0s
+HR_prop2b <- HR_FitP %>% 
+  filter(est_fecundity >= 0) %>% #NOT the same as (ALL_closed_fruit != 0 & ALL_filled_seeds >=0)!!!!!
+  summarize(real_fecdunity = n()) #688
+
+#Good estimates of fecundity - excluding 0s
+HR_prop2c <- HR_FitP %>% 
+  filter(est_fecundity > 0) %>% 
+  summarize(pos_fecundity = n()) #505
+
+
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 #To be combined with others
 HR_prop3 <- HR_FitP %>% 
   filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
   summarize(pop = "HR",
             N_fitness_plants = 780,
+            real_fecundity = 688/780,
+            pos_fecundity = 505/780,
             zero_closed_fruits = 197/780,
             zero_total_fruits = 105/780,
             zero_seeds_from_nonzero_closed = n()/780) #78
@@ -172,27 +223,66 @@ Correlations to investigate:
 
 **AC**  
 ```{r}
-
 #Correlation Matrix
-cormod1_AC
+png(filename = "corrplot_repro_fitness_AC.png", units = "in", width = 5, height = 5, res = 300)
 
-corrplot(cor(AC_FitP %>% select(ALL_closed_fruit, total_fruits, ALL_open_fruit, ALL_filled_seeds, total_seeds, mean_seeds_per_fruit, est_fecundity), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red")
+
+corrplot(cor(AC_FitP %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs
 
 
 #Excluding 0s
+# corrplot(cor(filter(AC_FitP, est_fecundity != 0) %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs & 0s
 
-
-```
-
-
-#OLD - RE-DO!
-**Saving Additional Corrplots**  
-```{r eval = FALSE}
-png(filename = "figs1/corrplot_clim_predictors.png", units = "in", width = 5, height = 5, res = 300)
-
-## "All" Seasonal & Annual Predictors:
-corrplot(cor(nemo_df2 %>% select(MAT_100Y, MAP_100Y, Tmin_wt_100Y, Tmin_sp_100Y, PPT_wt_100Y, PPT_sp_100Y, MAT_A, MAP_A, Tmin_wt_A, Tmin_sp_A, PPT_wt_A, PPT_sp_A)), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red")
 
 dev.off()
 ```
 
+**BB**  
+```{r}
+#Correlation Matrix
+png(filename = "corrplot_repro_fitness_BB.png", units = "in", width = 5, height = 5, res = 300)
+
+
+corrplot(cor(BB_FitP %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs
+
+
+#Excluding 0s
+ corrplot(cor(filter(BB_FitP, est_fecundity != 0) %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs & 0s
+
+
+dev.off()
+```
+
+**BO**  
+```{r}
+#Correlation Matrix
+png(filename = "corrplot_repro_fitness_BO.png", units = "in", width = 5, height = 5, res = 300)
+
+
+corrplot(cor(BO_FitP %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs
+
+
+#Excluding 0s
+ # corrplot(cor(filter(BO_FitP, est_fecundity != 0) %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs & 0s
+
+
+dev.off()
+```
+
+
+
+**HR**  
+```{r}
+#Correlation Matrix
+png(filename = "corrplot_repro_fitness_HR.png", units = "in", width = 5, height = 5, res = 300)
+
+
+corrplot(cor(HR_FitP %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs
+
+
+#Excluding 0s
+ # corrplot(cor(filter(HR_FitP, est_fecundity != 0) %>% select(ALL_closed_fruit, total_fruits, ALL_filled_seeds, total_seeds, est_fecundity, mean_seeds_per_fruit), use="complete.obs"), method = "color", addCoef.col = "black", number.cex = .6, outline = TRUE, tl.col = "red") #ignores NAs & 0s
+
+
+dev.off()
+```
