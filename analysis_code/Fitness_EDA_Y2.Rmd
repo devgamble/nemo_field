@@ -63,6 +63,11 @@ AC_prop2c <- AC_FitP %>%
   summarize(zero_closed = 128/546,
             zero_total = n()) #360
 
+AC_prop2d <- AC_FitP %>% 
+  filter(is.na(est_fecundity)) %>% #should be the SAME as (ALL_closed_fruit == 0 & ALL_open_fruit >= 1)
+  summarize(zero_closed = 128/546,
+            fecundity_NA = n()) #74
+
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 AC_prop3 <- AC_FitP %>% 
   filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
@@ -72,6 +77,7 @@ AC_prop3 <- AC_FitP %>%
             pos_fecundity = 360/546,
             zero_closed_fruits = 128/546,
             zero_total_fruits = 54/546,
+            fecundity_NA = 74/546, #Should complement the real_fecundity column
             zero_seeds_from_nonzero_closed = n()/546)#58
 
 
@@ -104,6 +110,10 @@ BB_prop2c <- BB_FitP %>%
   filter(est_fecundity > 0) %>% 
   summarize(pos_fecundity = n()) #351
 
+BB_prop2d <- BB_FitP %>% 
+  filter(is.na(est_fecundity)) %>% #should be the SAME as (ALL_closed_fruit == 0 & ALL_open_fruit >= 1)
+  summarize(fecundity_NA = n()) #15
+
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 BB_prop3 <- BB_FitP %>% 
   filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
@@ -113,6 +123,7 @@ BB_prop3 <- BB_FitP %>%
             pos_fecundity = 351/500,
             zero_closed_fruits = 114/500,
             zero_total_fruits = 101/500,
+            fecundity_NA = 15/500,
             zero_seeds_from_nonzero_closed = n()/500) #33
 
 
@@ -145,6 +156,10 @@ BO_prop2c <- BO_FitP %>%
   filter(est_fecundity > 0) %>% 
   summarize(pos_fecundity = n()) #145
 
+BO_prop2d <- BO_FitP %>% 
+  filter(is.na(est_fecundity)) %>% #should be the SAME as (ALL_closed_fruit == 0 & ALL_open_fruit >= 1)
+  summarize(pos_fecundity = n()) #45
+
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 BO_prop3 <- BO_FitP %>% 
   filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
@@ -154,6 +169,7 @@ BO_prop3 <- BO_FitP %>%
             pos_fecundity = 145/257,
             zero_closed_fruits = 89/257,
             zero_total_fruits = 44/257,
+            fecundity_NA = 45/257,
             zero_seeds_from_nonzero_closed = n()/257) #23
 
 ```
@@ -185,6 +201,9 @@ HR_prop2c <- HR_FitP %>%
   filter(est_fecundity > 0) %>% 
   summarize(pos_fecundity = n()) #505
 
+HR_prop2d <- HR_FitP %>% 
+  filter(ALL_closed_fruit == 0 & ALL_open_fruit >= 1) %>% #should be the SAME as (ALL_closed_fruit == 0 & ALL_open_fruit >= 1)
+  summarize(fecundity_NA = n()) #92
 
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
 #To be combined with others
@@ -196,6 +215,7 @@ HR_prop3 <- HR_FitP %>%
             pos_fecundity = 505/780,
             zero_closed_fruits = 197/780,
             zero_total_fruits = 105/780,
+            fecundity_NA = 92/780,
             zero_seeds_from_nonzero_closed = n()/780) #78
 
 ```
@@ -205,7 +225,7 @@ HR_prop3 <- HR_FitP %>%
 Combine summary from each pop
 ```{r}
 
-zero_fruits_proportions <- rbind(AC_prop3, BB_prop3, BO_prop3, HR_prop3)
+fruits_proportions <- rbind(AC_prop3, BB_prop3, BO_prop3, HR_prop3)
 
 
 ```

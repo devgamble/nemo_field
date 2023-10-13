@@ -550,7 +550,7 @@ AC_Echeck5 <- AC_merged_df5 %>%
 
 ## Trait calculations 
 
-Some trait calculations performed in `Fitness_and_EDA.Rmd`  
+
 
 
 #### Phenology  
@@ -652,18 +652,18 @@ AC_merged_df_fl3 <- merge(AC_merged_df_fl2, Nemo_d13_AC2, by = c("Recipient", "T
 
 ```{r}
 #All rows
-AC_merged_df_fl2 %>% get_dupes()
+AC_merged_df_fl3 %>% get_dupes()
 
 
 #Fitness Plants
-AC_merged_df_fl2 %>% 
+AC_merged_df_fl3 %>% 
   filter(any_FitP == TRUE) %>% 
   get_dupes()
 
 
 
 #Main fitness plants
-AC_merged_df_fl2 %>% 
+AC_merged_df_fl3 %>% 
   filter(FitP == TRUE) %>% 
   get_dupes()
 
