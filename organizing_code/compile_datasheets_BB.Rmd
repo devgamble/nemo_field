@@ -590,6 +590,7 @@ BB_merged_df_fl <- BB_merged_df7 %>%
          fl_duration = as.numeric(LFD - FFD)) #Flowering duration
 ```
 
+**Revise Calculations of Fitness Data to match Year 2**
 
 ```{r}
 

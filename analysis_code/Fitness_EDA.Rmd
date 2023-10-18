@@ -22,8 +22,108 @@ library(reshape2)
 ```
 
 
-#### Description  
+**Description** 
 This file was created to explore broad trends in our field data from the first year of the experiment (2021-2022). It was also used to explore and select different metrics of fitness (and fecundity) that would be used in later analyses.  
+
+
+**Load Data**  
+```{r message = FALSE, warning = FALSE}
+
+## AC
+AC_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-mains_2023-08-07.csv")) 
+
+## BB
+BB_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-08-07.csv"))
+## Already has greenhouse cohort data
+
+## BO
+BO_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-mains_2023-08-07.csv")) 
+
+## HR
+HR_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-08-07.csv"))
+
+
+```
+
+
+
+### Fitness Plants  
+
+
+Proportion of *Fitness Plants* that  
+- produced 0 closed fruits
+- produced 0 closed fruits & 0 open fruits
+- produced 1+ closed fruits & 0 filled seeds
+
+In other words... 
+
+**Real fecundity** estimates (Proportion of *Fitness Plants* that  
+- produced 0 closed fruits
+- produced 0 closed fruits & 0 open fruits
+- produced 1+ closed fruits & 0 filled seeds)
+
+which is the summation of 
+- Proportion of plants with > 1 closed fruit, and with > 1 filled seeds found in closed fruit. 
+- Proportion of plants with 0 fruits (closed or open)
+- Proportion of plants with > 1 closed fruits but NO seeds found in these closed fruits. 
+
+And is the complement to
+- Proportion of plants with 0 closed fruits but > 1 open fruits (no fecundity estimate)
+
+
+**AC**
+```{r message = FALSE}
+
+#Proportion of Fitness plants with 0 closed fruits
+AC_prop1 <- AC_mainF_Y1 %>% 
+  filter(closed_fruits_F == 0) %>% 
+  summarize(zero_closed = n()) #23
+
+#Proportion of Fitness plants with 0 total fruits
+AC_prop2 <- AC_mainF_Y1 %>% 
+  filter(total_fruits_F == 0) %>% 
+  summarize(zero_closed = 23/319,
+            zero_total = n()/319) #11
+
+#Good estimates of fecundity - including 0s
+AC_prop2b <- AC_mainF_Y1 %>% 
+  filter(est_fecundity >= 0) %>% #NOT the same as (ALL_closed_fruit != 0 & ALL_filled_seeds >=0)!!!!!
+  summarize(zero_closed = 23/319,
+            real_fecundity = n()) #472
+
+#Good estimates of fecundity - excluding 0s
+AC_prop2c <- AC_mainF_Y1 %>% 
+  filter(est_fecundity > 0) %>% 
+  summarize(zero_closed = 128/546,
+            zero_total = n()) #360
+
+AC_prop2d <- AC_mainF_Y1 %>% 
+  filter(is.na(est_fecundity)) %>% #should be the SAME as (ALL_closed_fruit == 0 & ALL_open_fruit >= 1)
+  summarize(zero_closed = 128/546,
+            fecundity_NA = n()) #74
+
+#Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
+AC_prop3 <- AC_mainF_Y1 %>% 
+  filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
+  summarize(pop = "AC",
+            N_fitness_plants = 546,
+            real_fecundity = 472/546,
+            pos_fecundity = 360/546,
+            zero_closed_fruits = 128/546,
+            zero_total_fruits = 54/546,
+            fecundity_NA = 74/546, #Should complement the real_fecundity column
+            zero_seeds_from_nonzero_closed = n()/546)#58
+
+
+```
+
+
+<br>  
+
+
+
+
+
 
 
 

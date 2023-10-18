@@ -393,13 +393,15 @@ BO_merged_df2 <- BO_merged_df1 %>%
          seed_ct = replace_na(seed_ct, 0))
 
 #Calculate mean seeds per fruit, total_est_seed prod
+#The following code lines that are commented out have been moved to a lower chunk
+#variables renamed later
 BO_merged_df3 <- BO_merged_df2 %>% 
   mutate(mean_seeds_per_fruit = seed_ct/closed_fruits_F,
-         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) %>% 
-  mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE & closed_fruits_F == 0 ~ 0, 
-                                          TRUE ~ mean_seeds_per_fruit)) %>%  #else, original value
-  mutate(total_est_seed_production = case_when(any_FitP == TRUE & mean_seeds_per_fruit == 0 ~ 0,
-                                               TRUE ~ total_est_seed_production))
+         total_est_seed_production = mean_seeds_per_fruit*total_fruits_F) #%>% 
+  # mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE & closed_fruits_F == 0 ~ 0, 
+  #                                         TRUE ~ mean_seeds_per_fruit)) %>%  #else, original value
+  # mutate(total_est_seed_production = case_when(any_FitP == TRUE & mean_seeds_per_fruit == 0 ~ 0,
+  #                                              TRUE ~ total_est_seed_production))
 
 
 #mean seeds per fruit and total est fruit production have NAs/NaNs for when there were no closed fruits/seeds (fitness plants only)
@@ -536,13 +538,11 @@ BO_Echeck5 <- BO_merged_df6 %>%
 
 ## Trait calculations 
 
-Some trait calculations performed in `Fitness_and_EDA.Rmd`  
 
 
 #### Phenology  
 
 ```{r}
-
 BO_merged_df_fl <- BO_merged_df7 %>% 
   mutate(FFD = do.call(pmin, c(select(., starts_with('Fl_')), na.rm = TRUE)), #First flowering date
          days_germ2flower = as.numeric(FFD - Germ_Date), #days from germination to flowering
@@ -550,24 +550,67 @@ BO_merged_df_fl <- BO_merged_df7 %>%
          days_plant2flower = as.numeric(FFD - Plant_Date), #days from field planting to flowering
          LFD = do.call(pmax, c(select(., starts_with('Fl_')), na.rm = TRUE)), #last flowering date
          fl_duration = as.numeric(LFD - FFD)) #Flowering duration
+```
 
+**Revise Calculations of Fitness Data to match Year 2**
+
+```{r}
+#Updating Fruit count columns
+#All Fitness plants (any kind) should have non-NA values for fruit and seed counts
+
+BO_merged_df_flB <- BO_merged_df_fl %>% 
+  mutate(closed_fruits_F = case_when(any_FitP == TRUE & is.na(closed_fruits_F) ~ 0,
+                                     any_FitP == TRUE & !is.na(closed_fruits_F) ~ closed_fruits_F,
+                                     TRUE ~ closed_fruits_F),
+         open_fruits_F = case_when(any_FitP == TRUE & is.na(open_fruits_F) ~ 0,
+                                   any_FitP == TRUE & !is.na(open_fruits_F) ~ open_fruits_F,
+                                   TRUE ~ open_fruits_F),
+         total_fruits_F = case_when(any_FitP == TRUE & is.na(total_fruits_F) ~ 0,
+                                   any_FitP == TRUE & !is.na(total_fruits_F) ~ total_fruits_F,
+                                   TRUE ~ total_fruits_F))
 
 #Survival measures
-BO_merged_df_fl2 <- BO_merged_df_fl %>% 
+BO_merged_df_flC <- BO_merged_df_flB %>% 
   mutate(surv_to_germ = case_when(!is.na(Germ_Date) ~ 1, #plants that germinated
                                   is.na(Germ_Date) ~ 0),
          surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
                                   is.na(FFD) ~ 0),
-         surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
-                                       total_fruits_F == 0 ~ 0),
-         surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
-                                       TRUE ~ 0)) #else = 0 (applies to seed_ct = NA)
+         surv_to_fruitprod = case_when(any_FitP == TRUE & total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
+                                       any_FitP == TRUE & total_fruits_F == 0 ~ 0),
+         prod_closed_fruits = case_when(any_FitP == TRUE & closed_fruits_F > 0 ~ 1,
+                                        any_FitP == TRUE & closed_fruits_F == 0 ~ 0),
+         prod_filled_seeds = case_when(any_FitP == TRUE & seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
+                                       any_FitP == TRUE & seed_ct == 0 ~ 0))  #else = 0 
+
+
+
+#Calculate Fecundity 
+BO_merged_df_fl2 <- BO_merged_df_flC %>% 
+  rename(est_fecundity = total_est_seed_production) %>% #rename to match Y2
+  mutate(across(c(est_fecundity, mean_seeds_per_fruit), ~ as.numeric(na_if(., NaN)))) %>% #Converts to NA
+  mutate(mean_seeds_per_fruit = case_when(any_FitP == TRUE & closed_fruits_F == 0 ~ NA, #NA when 0 closed fruits
+                                          TRUE ~ mean_seeds_per_fruit)) %>%  #else, original value
+  mutate(est_fecundity = case_when(any_FitP == TRUE & closed_fruits_F == 0 & open_fruits_F == 0 ~ 0,
+                                               any_FitP == TRUE & closed_fruits_F == 0 & open_fruits_F >= 1 ~ NA,
+                                               any_FitP == TRUE & !is.na(est_fecundity) ~  est_fecundity))
+
 
 BO_merged_df_fl2 <- BO_merged_df_fl2 %>% 
   filter(!duplicated(BO_merged_df_fl2)) #DUPLICATES REMOVED - Discovered 2023-08-07 when adding d13C data  
 
 
-## Note: should flowering duration remain unchanged when a plant went several weeks without flowering (e.g., had two temporally distinct blooms during the growing season)?
+#OLD
+# BO_merged_df_fl2 <- BO_merged_df_fl %>% 
+#   mutate(surv_to_germ = case_when(!is.na(Germ_Date) ~ 1, #plants that germinated
+#                                   is.na(Germ_Date) ~ 0),
+#          surv_to_flower = case_when(!is.na(FFD) ~ 1, #plants that survived to flower
+#                                   is.na(FFD) ~ 0),
+#          surv_to_fruitprod = case_when(total_fruits_F > 0 ~ 1, #plants that survived to produce fruit
+#                                        total_fruits_F == 0 ~ 0),
+#          surv_to_seedprod = case_when(seed_ct > 0 ~ 1, #plants that survived to produce fruit with viable seeds
+#                                        TRUE ~ 0)) #else = 0 (applies to seed_ct = NA)
+
+
 ```
 
 <br>  
@@ -604,6 +647,26 @@ testdf <- BO_merged_df_fl3 %>%
 
 ```
 
+**Duplicate & Final Error Check**  
+
+```{r}
+#All rows
+BO_merged_df_fl3 %>% get_dupes()
+
+
+#Fitness Plants
+BO_merged_df_fl3 %>% 
+  filter(any_FitP == TRUE) %>% 
+  get_dupes()
+
+
+
+#Main fitness plants
+BO_merged_df_fl3 %>% 
+  filter(FitP == TRUE) %>% 
+  get_dupes()
+
+```
 
 ## Master sheets (v1)  
 
@@ -619,8 +682,6 @@ BO_mastersheet_v1 <- BO_merged_df_fl3 %>%
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
 write_csv(BO_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "BO_mastersheet_full_2023-08-07.csv"))
-
-#Create meta data sheet
 
 
 
