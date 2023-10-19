@@ -30,17 +30,17 @@ This file was created to explore broad trends in our field data from the first y
 ```{r message = FALSE, warning = FALSE}
 
 ## AC
-AC_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-mains_2023-08-07.csv")) 
+AC_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-mains_2023-10-17.csv")) 
 
 ## BB
-BB_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-08-07.csv"))
+BB_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BB_mastersheet_Fitness-mains_2023-10-18.csv"))
 ## Already has greenhouse cohort data
 
 ## BO
-BO_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-mains_2023-08-07.csv")) 
+BO_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "BO_mastersheet_Fitness-mains_2023-10-18.csv")) 
 
 ## HR
-HR_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-08-07.csv"))
+HR_mainF_Y1 <- read_csv(here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-10-18.csv"))
 
 
 ```
@@ -74,46 +74,52 @@ And is the complement to
 **AC**
 ```{r message = FALSE}
 
-#Proportion of Fitness plants with 0 closed fruits
-AC_prop1 <- AC_mainF_Y1 %>% 
-  filter(closed_fruits_F == 0) %>% 
-  summarize(zero_closed = n()) #23
+#Good estimates of fecundity - including 0s
+AC_prop_a <- AC_mainF_Y1 %>% 
+  filter(est_fecundity >= 0) %>% #NOT the same as (ALL_closed_fruit != 0 & ALL_filled_seeds >=0)!!!!!
+  summarize(real_fecundity = n())  #307
+
+#Good estimates of fecundity (positive) - excluding 0s
+AC_prop_b <- AC_mainF_Y1 %>% 
+  filter(est_fecundity > 0) %>% 
+  summarize(pos_fecundity = n()) #283
 
 #Proportion of Fitness plants with 0 total fruits
-AC_prop2 <- AC_mainF_Y1 %>% 
-  filter(total_fruits_F == 0) %>% 
-  summarize(zero_closed = 23/319,
-            zero_total = n()/319) #11
+AC_prop_c <- AC_mainF_Y1 %>% 
+  filter(total_fruits == 0) %>% 
+  summarize(zero_total_fruits = n()) #11
 
-#Good estimates of fecundity - including 0s
-AC_prop2b <- AC_mainF_Y1 %>% 
-  filter(est_fecundity >= 0) %>% #NOT the same as (ALL_closed_fruit != 0 & ALL_filled_seeds >=0)!!!!!
-  summarize(zero_closed = 23/319,
-            real_fecundity = n()) #472
+# 0 fecundity: >=1 closed fruits but 0 filled seeds
+AC_prop_e <- AC_mainF_Y1 %>% 
+  filter(closed_fruits >= 1 & filled_seeds == 0) %>% 
+  summarize(no_seeds_found = n()) #13
 
-#Good estimates of fecundity - excluding 0s
-AC_prop2c <- AC_mainF_Y1 %>% 
-  filter(est_fecundity > 0) %>% 
-  summarize(zero_closed = 128/546,
-            zero_total = n()) #360
 
-AC_prop2d <- AC_mainF_Y1 %>% 
-  filter(is.na(est_fecundity)) %>% #should be the SAME as (ALL_closed_fruit == 0 & ALL_open_fruit >= 1)
-  summarize(zero_closed = 128/546,
-            fecundity_NA = n()) #74
+#Fecundity NA | 0 closed with >=1 open fruits
+AC_prop_e <- AC_mainF_Y1 %>% 
+  filter(is.na(est_fecundity)) %>% #should be the SAME as (closed_fruits == 0 & open_fruits >= 1)
+  summarize(fecundity_NA = n()) #12
+
+
+#Proportion of Fitness plants with 0 closed fruits -- NOT used in ppt slide table
+AC_prop_f <- AC_mainF_Y1 %>% 
+  filter(closed_fruits == 0) %>% 
+  summarize(zero_closed_fruits = n()) #23
+
+
 
 #Proportion of Fitness plants with 0 filled seeds but 1 or more closed fruits
-AC_prop3 <- AC_mainF_Y1 %>% 
-  filter(ALL_closed_fruit != 0 & ALL_filled_seeds == 0) %>% 
+AC_prop_sums <- AC_mainF_Y1 %>% 
   summarize(pop = "AC",
-            N_fitness_plants = 546,
-            real_fecundity = 472/546,
-            pos_fecundity = 360/546,
-            zero_closed_fruits = 128/546,
-            zero_total_fruits = 54/546,
-            fecundity_NA = 74/546, #Should complement the real_fecundity column
-            zero_seeds_from_nonzero_closed = n()/546)#58
+            N_fitness_plants = 319,
+            real_fecundity = 307/319,
+            pos_fecundity = 283/319,
+            zero_total_fruits = 11/319,
+            zero_seeds_from_nonzero_closed = 13/319, 
+            fecundity_NA = 12/319, #Should complement the real_fecundity column
+            zero_closed_fruits = 23/319)
 
+#Same order as the columns in ppt slide table
 
 ```
 

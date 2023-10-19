@@ -694,39 +694,69 @@ HR_merged_df_fl3 %>%
 ## Master sheets (v1)  
 
 
-```{r}
+```{r message = FALSE}
 ## 'Long' version with all data - one row per plant ID
 #Sort by transect and ID variables, then by Fitness plants and those that flowered...
 
 
-  HR_mastersheet_v1 <- HR_merged_df_fl3 %>% 
+HR_mastersheet_v1 <- HR_merged_df_fl3 %>% 
   mutate(Year = 2022, Gen = "G1") %>% 
   select(Year, Gen, Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(HR_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_full_2023-08-07.csv"))
 
-#Create meta data sheet
+HR_mastersheet_v2 <- HR_mastersheet_v1 %>% 
+  rename(F_plant_ID = F_plant, #number of F plant
+         F_plant = FitP, #T/F is F plant
+         filled_seeds = seed_ct,
+         open_fruits = open_fruits_F,
+         closed_fruits = closed_fruits_F,
+         total_fruits = total_fruits_F,
+         skel_dryweight_mg = AG_biomass_mg) %>% 
+  mutate(est_fecundity_int = round(est_fecundity)) #round to nearest whole number
 
+
+#Add in Greenhouse Cohort IDs
+HR_tray21 <- read_csv(here::here("data_sheets", "tray_positions_2021_year1", "HR_tray_rand.csv"), skip = 1) %>% 
+  select(Cohort, Donor_ID, Recipient_ID) %>% #Block and Transect not necessary to save here
+  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient_ID)))) %>% #Fix Recipient/Donor names
+  mutate(Recipient = as.character(str_c("HR_", Recipient_num))) %>% 
+  mutate(Donor_num = sprintf("%03d", (parse_number(Donor_ID)))) %>% 
+  mutate(Donor = as.character(str_c("HR_", Donor_num))) %>%
+  select(-c(Donor_num, Recipient_num, Donor_ID, Recipient_ID)) %>% 
+  distinct()
+
+HR_mastersheet_v3 <- left_join(HR_mastersheet_v2, HR_tray21, by = c("Donor", "Recipient")) %>% 
+  select(-c(F_plant_notes, Fl_3.10:flr_P, damaged_fruits_F, seeds_weighed_d1:msm_d9, photo_date, notes_corolla, leafarea_notes, leafweight_notes)) %>% #Remove unnecessary columns 
+  select(Year, Sequence, Cohort, Block, Transect, Donor, Recipient, Gen, Replicated, Plant_ID, F_plant:Plant_Date, FFD, LFD, fl_duration, days_germ2flower:days_plant2flower, corolla_diam_mm, corolla_area_mm2, leaf_area_mm2:LMA, skel_dryweight_mg, d13C, sample_weight_mg, closed_fruits:est_fecundity, est_fecundity_int, everything()) #Reorder columns
+
+```
+
+
+**Writing CSVs**  
+
+```{r}
+
+write_csv(HR_mastersheet_v3, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_full_2023-10-18.csv"))
 
 
 #
 ## Fitness Plants Only
 #
 
-HR_mastersheet_F_mains <-  HR_mastersheet_v1 %>% 
-  filter(FitP == TRUE) #Only single fitness plants
+HR_mastersheet_F_mains <-  HR_mastersheet_v3 %>% 
+  filter(F_plant == TRUE) #Only single fitness plants
 
-HR_mastersheet_F_all <- HR_mastersheet_v1 %>% 
+HR_mastersheet_F_all <- HR_mastersheet_v3 %>% 
   filter(any_FitP == TRUE) #single and multiple fitness plants (replicated IDs)
 
 
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(HR_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-08-07.csv"))
+write_csv(HR_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-mains_2023-10-18.csv"))
 
-write_csv(HR_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-all_2023-08-07.csv"))
+write_csv(HR_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "HR_mastersheet_Fitness-all_2023-10-18.csv"))
 
 ```
 
