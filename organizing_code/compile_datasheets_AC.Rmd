@@ -442,6 +442,12 @@ skel_weights_all <- rbind(skel_weights_AC, skel_weights_AC_W) %>%
 #Merge with full data set
 AC_merged_df4 <- merge(AC_merged_df3, skel_weights_all, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
 
+#includes NF plants... how many?
+AC_NFskels <- AC_merged_df4 %>% 
+  filter(!is.na(AG_biomass_mg)) %>% 
+  arrange(FitP)
+#65/433 are Replicated Fitness plants, not main F plants
+
 
 ```
 
@@ -454,18 +460,26 @@ corollas_AC <- read_csv(here::here("data_sheets", "corolla_measures", "corollame
 
 corollas_AC2 <- corollas_AC %>% 
   filter(!is.na(corolla_diam_mm)) %>% 
-  mutate(photo_date = as_date(photo_date)) %>% #correct missing dates manually
+  mutate(photo_date = as_date(photo_date)) %>% #correct missing dates 
   mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Fix Recipient names
   mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
   select(-Recipient_num) %>% 
   arrange(Transect, Recipient, Plant_ID, photo_date) %>% 
   distinct(Transect, Recipient, Plant_ID, .keep_all = TRUE) #Keep only the earliest photo date data for duplicates
-#Only about 6 duplicate observations removed
+#Only about 6 duplicate observations (same plant, different dates) removed
 
 
 ## Merge with main data 
 AC_merged_df5 <- merge(AC_merged_df4, corollas_AC2, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
   
+
+#check: includes NF plants... 
+AC_NFcorollas <- AC_merged_df5 %>% 
+  filter(!is.na(corolla_diam_mm)) %>% 
+  arrange(FitP)
+#245/582 are Replicated Fitness & NF plants, not main F plants (158 totally NF)
+
+
 ```
 
 
@@ -497,15 +511,35 @@ leaves_AC_unique <- leaves_AC_duped %>%
   group_by(Block, Transect, Recipient) %>% 
   slice_sample(n = 1) %>%  #select a random row for each  combo of block, transect, recipient
   select(-c(duped, Plant_ID)) %>%  #Don't need plant ID...these were all non-fitness plants
-  mutate(SLA = leaf_area_mm2 / leaf_dryweight_mg,
-         LMA = 1 / SLA)
+  mutate(SLA_SEG = leaf_area_mm2 / leaf_dryweight_mg,
+         LMA_SEG = 1 / SLA_SEG) %>% #Following line added: SEG indicates a segment-wide estimate
+  rename(leaf_area_mm2_SEG = leaf_area_mm2,
+         leaf_dryweight_mg_SEG = leaf_dryweight_mg)
 
 
 #Merge in to main data 
 
 AC_merged_df6 <- merge(AC_merged_df5, leaves_AC_unique, by = c("Block", "Transect", "Recipient"), all.x = TRUE) #replicates leaf area & weight for every plant of a transect recipient combo
 
+#
+#
+##Include plant-level leaf measurements as well:
+leaves_AC_ind <- leaves_AC %>% 
+  mutate(Plant_ID = case_when(Plant_ID == "No ID" ~ NA,
+                              TRUE ~ Plant_ID)) %>%  #Fix missing ID names
+  filter(!is.na(Plant_ID)) %>% #remove obs missing ID (2)
+  select(Block, Transect, Recipient, Plant_ID, leaf_area_mm2, leaf_dryweight_mg) %>% #ignore notes
+  mutate(SLA = leaf_area_mm2 / leaf_dryweight_mg,
+         LMA = 1 / SLA)
 
+#Merge - sheet 6b
+AC_merged_df6b <- merge(AC_merged_df6, leaves_AC_ind, by = c("Block", "Transect", "Recipient", "Plant_ID"), all.x = TRUE) #measures of individual plants. Total # obs unchanged
+
+# make sure all measurements merged in
+AC_NFleaves <- AC_merged_df6b %>% 
+  filter(!is.na(leaf_dryweight_mg)) %>% 
+  arrange(FitP)
+# Should be all/mostly NF
 
 ```
 
@@ -633,39 +667,168 @@ Nemo_d13_AC2 <- Nemo_d13C_AC %>%
   mutate(Recipient = gsub('-', '_', substr(sample_ID, 1, 6)), 
          Transect = as.numeric(str_remove(substr(sample_ID, 8, 10), "^0+")),
          Plant_ID = as.numeric(substr(sample_ID, 12,13))) %>% 
-  select(Transect, Recipient, Plant_ID, d13C, sample_weight_mg, -Plant_ID)
+  select(Transect, Recipient, Plant_ID, d13C, sample_weight_mg) #un-un-select Plant_ID
+
 
 #Merge
-
-AC_merged_df_fl3 <- merge(AC_merged_df_fl2, Nemo_d13_AC2, by = c("Recipient", "Transect"), all.x = TRUE)
-#Merge by Recipient and Transect only: genotype-wide estimates of d13C since some plants were NF
-
+AC_merged_df_fl3 <- merge(AC_merged_df_fl2, Nemo_d13_AC2, by = c("Recipient", "Transect", "Plant_ID"), all.x = TRUE) #add Pland ID to merge by
 
 
 #check that all data made it (266 obs)
 #testdf <- AC_merged_df_fl3 %>% 
 #  filter(!is.na(d13C))
+
+#Check d13C for F/NF plants... 
+AC_NFd13C <- AC_merged_df_fl3 %>% 
+  filter(!is.na(d13C)) %>% 
+  arrange(FitP)
+#includes 10 Rep Fs; rest main F
+
+
+#Create segment-wide estimate of d13C:
+Nemo_d13_AC2b <- Nemo_d13_AC2 %>% 
+  rename(d13C_SEG = d13C) %>% #rename for seg-wide measure
+  select(Transect, Recipient, d13C_SEG) #un-select Plant_ID, dryweight of sample
+
+
+AC_merged_df_fl3b <- merge(AC_merged_df_fl3, Nemo_d13_AC2b, by = c("Recipient", "Transect"), all.x = TRUE) 
+#Merge by Recipient and Transect only: segment-wide estimates of d13C since some plants were NF
+
 ```
+
 
 
 **Duplicate & Final Error Check**  
 
 ```{r}
 #All rows
-AC_merged_df_fl3 %>% get_dupes()
+AC_merged_df_fl3b %>% get_dupes()
 
 
 #Fitness Plants
-AC_merged_df_fl3 %>% 
+AC_merged_df_fl3b %>% 
   filter(any_FitP == TRUE) %>% 
   get_dupes()
 
 
-
 #Main fitness plants
-AC_merged_df_fl3 %>% 
+AC_merged_df_fl3b %>% 
   filter(FitP == TRUE) %>% 
   get_dupes()
+
+```
+
+
+
+##### Segment-wide estimates for skeleton weight, corolla area & diameter  
+
+**Skeleton Weight**  
+```{r}
+#Merge to identify MAIN fitness plants
+skel_weights_seg1 <- merge(AC_GermFlow_3, skel_weights_all, by = c("Recipient", "Transect", "Plant_ID"), all.x = TRUE) %>% 
+  filter(!is.na(AG_biomass_mg)) %>% 
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, AG_biomass_mg)
+
+
+#Highlight ALL DUPES (multiple measures within a segment)
+skel_weights_duped <- skel_weights_seg1 %>% 
+  mutate(duped1 = duplicated(subset(skel_weights_seg1, select = c("Block", "Transect", "Sequence", "Donor", "Recipient"))),
+         duped2 = duplicated(subset(skel_weights_seg1, select = c("Block", "Transect", "Sequence", "Donor", "Recipient")), fromLast = TRUE),
+         duped = case_when(duped1|duped2 == TRUE ~ TRUE,
+                           TRUE ~ FALSE))
+
+
+#Filter out Replicated Plants when a Main plant is available (non-watered transects only)
+#Note: Non-main FitPs (replicated) retained when only when a single measure taken from a segment, but duplicates (2+) of replicated plants are removed
+skel_weights_unduped1 <- skel_weights_duped %>% 
+  filter(case_when(duped == TRUE & Replicated == "R" & Block != "W" ~ FitP == TRUE,
+                   TRUE ~ any_FitP == TRUE)) %>% #keep all main FitPs when duped+replicated,else keep all
+  filter(Block != "W")
+
+
+#Randomly selected F plants - one measure per available segment
+skel_weights_seg_RAND <- skel_weights_duped %>% 
+  group_by(Block, Transect, Recipient) %>% 
+  slice_sample(n = 1) %>%  #select a random row for each  combo of block, transect, recipient
+  select(-c(duped, Plant_ID))  #%>% 
+ # select(Block:Recipient) #temp filter
+#Confirms # obs = # segments (310)
+
+
+#Anti-join to see missing obs
+skel_weights_unduped_comp <- anti_join(skel_weights_seg_RAND, skel_weights_unduped1, by = c("Block", "Transect", "Sequence", "Donor", "Recipient")) %>% 
+  select(-c(Replicated:any_FitP, duped1, duped2))
+
+#Main plant measures - remove unnecessary columns
+skel_weights_unduped1b <- skel_weights_unduped1 %>% 
+  select(-c(Replicated:any_FitP, duped, duped1, duped2)) #Make sure columns match up
+
+#Combine with missing complement - measurements from replicated/NF plants where no main plant available
+skel_weights_SEG <- rbind(skel_weights_unduped1b, skel_weights_unduped_comp) %>% 
+  rename(AG_biomass_mg_SEG = AG_biomass_mg)
+#End result: One measure per segment (from which a skeleton was collected), with main fitness plants retained where available and NF/Replicated FitPs selected "at random" (using slice_sample(n=1))
+
+
+#Merge with main data sheet
+AC_merged_df_fl4 <- merge(AC_merged_df_fl3b, skel_weights_SEG, by = c("Block", "Transect", "Sequence", "Donor", "Recipient"), all.x = TRUE)
+
+```
+
+
+
+**Corolla Diameter & Area**  
+Use same approach as above
+
+```{r}
+#Merge to identify MAIN fitness plants
+corollas_seg1 <- AC_merged_df5 %>% 
+  filter(!is.na(corolla_diam_mm)) %>% #diameter prioritized - main trait to measure (& fewer NAs)
+  select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, corolla_diam_mm, corolla_area_mm2) 
+
+
+#Highlight duplicates
+corollas_duped <- corollas_seg1 %>% 
+  mutate(duped1 = duplicated(subset(corollas_seg1, select = c("Block", "Transect", "Sequence", "Donor", "Recipient"))),
+         duped2 = duplicated(subset(corollas_seg1, select = c("Block", "Transect", "Sequence", "Donor", "Recipient")), fromLast = TRUE),
+         duped = case_when(duped1|duped2 == TRUE ~ TRUE,
+                           TRUE ~ FALSE))
+
+
+#Filter out Replicated Plants when a Main plant is available (non-watered transects only)
+#Note: Duplicates (2+) of replicated plants are removed; merged back in after random selection below
+corollas_unduped1 <- corollas_duped %>% 
+  filter(case_when(duped == TRUE & Replicated == "R" & Block != "W" ~ FitP == TRUE,
+                   TRUE ~ any_FitP == TRUE)) %>% #keep all main FitPs when duped+replicated, else keep all
+  filter(Block != "W") #241 obs
+
+
+#Randomly selected F plants - one measure per available segment
+corollas_seg_RAND <- corollas_duped %>% 
+  group_by(Block, Transect, Recipient) %>% 
+  slice_sample(n = 1) %>%  #select a random row for each  combo of block, transect, recipient
+  select(-c(duped, Plant_ID)) #%>% 
+  #filter(Block != "W")
+##309 total obs; 267 obs excluding W block - number of segment measurements there should be
+
+
+#Anti-join to get missing obs
+corollas_unduped_comp <- anti_join(corollas_seg_RAND, corollas_unduped1, by = c("Block", "Transect", "Sequence", "Donor", "Recipient")) %>% 
+  select(-c(Replicated:any_FitP, duped1, duped2))
+
+
+#Main plant measures - remove unnecessary columns
+corollas_unduped1b <- corollas_unduped1 %>% 
+  select(-c(Replicated:any_FitP, duped, duped1, duped2)) #Make sure columns match up
+
+#Combine with missing complement - measurements from replicated/NF plants where no main plant available
+corollas_SEG <- rbind(corollas_unduped1b, corollas_unduped_comp) %>% 
+  rename(corolla_diam_mm_SEG = corolla_diam_mm,
+         corolla_area_mm2_SEG = corolla_area_mm2) #rename vars
+#double-check that obs total as expected
+
+
+#Merge
+AC_merged_df_fl5 <- merge(AC_merged_df_fl4, corollas_SEG, by = c("Block", "Transect", "Sequence", "Donor", "Recipient"), all.x = TRUE)
 
 ```
 
@@ -679,7 +842,7 @@ AC_merged_df_fl3 %>%
 #Sort by transect and ID variables, then by Fitness plants and those that flowered...
 
 
-AC_mastersheet_v1 <- AC_merged_df_fl3 %>% 
+AC_mastersheet_v1 <- AC_merged_df_fl5 %>% 
   mutate(Year = 2022, Gen = "G1") %>% 
   select(Year, Gen, Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
