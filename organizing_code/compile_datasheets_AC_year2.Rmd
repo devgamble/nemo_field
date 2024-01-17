@@ -283,26 +283,76 @@ AC_fruitseed_ct3 <- merge(AC_fruitseed_ct2, AC_seedmass_3, by = c("Transect", "S
 
 
 #### Corolla measurements  
-[[OLD - UPDATE]]
+[[UPDATE]]
 
-```{r eval = FALSE}
-corollas_AC <- read_csv(here::here("data_sheets", "corolla_measures", "corollameasures_AC_2023-02-28.csv")) %>% select(1, 3, 4, 6, 7, 9, 11) %>% 
-  rename(photo_date = 4, corolla_diam_mm = 5, corolla_area_mm2 = 6, notes_corolla = 7) %>% 
-  filter(!grepl("REMOVE", notes_corolla)) ## Filter out notes with "REMOVE"
+- Format dates in excel prior to importing
+```{r}
+corollas_AC <- read_csv(here::here("data_sheets", "2023_year2_data", "corolla_leaf_data", "Corolla Diameters 2023 - AC_corollas.csv")) %>% select(-c(4,10, 11)) %>% 
+  rename(corolla_notes = Notes, photo_date = `Photo date`) 
+
 
 corollas_AC2 <- corollas_AC %>% 
   filter(!is.na(corolla_diam_mm)) %>% 
   mutate(photo_date = as_date(photo_date)) %>% #correct missing dates manually
-  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Fix Recipient names
-  mutate(Recipient = as.character(str_c("AC_", Recipient_num))) %>% 
-  select(-Recipient_num) %>% 
   arrange(Transect, Recipient, Plant_ID, photo_date) %>% 
   distinct(Transect, Recipient, Plant_ID, .keep_all = TRUE) #Keep only the earliest photo date data for duplicates
-#Only about 6 duplicate observations removed
+#13 duplicate observations removed
 
 
 ## Merge with main data 
-AC_merged_df5 <- merge(AC_merged_df4, corollas_AC2, by = c("Transect", "Recipient", "Plant_ID"), all.x = TRUE)
+
+
+
+
+
+##Create segment-wide corolla diameter column
+
+
+#Merge to identify MAIN fitness plants
+# corollas_seg1 <- AC_merged_df5 %>% 
+#   filter(!is.na(corolla_diam_mm)) %>% #diameter prioritized - main trait to measure (& fewer NAs)
+#   select(Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, corolla_diam_mm, corolla_area_mm2) 
+# 
+# 
+# #Highlight duplicates
+# corollas_duped <- corollas_seg1 %>% 
+#   mutate(duped1 = duplicated(subset(corollas_seg1, select = c("Block", "Transect", "Sequence", "Donor", "Recipient"))),
+#          duped2 = duplicated(subset(corollas_seg1, select = c("Block", "Transect", "Sequence", "Donor", "Recipient")), fromLast = TRUE),
+#          duped = case_when(duped1|duped2 == TRUE ~ TRUE,
+#                            TRUE ~ FALSE))
+# 
+# 
+# #Filter out Replicated Plants when a Main plant is available (non-watered transects only)
+# #Note: Duplicates (2+) of replicated plants are removed; merged back in after random selection below
+# corollas_unduped1 <- corollas_duped %>% 
+#   filter(case_when(duped == TRUE & Replicated == "R" & Block != "W" ~ FitP == TRUE,
+#                    TRUE ~ any_FitP == TRUE)) %>% #keep all main FitPs when duped+replicated, else keep all
+#   filter(Block != "W") #241 obs
+# 
+# 
+# #Randomly selected F plants - one measure per available segment
+# corollas_seg_RAND <- corollas_duped %>% 
+#   group_by(Block, Transect, Recipient) %>% 
+#   slice_sample(n = 1) %>%  #select a random row for each  combo of block, transect, recipient
+#   select(-c(duped, Plant_ID)) #%>% 
+#   #filter(Block != "W")
+# ##309 total obs; 267 obs excluding W block - number of segment measurements there should be
+# 
+# 
+# #Anti-join to get missing obs
+# corollas_unduped_comp <- anti_join(corollas_seg_RAND, corollas_unduped1, by = c("Block", "Transect", "Sequence", "Donor", "Recipient")) %>% 
+#   select(-c(Replicated:any_FitP, duped1, duped2))
+# 
+# 
+# #Main plant measures - remove unnecessary columns
+# corollas_unduped1b <- corollas_unduped1 %>% 
+#   select(-c(Replicated:any_FitP, duped, duped1, duped2)) #Make sure columns match up
+# 
+# #Combine with missing complement - measurements from replicated/NF plants where no main plant available
+# corollas_SEG <- rbind(corollas_unduped1b, corollas_unduped_comp) %>% 
+#   rename(corolla_diam_mm_SEG = corolla_diam_mm,
+#          corolla_area_mm2_SEG = corolla_area_mm2) #rename vars
+# #double-check that obs total as expected
   
 ```
 

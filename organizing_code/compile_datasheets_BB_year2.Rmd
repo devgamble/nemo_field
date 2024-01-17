@@ -361,28 +361,26 @@ BB_fruitseed_ct3 <- merge(BB_fruitseed_ct2, BB_seedmass_3, by = c("Block", "Loca
 <br>  
 
 #### Corolla measurements  
-[[OLD - UPDATE]]
-
+[[UPDATE]]
+- Format dates in excel prior to importing
 ```{r eval = FALSE}
-corollas_BB <- read_csv(here::here("data_sheets", "corolla_measures", "corollameasures_BB_2023-02-28.csv")) %>% select(1, 2, 3, 4, 6, 8, 9, 10) %>% 
-  rename(Location = 2, Recipient = 3, Plant_ID = 4, photo_date = 5, corolla_diam_mm = 7, corolla_area_mm2 = 6, notes_corolla = 8) %>% 
-  filter(!grepl("REMOVE", notes_corolla)) ## Filter out notes with "REMOVE"
+corollas_BB <- read_csv(here::here("data_sheets", "2023_year2_data", "corolla_leaf_data", "Corolla Diameters 2023 - BB_corollas.csv")) %>% select(-c(4,10, 11)) %>% 
+  rename(corolla_notes = Notes, photo_date = `Photo date`) %>% 
+  filter(!grepl("REMOVE", corolla_notes)) ## Filter out notes with "REMOVE"
 
 corollas_BB2 <- corollas_BB %>% 
   filter(!is.na(corolla_diam_mm)) %>% 
-  mutate(photo_date = as_date(photo_date)) %>% #correct missing dates manually
-  mutate(Recipient_num = sprintf("%03d", (parse_number(Recipient)))) %>% #Fix Recipient names
-  mutate(Recipient = as.character(str_c("BB_", Recipient_num))) %>% 
-  select(-Recipient_num) %>% 
-  mutate(Block = case_when(Block %in% c("W1","W2") ~ "W", #Fix blocks
-                           TRUE ~ Block)) %>% 
-  arrange(Block, Location, Recipient, Plant_ID, photo_date) %>% 
+  mutate(photo_date = as_date(photo_date)) %>% #correct missing dates manually 
+  arrange(Location, Recipient, Plant_ID, photo_date) %>% 
   distinct(Location, Recipient, Plant_ID, .keep_all = TRUE) #Keep only the earliest photo date data for duplicates
-#Only about 6 duplicate observations removed
+#24 duplicate observations removed
 
 
 ## Merge with main data 
-BB_merged_df6 <- merge(BB_merged_df5, corollas_BB2, by = c("Block", "Location", "Recipient", "Plant_ID"), all.x = TRUE)
+
+
+##Create segment-wide corolla diameter column
+
   
 ```
 
