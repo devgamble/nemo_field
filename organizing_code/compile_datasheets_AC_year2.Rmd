@@ -225,11 +225,10 @@ skelcheck <- merge(AC_Fitness_2, skel_weights_AC, by = c("Transect", "SegPos", "
 
 <br>  
 
-**TEMP MERGED DATA FRAME**  
+
 
 Merge trait data processed thus far
 
-**NOTE** SHOULD THOSE COLUMNS BE PRESENT/ABSENT IN THE FINAL DATA SHEET??
 
 ```{r}
 
@@ -243,38 +242,54 @@ AC_merged_2 <- merge(AC_merged_1, AC_fruit_seeds_3, by = c("Sequence", "Transect
 
 
 #### Seed Weights  
-[[OLD - UPDATE]]  
 
-```{r eval = FALSE}
+Update: Use revised seed counts in seed weight data sheet. Viable seed counts were corrected in this data sheet, so these values should be used instead of the ones from the seed count data sheet.
+
+No 0s found for date-specific mean seed mass
+
+```{r}
 # Read in only # seeds weighed and total weight
-# Calculate mean weight per seed
 
-AC_seedmass_1 <- read_csv(here::here("data_sheets", "seed_mass", "AC_Seed_Mass_2023-02-05.csv"), skip = 2)
+AC_seedmass_2023 <- read_csv(here::here("data_sheets", "2023_year2_data", "fruit_seed_counts", "AC_Seed_Weights_2023-All_Data.csv"), skip = 1) %>% 
+  select(-c(29:33)) %>% #rm closed fruit count, unused columns at end
+  rename(msm_all = 8, closed_fruits_d1 = 9, viable_seeds_d1 = 10, seeds_weighed_d1 = 11, seed_mass_mg_d1 = 12, mean_mass_mg_d1 = 13,
+         closed_fruits_d2 = 14, viable_seeds_d2 = 15, seeds_weighed_d2 = 16, seed_mass_mg_d2 = 17, mean_mass_mg_d2 = 18,
+         closed_fruits_d3 = 19, viable_seeds_d3 = 20, seeds_weighed_d3 = 21, seed_mass_mg_d3 = 22, mean_mass_mg_d3 = 23,
+         closed_fruits_d4 = 24, viable_seeds_d4 = 25, seeds_weighed_d4 = 26, seed_mass_mg_d4 = 27, mean_mass_mg_d4 = 28) %>% 
+  rename(SegPos = Segment, Plant_ID = Fit_plant) %>% #match names in main full data sheet
+  select(-Sym)
 
-colnames(AC_seedmass_1) <- c("Sequence", "Transect", "Recipient_old", "Recipient", "Plant_ID", "closed_fruits_d1", "viable_seeds_d1", "seeds_weighed_d1", "seed_mass_mg_d1", "closed_fruits_d2", "viable_seeds_d2", "seeds_weighed_d2", "seed_mass_mg_d2", "closed_fruits_d3", "viable_seeds_d3", "seeds_weighed_d3", "seed_mass_mg_d3", "closed_fruits_d4", "viable_seeds_d4", "seeds_weighed_d4", "seed_mass_mg_d4", "closed_fruits_d5", "viable_seeds_d5", "seeds_weighed_d5", "seed_mass_mg_d5")
 
+#Calculate number of viable seeds 
+#Calculate SD of grand mean seed mass
 
-#Unsure how to account for number of seeds weighed - each statistical 'unit' is the mean seed weight calculated on a given date
-
-AC_seedmass_2 <- AC_seedmass_1 %>% 
-  select(-starts_with(c("closed_fruits_", "viable_seeds_")), -Recipient_old) %>% 
-  mutate(msm_d1 = seed_mass_mg_d1/seeds_weighed_d1,
-         msm_d2 = seed_mass_mg_d2/seeds_weighed_d2,
-         msm_d3 = seed_mass_mg_d3/seeds_weighed_d3,
-         msm_d4 = seed_mass_mg_d4/seeds_weighed_d4,
-         msm_d5 = seed_mass_mg_d5/seeds_weighed_d5)
-         
-
-AC_seedmass_3 <- AC_seedmass_2 %>%
-  mutate(msm_all = rowMeans(select(AC_seedmass_2, starts_with("msm_")), na.rm = TRUE)) %>% 
+AC_seedmass_2023_B <- AC_seedmass_2023 %>% 
+  mutate(ALL_filled_seeds_N = rowSums(across(c(viable_seeds_d1, viable_seeds_d2, viable_seeds_d3, viable_seeds_d4)), na.rm = TRUE)) %>% #sum viable seed counts across dates (N for NEW)
   rowwise() %>% 
-  mutate(sd_msm_all = sd(c_across(c(msm_d1:msm_d5)), na.rm = TRUE))
+  mutate(sd_msm_all = sd(c_across(c(mean_mass_mg_d1, mean_mass_mg_d2, mean_mass_mg_d3, mean_mass_mg_d4)), na.rm = TRUE)) %>%  #calculate total standard deviation of mean seed mass
+  select(Sequence:Plant_ID, ALL_filled_seeds_N, msm_all, sd_msm_all, everything())
+#SD only available when viable seeds from two or more different dates were weighed 
+#Each statistical 'unit' is the mean seed weight calculated on a given date
          
   
 ##Merge with fruit/seed count data frame
 
-AC_fruitseed_ct3 <- merge(AC_fruitseed_ct2, AC_seedmass_3, by = c("Transect", "Sequence", "Recipient", "Plant_ID"), all.x = TRUE)
+AC_merged_2.5 <- merge(AC_merged_2, AC_seedmass_2023_B, by = c("Sequence", "Transect", "SegPos", "Gen", "Recipient", "Plant_ID"), all.x = TRUE)
 #all.x means that any fitness plant x ID combos that don't match up won't be included.
+
+
+#Check merge success
+#Only fitness plants should have seed weight data
+AC_merge_check <- AC_merged_2.5 %>% 
+  filter(!is.na(msm_all))
+
+AC_merge_check2 <- AC_merged_2.5 %>% 
+  filter(!is.na(ALL_filled_seeds_N)) #Should match original seed count Nrows
+
+## Correct viable seed counts
+AC_merged_3 <- AC_merged_2.5 %>% 
+  mutate(seed_recount_diff = ALL_filled_seeds_N - ALL_filled_seeds) %>% #Check data sheets for high diffs
+  select(-c(seed_recount_diff, ALL_filled_seeds)) #comment out this line to check before proceeding
 
 ```
 
@@ -542,14 +557,17 @@ write_csv(AC_merged_full_1, here::here("data_sheets", "2023_year2_data", "compil
 
 ######
 ######
+```
 
 
+**TO BE UPDATED**  
+```{r eval = FALSE}
 AC_mastersheet_v1 <- AC_merged_df_fl3 %>% 
   mutate(Year = 2022, Gen = "G1") %>% 
   select(Year, Gen, Block, Transect, Sequence, Donor, Recipient, Replicated, Plant_ID, FitP, Rep_FitP, any_FitP, F_plant, F_multi, F_plant_notes, everything()) %>% 
   arrange(Block, Transect, Sequence, Recipient, Plant_ID)
 
-write_csv(AC_mastersheet_v1, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_full_2023-08-07.csv"))
+write_csv(AC_mastersheet_v1, here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "AC_mastersheet_full_Y2_2023-08-07.csv"))
 #Renamed to full - has records of all plants (including non-fitness)
 
 
@@ -568,9 +586,9 @@ AC_mastersheet_F_all <- AC_mastersheet_v1 %>%
 ##Note: remaining NA values for fitness measures (mean seeds per fruit; est seed production) are the results of 0 closed fruit counts. Treate these as 0 fitness or as NAs to remove???
 
 
-write_csv(AC_mastersheet_F_mains, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-mains_2023-08-07.csv"))
+write_csv(AC_mastersheet_F_mains, here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "AC_mastersheet_Fitness-mains_Y2_2023-08-07.csv"))
 
-write_csv(AC_mastersheet_F_all, here::here("data_sheets", "compiled_sheets", "AC_mastersheet_Fitness-all_2023-08-07.csv"))
+write_csv(AC_mastersheet_F_all, here::here("data_sheets", "2023_year2_data", "compiled_sheets_2023", "AC_mastersheet_Fitness-all_Y2_2023-08-07.csv"))
 ```
 
 
